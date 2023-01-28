@@ -54,14 +54,16 @@ type ExposedSession struct {
 	Token     string    `json:"token",graphql:"token"`
 }
 
-func CreateUser(ctx context.Context, args struct {
+type CreateUserDto struct {
 	Name        string `json:"name",graphql:"name"`
 	FirstName   string `json:"firstName",graphql:"firstName"`
 	LastName    string `json:"lastName",graphql:"lastName"`
 	Email       string `json:"email",graphql:"email"`
 	Description string `json:"description",graphql:"description"`
 	Active      bool   `json:"active",graphql:"active"`
-}) (*User, error) {
+}
+
+func CreateUser(ctx context.Context, args CreateUserDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.create"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -77,10 +79,12 @@ func CreateUser(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserName(ctx context.Context, args struct {
+type UpdateUserNameDto struct {
 	Id   uuid.UUID `json:"id",graphql:"id"`
 	Name string    `json:"name",graphql:"name"`
-}) (*User, error) {
+}
+
+func UpdateUserName(ctx context.Context, args UpdateUserNameDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -96,10 +100,12 @@ func UpdateUserName(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserFirstName(ctx context.Context, args struct {
+type UpdateUserFirstNameDto struct {
 	Id        uuid.UUID `json:"id",graphql:"id"`
 	FirstName string    `json:"firstName",graphql:"firstName"`
-}) (*User, error) {
+}
+
+func UpdateUserFirstName(ctx context.Context, args UpdateUserFirstNameDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -115,10 +121,12 @@ func UpdateUserFirstName(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserLastName(ctx context.Context, args struct {
+type UpdateUserLastNameDto struct {
 	Id       uuid.UUID `json:"id",graphql:"id"`
 	LastName string    `json:"lastName",graphql:"lastName"`
-}) (*User, error) {
+}
+
+func UpdateUserLastName(ctx context.Context, args UpdateUserLastNameDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -134,10 +142,12 @@ func UpdateUserLastName(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserEmail(ctx context.Context, args struct {
+type UpdateUserEmailDto struct {
 	Id    uuid.UUID `json:"id",graphql:"id"`
 	Email string    `json:"email",graphql:"email"`
-}) (*User, error) {
+}
+
+func UpdateUserEmail(ctx context.Context, args UpdateUserEmailDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -153,10 +163,12 @@ func UpdateUserEmail(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserDescription(ctx context.Context, args struct {
+type UpdateUserDescriptionDto struct {
 	Id          uuid.UUID `json:"id",graphql:"id"`
 	Description string    `json:"description",graphql:"description"`
-}) (*User, error) {
+}
+
+func UpdateUserDescription(ctx context.Context, args UpdateUserDescriptionDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -172,10 +184,12 @@ func UpdateUserDescription(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func UpdateUserActive(ctx context.Context, args struct {
+type UpdateUserActiveDto struct {
 	Id     uuid.UUID `json:"id",graphql:"id"`
 	Active bool      `json:"active",graphql:"active"`
-}) (*User, error) {
+}
+
+func UpdateUserActive(ctx context.Context, args UpdateUserActiveDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -191,10 +205,12 @@ func UpdateUserActive(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func AddUserPermission(ctx context.Context, args struct {
+type AddUserPermissionDto struct {
 	Id          uuid.UUID `json:"id",graphql:"id"`
 	Permissions []string  `json:"permissions",graphql:"permissions"`
-}) (*User, error) {
+}
+
+func AddUserPermission(ctx context.Context, args AddUserPermissionDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.permission.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -211,10 +227,12 @@ func AddUserPermission(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func RemoveUserPermission(ctx context.Context, args struct {
+type RemoveUserPermissionDto struct {
 	Id          uuid.UUID `json:"id",graphql:"id"`
 	Permissions []string  `json:"permissions",graphql:"permissions"`
-}) (*User, error) {
+}
+
+func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.permission.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -231,10 +249,12 @@ func RemoveUserPermission(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func CreatePasswordAuthentication(ctx context.Context, args struct {
+type UpdateUserPasswordDto struct {
 	Id       uuid.UUID `json:"id",graphql:"id"`
 	Password string    `json:"password",graphql:"password"`
-}) (*Authentication, error) {
+}
+
+func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDto) (*Authentication, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -250,10 +270,12 @@ func CreatePasswordAuthentication(ctx context.Context, args struct {
 	return &authenticationDto, nil
 }
 
-func Authenticate(ctx context.Context, args struct {
+type PasswordAuthenticationDto struct {
 	Name     string `json:"name",graphql:"name"`
 	Password string `json:"password",graphql:"password"`
-}) (*ExposedSession, error) {
+}
+
+func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*ExposedSession, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	session, err := datasource.UserProvider.AuthenticatePassword(args.Name, args.Password)
 	if err != nil {
@@ -282,9 +304,11 @@ func GetUsers(ctx context.Context) ([]*User, error) {
 	return userDtos, nil
 }
 
-func GetUser(ctx context.Context, args struct {
+type GetUserDto struct {
 	Id uuid.UUID `json:"id",graphql:"id"`
-}) (*User, error) {
+}
+
+func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.view"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -300,7 +324,7 @@ func GetUser(ctx context.Context, args struct {
 	return &userDto, nil
 }
 
-func GetLocalUser(ctx context.Context, _ struct{}) (*User, error) {
+func GetLocalUser(ctx context.Context) (*User, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	if ctx.Value("user").(*model.User) == nil {
 		return nil, nil
