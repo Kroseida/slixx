@@ -1,0 +1,50 @@
+package migration
+
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+	"kroseida.org/slixx/internal/master/application"
+	"kroseida.org/slixx/internal/master/datasource/model"
+)
+
+type Script interface {
+	GetName() string
+	Migrate(db *gorm.DB) error
+}
+
+var migrationScripts = []Script{
+	V1StorageInit{},
+}
+
+func Migrate(database *gorm.DB) error {
+	return MigrateScripts(database, migrationScripts)
+}
+
+func MigrateScripts(database *gorm.DB, scripts []Script) error {
+	if (!database.Migrator().HasTable(&model.Migration{})) {
+		database.Migrator().CreateTable(&model.Migration{})
+	}
+	for migration := range scripts {
+		err := database.Transaction(func(context *gorm.DB) error {
+			targetMigration := scripts[migration]
+
+			// Check if migration is already applied
+			var existingMigration model.Migration
+			context.First(&existingMigration, "name = ?", targetMigration.GetName())
+			if existingMigration != (model.Migration{}) {
+				return nil
+			}
+
+			application.Logger.Info("Migrating: " + scripts[migration].GetName())
+			context.Create(&model.Migration{
+				Id:   uuid.New(),
+				Name: targetMigration.GetName(),
+			})
+			return targetMigration.Migrate(context)
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

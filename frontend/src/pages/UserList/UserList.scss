@@ -1,0 +1,17 @@
+.users-action {
+  float: right;
+  margin-right: 8px;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+@media only screen and (max-width: 720px) {
+  .users-action {
+    float: right;
+    margin-right: 5px;
+  }
+  .users-action:first-child {
+    float: right;
+    margin-right: 0px;
+  }
+}

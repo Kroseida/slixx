@@ -1,0 +1,56 @@
+.permission-list {
+  margin-top: 25px;
+  overflow-y: scroll;
+  height: 454px;
+  background-color: #f2f2f2;
+  border-radius: 0.5rem;
+}
+
+.permission-list .entry {
+  margin: 11px 15px 11px 15px;
+  user-select: none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.permission-list .entry div {
+  float: right;
+}
+
+.permission-list .entry b {
+  float: left;
+}
+
+.authentication {
+  border-width: 1px;
+  border-style: solid;
+  border-color: #e6e6e6;
+  border-radius: 15px;
+  margin-bottom: 10px;
+  padding: 15px 15px 58px;
+}
+
+.inactive {
+  background-color: #e6e6e6 !important;
+}
+
+.inactive > * {
+  color: #b3b3b3 !important;
+}
+
+.authentication > .row {
+  padding-left: 15px;
+  padding-right: 15px
+}
+
+.authentication > .title {
+  font-size: 1.2rem;
+}
+
+.authentication > .title > label {
+  font-size: 1.2rem;
+}

@@ -1,0 +1,78 @@
+{
+  "users": [
+    {
+      "name": "Max.Mustermann",
+      "firstName": "Max",
+      "lastName": "Mustermann",
+      "email": "max.mustermann@test.org",
+      "active": true,
+      "permissions": [],
+      "description": "Max Mustermann is a user in the application with no user access to the application.",
+      "password": "road:1::::1^_#1dfas12ef_ä#"
+    },
+    {
+      "name": "Jane.Doe",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "email": "jane.doe@test.org",
+      "active": true,
+      "permissions": [
+        "user.view",
+        "user.update",
+        "user.permission.update"
+      ],
+      "description": "Jane Doe is another proto-admin in the application with limited admin access to the application.",
+      "password": "fleaaaaxrt_!!**12d12sae121"
+    },
+    {
+      "name": "John.Smith",
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john.smith@test.org",
+      "active": true,
+      "permissions": [
+        "user.view",
+        "user.update"
+      ],
+      "description": "John Smith is a limited help-desk user in the application with limited user access to the application.",
+      "password": "jhoads^12134dsaasd"
+    },
+    {
+      "name": "Jane.Smith",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@test.org",
+      "active": true,
+      "permissions": [
+        "user.view"
+      ],
+      "description": "Jane Smith is a trainee help-desk user in the application with limited user access to the application.",
+      "password": "jhoads^ads____12e"
+    },
+    {
+      "name": "Maxine.Mustermann",
+      "firstName": "Maxine",
+      "lastName": "Mustermann",
+      "email": "maxine.musterfrau@test.org",
+      "active": false,
+      "permissions": [],
+      "description": "Maxine Mustermann is a inactive user",
+      "password": "road:1::::1^_____________ÖOR"
+    },
+    {
+      "name": "John.Doe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@test.org",
+      "active": true,
+      "permissions": [
+        "user.create",
+        "user.view",
+        "user.update",
+        "user.permission.update"
+      ],
+      "description": "John Doe is another administator in the application with full access to the application.",
+      "password": "___121aeds12d**!!ArteAlooooex"
+    }
+  ]
+}
