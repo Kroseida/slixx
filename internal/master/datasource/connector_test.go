@@ -26,7 +26,7 @@ func setupSuite() func() {
 
 	application.Logger = logger.Sugar()
 	return func() {
-		os.Remove("x.db")
+		os.Remove("slixx.db")
 	}
 }
 

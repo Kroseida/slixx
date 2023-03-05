@@ -7,60 +7,66 @@ import (
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/master/application"
 	"kroseida.org/slixx/internal/master/datasource"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/internal/master/datasource/provider"
 	"kroseida.org/slixx/pkg/dto"
+	"kroseida.org/slixx/pkg/model"
 	"time"
 )
 
 type User struct {
-	Id          uuid.UUID `json:"id",graphql:"id"`
-	Name        string    `json:"name",graphql:"name"`
-	FirstName   string    `json:"firstName",graphql:"firstName"`
-	LastName    string    `json:"lastName",graphql:"lastName"`
-	Email       string    `json:"email",graphql:"email"`
-	Active      bool      `json:"active",graphql:"active"`
-	Permissions string    `json:"permissions",graphql:"permissions"`
-	Description string    `json:"description",graphql:"description"`
-	CreatedAt   time.Time `json:"createdAt",graphql:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt",graphql:"updatedAt"`
-	DeletedAt   time.Time `json:"deletedAt",graphql:"deletedAt"`
+	Id          uuid.UUID `json:"id" graphql:"id"`
+	Name        string    `json:"name" graphql:"name"`
+	FirstName   string    `json:"firstName" graphql:"firstName"`
+	LastName    string    `json:"lastName" graphql:"lastName"`
+	Email       string    `json:"email" graphql:"email"`
+	Active      bool      `json:"active" graphql:"active"`
+	Permissions string    `json:"permissions" graphql:"permissions"`
+	Description string    `json:"description" graphql:"description"`
+	CreatedAt   time.Time `json:"createdAt" graphql:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt" graphql:"updatedAt"`
+	DeletedAt   time.Time `json:"deletedAt" graphql:"deletedAt"`
+}
+
+type UsersPage struct {
+	Rows []User `json:"rows" graphql:"rows"`
+	Page
 }
 
 type Authentication struct {
-	Id        uuid.UUID `json:"id",graphql:"id"`
-	UserId    uuid.UUID `json:"userId",graphql:"userId"`
-	Kind      string    `json:"kind",graphql:"kind"`
-	CreatedAt time.Time `json:"createdAt",graphql:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt",graphql:"updatedAt"`
-	DeletedAt time.Time `json:"deletedAt",graphql:"deletedAt"`
+	Id        uuid.UUID `json:"id" graphql:"id"`
+	UserId    uuid.UUID `json:"userId" graphql:"userId"`
+	Kind      string    `json:"kind" graphql:"kind"`
+	CreatedAt time.Time `json:"createdAt" graphql:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" graphql:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt" graphql:"deletedAt"`
 }
 
 type Session struct {
-	Id        uuid.UUID `json:"id",graphql:"id"`
-	UserId    uuid.UUID `json:"userId",graphql:"userId"`
-	ExpiresAt time.Time `json:"expiresAt",graphql:"expiresAt"`
-	CreatedAt time.Time `json:"createdAt",graphql:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt",graphql:"updatedAt"`
-	DeletedAt time.Time `json:"deletedAt",graphql:"deletedAt"`
+	Id        uuid.UUID `json:"id" graphql:"id"`
+	UserId    uuid.UUID `json:"userId" graphql:"userId"`
+	ExpiresAt time.Time `json:"expiresAt" graphql:"expiresAt"`
+	CreatedAt time.Time `json:"createdAt" graphql:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" graphql:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt" graphql:"deletedAt"`
 }
 
 type ExposedSession struct {
-	Id        uuid.UUID `json:"id",graphql:"id"`
-	UserId    uuid.UUID `json:"userId",graphql:"userId"`
-	ExpiresAt time.Time `json:"expiresAt",graphql:"expiresAt"`
-	CreatedAt time.Time `json:"createdAt",graphql:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt",graphql:"updatedAt"`
-	DeletedAt time.Time `json:"deletedAt",graphql:"deletedAt"`
-	Token     string    `json:"token",graphql:"token"`
+	Id        uuid.UUID `json:"id" graphql:"id"`
+	UserId    uuid.UUID `json:"userId" graphql:"userId"`
+	ExpiresAt time.Time `json:"expiresAt" graphql:"expiresAt"`
+	CreatedAt time.Time `json:"createdAt" graphql:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt" graphql:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt" graphql:"deletedAt"`
+	Token     string    `json:"token" graphql:"token"`
 }
 
 type CreateUserDto struct {
-	Name        string `json:"name",graphql:"name"`
-	FirstName   string `json:"firstName",graphql:"firstName"`
-	LastName    string `json:"lastName",graphql:"lastName"`
-	Email       string `json:"email",graphql:"email"`
-	Description string `json:"description",graphql:"description"`
-	Active      bool   `json:"active",graphql:"active"`
+	Name        string `json:"name" graphql:"name"`
+	FirstName   string `json:"firstName" graphql:"firstName"`
+	LastName    string `json:"lastName" graphql:"lastName"`
+	Email       string `json:"email" graphql:"email"`
+	Description string `json:"description" graphql:"description"`
+	Active      bool   `json:"active" graphql:"active"`
 }
 
 func CreateUser(ctx context.Context, args CreateUserDto) (*User, error) {
@@ -79,122 +85,22 @@ func CreateUser(ctx context.Context, args CreateUserDto) (*User, error) {
 	return &userDto, nil
 }
 
-type UpdateUserNameDto struct {
-	Id   uuid.UUID `json:"id",graphql:"id"`
-	Name string    `json:"name",graphql:"name"`
+type UpdateUserDto struct {
+	Id          uuid.UUID `json:"id" graphql:"id"`
+	Name        *string   `json:"name" graphql:"name"`
+	FirstName   *string   `json:"firstName" graphql:"firstName"`
+	LastName    *string   `json:"lastName" graphql:"lastName"`
+	Active      *bool     `json:"active" graphql:"active"`
+	Description *string   `json:"description" graphql:"description"`
+	Email       *string   `json:"email" graphql:"email"`
 }
 
-func UpdateUserName(ctx context.Context, args UpdateUserNameDto) (*User, error) {
-	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
-		return nil, graphql.NewSafeError("missing permission")
-	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserName(args.Id, args.Name)
-	if err != nil {
-		application.Logger.Debug(err)
-		return nil, err
-	}
-	var userDto User
-	dto.Map(&user, &userDto)
-
-	return &userDto, nil
-}
-
-type UpdateUserFirstNameDto struct {
-	Id        uuid.UUID `json:"id",graphql:"id"`
-	FirstName string    `json:"firstName",graphql:"firstName"`
-}
-
-func UpdateUserFirstName(ctx context.Context, args UpdateUserFirstNameDto) (*User, error) {
-	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
-		return nil, graphql.NewSafeError("missing permission")
-	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserFirstName(args.Id, args.FirstName)
-	if err != nil {
-		application.Logger.Debug(err)
-		return nil, err
-	}
-	var userDto User
-	dto.Map(&user, &userDto)
-
-	return &userDto, nil
-}
-
-type UpdateUserLastNameDto struct {
-	Id       uuid.UUID `json:"id",graphql:"id"`
-	LastName string    `json:"lastName",graphql:"lastName"`
-}
-
-func UpdateUserLastName(ctx context.Context, args UpdateUserLastNameDto) (*User, error) {
-	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
-		return nil, graphql.NewSafeError("missing permission")
-	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserLastName(args.Id, args.LastName)
-	if err != nil {
-		application.Logger.Debug(err)
-		return nil, err
-	}
-	var userDto User
-	dto.Map(&user, &userDto)
-
-	return &userDto, nil
-}
-
-type UpdateUserEmailDto struct {
-	Id    uuid.UUID `json:"id",graphql:"id"`
-	Email string    `json:"email",graphql:"email"`
-}
-
-func UpdateUserEmail(ctx context.Context, args UpdateUserEmailDto) (*User, error) {
-	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
-		return nil, graphql.NewSafeError("missing permission")
-	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserEmail(args.Id, args.Email)
-	if err != nil {
-		application.Logger.Debug(err)
-		return nil, err
-	}
-	var userDto User
-	dto.Map(&user, &userDto)
-
-	return &userDto, nil
-}
-
-type UpdateUserDescriptionDto struct {
-	Id          uuid.UUID `json:"id",graphql:"id"`
-	Description string    `json:"description",graphql:"description"`
-}
-
-func UpdateUserDescription(ctx context.Context, args UpdateUserDescriptionDto) (*User, error) {
+func UpdateUser(ctx context.Context, args UpdateUserDto) (*User, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserDescription(args.Id, args.Description)
-	if err != nil {
-		application.Logger.Debug(err)
-		return nil, err
-	}
-	var userDto User
-	dto.Map(&user, &userDto)
-
-	return &userDto, nil
-}
-
-type UpdateUserActiveDto struct {
-	Id     uuid.UUID `json:"id",graphql:"id"`
-	Active bool      `json:"active",graphql:"active"`
-}
-
-func UpdateUserActive(ctx context.Context, args UpdateUserActiveDto) (*User, error) {
-	if !IsPermitted(ctx, []string{"user.update"}) {
-		return nil, graphql.NewSafeError("missing permission")
-	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUserActive(args.Id, args.Active)
+	user, err := datasource.UserProvider.UpdateUser(args.Id, args.Name, args.FirstName, args.LastName, args.Active, args.Description, args.Email)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -206,8 +112,8 @@ func UpdateUserActive(ctx context.Context, args UpdateUserActiveDto) (*User, err
 }
 
 type AddUserPermissionDto struct {
-	Id          uuid.UUID `json:"id",graphql:"id"`
-	Permissions []string  `json:"permissions",graphql:"permissions"`
+	Id          uuid.UUID `json:"id" graphql:"id"`
+	Permissions []string  `json:"permissions" graphql:"permissions"`
 }
 
 func AddUserPermission(ctx context.Context, args AddUserPermissionDto) (*User, error) {
@@ -228,8 +134,8 @@ func AddUserPermission(ctx context.Context, args AddUserPermissionDto) (*User, e
 }
 
 type RemoveUserPermissionDto struct {
-	Id          uuid.UUID `json:"id",graphql:"id"`
-	Permissions []string  `json:"permissions",graphql:"permissions"`
+	Id          uuid.UUID `json:"id" graphql:"id"`
+	Permissions []string  `json:"permissions" graphql:"permissions"`
 }
 
 func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*User, error) {
@@ -250,8 +156,8 @@ func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*U
 }
 
 type UpdateUserPasswordDto struct {
-	Id       uuid.UUID `json:"id",graphql:"id"`
-	Password string    `json:"password",graphql:"password"`
+	Id       uuid.UUID `json:"id" graphql:"id"`
+	Password string    `json:"password" graphql:"password"`
 }
 
 func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDto) (*Authentication, error) {
@@ -271,8 +177,8 @@ func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDt
 }
 
 type PasswordAuthenticationDto struct {
-	Name     string `json:"name",graphql:"name"`
-	Password string `json:"password",graphql:"password"`
+	Name     string `json:"name" graphql:"name"`
+	Password string `json:"password" graphql:"password"`
 }
 
 func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*ExposedSession, error) {
@@ -288,24 +194,29 @@ func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*Exposed
 	return &sessionDto, nil
 }
 
-func GetUsers(ctx context.Context) ([]*User, error) {
+func GetUsers(ctx context.Context, args PageArgs) (*UsersPage, error) {
 	if !IsPermitted(ctx, []string{"user.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	users, err := datasource.UserProvider.GetUsers()
+
+	var pagination provider.Pagination[model.User]
+	dto.Map(&args, &pagination)
+
+	users, err := datasource.UserProvider.GetUsersPaged(&pagination)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
 	}
-	var userDtos []*User
+
+	var userDtos UsersPage
 	dto.Map(&users, &userDtos)
 
-	return userDtos, nil
+	return &userDtos, nil
 }
 
 type GetUserDto struct {
-	Id uuid.UUID `json:"id",graphql:"id"`
+	Id uuid.UUID `json:"id" graphql:"id"`
 }
 
 func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
@@ -314,6 +225,26 @@ func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	user, err := datasource.UserProvider.GetUser(args.Id)
+	if err != nil {
+		application.Logger.Debug(err)
+		return nil, err
+	}
+	var userDto User
+	dto.Map(&user, &userDto)
+
+	return &userDto, nil
+}
+
+type DeleteUserDto struct {
+	Id uuid.UUID `json:"id" graphql:"id"`
+}
+
+func DeleteUser(ctx context.Context, args DeleteUserDto) (*User, error) {
+	if !IsPermitted(ctx, []string{"user.delete"}) {
+		return nil, graphql.NewSafeError("missing permission")
+	}
+	reactive.InvalidateAfter(ctx, 5*time.Second)
+	user, err := datasource.UserProvider.DeleteUser(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

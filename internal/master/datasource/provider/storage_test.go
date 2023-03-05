@@ -9,7 +9,7 @@ import (
 func Test_CreateStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "test_kind", "{}")
+	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "test_kind", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -33,14 +33,14 @@ func Test_CreateStorage(t *testing.T) {
 func Test_GetStorages(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "test_kind", "{}")
+	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.CreateStorage("Test Storage 2", "test_kind 2", "{}")
+	_, err = datasource.StorageProvider.CreateStorage("Test Storage 2", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -56,10 +56,10 @@ func Test_GetStorages(t *testing.T) {
 
 	assert.Equal(t, 2, len(storages))
 	assert.Equal(t, "Test Storage", storages[0].Name)
-	assert.Equal(t, "test_kind", storages[0].Kind)
+	assert.Equal(t, "FTP", storages[0].Kind)
 	assert.Equal(t, "{}", storages[0].Configuration)
 	assert.Equal(t, "Test Storage 2", storages[1].Name)
-	assert.Equal(t, "test_kind 2", storages[1].Kind)
+	assert.Equal(t, "FTP", storages[1].Kind)
 	assert.Equal(t, "{}", storages[1].Configuration)
 	teardownSuite()
 }
@@ -67,14 +67,14 @@ func Test_GetStorages(t *testing.T) {
 func Test_GetStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "test_kind", "{}")
+	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "test_kind", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "test_kind", "{}")
+	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "test_kind", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

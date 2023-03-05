@@ -20,8 +20,11 @@ export default {
                     }
                 };
             },
-            subscribe(message, callback, error) {
-                let id = this.nextId++;
+            subscribe(message, callback, error, id) {
+                if (!id) {
+                    id = this.nextId++;
+                }
+
                 this.subscriptions[id] = {
                     callback,
                     error,
@@ -51,13 +54,12 @@ export default {
             subscribeTrackedObject(message, callback, error) {
                 let subscribeId = this.subscribe(message, (data) => {
                     if (data.message instanceof Array) {
-                        this.subscriptions[subscribeId].trackedObject = data.message[0].user;
+                        this.subscriptions[subscribeId].trackedObject = data.message[0].data;
+                        callback(this.subscriptions[subscribeId].trackedObject);
                     } else {
-                        Object.entries(data.message.user).forEach(([key, value]) => {
-                            this.subscriptions[subscribeId].trackedObject[key] = value;
-                        });
+                        this.unsubscribe(subscribeId)
+                        this.subscribeTrackedObject(message, callback, error, subscribeId)
                     }
-                    callback(this.subscriptions[subscribeId].trackedObject);
                 }, error);
                 this.subscriptions[subscribeId].trackedObject = {};
                 return subscribeId;
@@ -65,22 +67,12 @@ export default {
             subscribeTrackedArray(message, callback, error) {
                 let subscribeId = this.subscribe(message, (data) => {
                     if (data.message instanceof Array) {
-                        data.message[0].users.forEach((user) => {
-                            this.subscriptions[subscribeId].trackedObject.push(user);
+                        data.message[0].data.forEach((element) => {
+                            this.subscriptions[subscribeId].trackedObject.push(element);
                         });
                     } else {
-                        Object.entries(data.message.users).forEach(([key, value]) => {
-                            if (key === "$") {
-                                return;
-                            }
-                            if (!this.subscriptions[subscribeId].trackedObject[key]) {
-                                this.subscriptions[subscribeId].trackedObject.push(value[0]);
-                            } else {
-                                Object.entries(value).forEach(([key2, value2]) => {
-                                    this.subscriptions[subscribeId].trackedObject[key][key2] = value2;
-                                });
-                            }
-                        });
+                        this.unsubscribe(subscribeId)
+                        this.subscribeTrackedObject(message, callback, error, subscribeId)
                     }
                     callback(this.subscriptions[subscribeId].trackedObject);
                 }, error);

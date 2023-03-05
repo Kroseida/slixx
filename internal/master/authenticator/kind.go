@@ -1,7 +1,7 @@
 package authenticator
 
 import (
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 )
 
 type Kind interface {

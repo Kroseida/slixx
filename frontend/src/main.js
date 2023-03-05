@@ -21,9 +21,9 @@ Vue.use(VueTouch);
 Vue.use(Trend);
 Vue.component('Widget', Widget);
 Vue.use(VueGoogleMaps, {
-  load: {
-    key: 'AIzaSyB7OXmzfQYua_1LEhRdqsoYzyJOPh9hGLg',
-  },
+    load: {
+        key: 'AIzaSyB7OXmzfQYua_1LEhRdqsoYzyJOPh9hGLg',
+    },
 });
 Vue.component('apexchart', VueApexCharts);
 Vue.mixin(layoutMixin);
@@ -34,10 +34,20 @@ Vue.config.productionTip = false;
 
 Vue.prototype.$graphql = graphql.createClient(localStorage.getItem('token'));
 
+router.afterEach((to, from) => {
+    if (to.name === from.name) {
+        router.push('/')
+        // TODO: Find a better way to do this
+        setTimeout(() => {
+            router.push(to.path)
+        })
+    }
+});
+
 /* eslint-disable no-new */
 new Vue({
-  el: '#app',
-  store,
-  router,
-  render: h => h(App),
+    el: '#app',
+    store,
+    router,
+    render: h => h(App),
 });

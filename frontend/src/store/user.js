@@ -46,7 +46,7 @@ export default {
         subscribeUser(state, {userId, error}) {
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
             query {
-                user: getUser(id: "${userId}") {
+                data: getUser(id: "${userId}") {
                     id
                     name
                     firstName
@@ -64,10 +64,23 @@ export default {
                 state.originalUser = JSON.parse(JSON.stringify(data));
             }, error);
         },
+        deleteUser(state, {callback, error}) {
+            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
+            mutation {
+                data: deleteUser(id: "${state.user.id}") {
+                    id
+                }
+            }
+            `, (data) => {
+                state.user = data.message[0].data;
+                callback(state.user);
+                Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
+            }, error);
+        },
         createUser(state, {callback, error}) {
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
             mutation {
-                user: createUser(description: "${state.user.description}", email: "${state.user.email}", firstName: "${state.user.firstName}", lastName: "${state.user.lastName}", name: "${state.user.name}", active: ${state.user.active}) {
+                data: createUser(description: "${state.user.description.replaceAll('"', '\\"')}", email: "${state.user.email}", firstName: "${state.user.firstName}", lastName: "${state.user.lastName}", name: "${state.user.name}", active: ${state.user.active}) {
                     id
                     name
                     firstName
@@ -81,32 +94,32 @@ export default {
                 }
             }
             `, (data) => {
-                state.user = data.message[0].user;
+                state.user = data.message[0].data;
                 callback(state.user);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
             }, error);
         },
         saveUser(state, {callback, error}) {
-            let fullQuery = 'mutation {';
+            let fullQuery = 'mutation { name: updateUser(id: "' + state.user.id + '"';
             if (state.user.name !== state.originalUser.name) {
-                fullQuery += `name: updateUserName(id: "${state.user.id}", name: "${state.user.name}") {id name}`;
+                fullQuery += `, name: "${state.user.name}"`;
             }
             if (state.user.firstName !== state.originalUser.firstName) {
-                fullQuery += `firstName: updateUserFirstName(id: "${state.user.id}", firstName: "${state.user.firstName}") {id firstName}`;
+                fullQuery += `, firstName: "${state.user.firstName}"`;
             }
             if (state.user.lastName !== state.originalUser.lastName) {
-                fullQuery += `lastName: updateUserLastName(id: "${state.user.id}", lastName: "${state.user.lastName}") {id lastName}`;
+                fullQuery += `, lastName: "${state.user.lastName}"`;
             }
             if (state.user.email !== state.originalUser.email) {
-                fullQuery += `email: updateUserEmail(id: "${state.user.id}", email: "${state.user.email}") {id email}`;
+                fullQuery += `, email: "${state.user.email}"`;
             }
             if (state.user.active !== state.originalUser.active) {
-                fullQuery += `active: updateUserActive(id: "${state.user.id}", active: ${state.user.active}) {id active}`;
+                fullQuery += `, active: ${state.user.active}`;
             }
             if (state.user.description !== state.originalUser.description) {
-                fullQuery += `description: updateUserDescription(id: "${state.user.id}", description: "${state.user.description}") {id description}`;
+                fullQuery += `, description: "${state.user.description.replaceAll("\\", "\\\\").replaceAll('"', '\\"')}"`;
             }
-            fullQuery += '}';
+            fullQuery += ')\n {id}}';
 
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = -1;

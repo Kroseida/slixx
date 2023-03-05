@@ -7,53 +7,29 @@
         @mouseleave="sidebarMouseLeave"
     >
       <header class="logo">
-        <router-link to="/app/dashboard"><span class="primary-word">SLIXX</span><span class="secondary-word"> Dashboard</span></router-link>
+        <router-link to="/app/dashboard" style="padding-left: 7px">
+          <span class="primary-word">SLIXX</span>
+          <span class="secondary-word"> Dashboard</span>
+        </router-link>
       </header>
       <ul class="nav">
         <NavLink
             :activeItem="activeItem"
             header="Dashboard"
             link="/app/dashboard"
-            iconName="fa fa-dashboard"
+            iconName="fa fa-tachometer"
             index="dashboard"
-            id="sidebar__dashboard"
             isHeader
-        />
+            id="sidebar__dashboard"/>
         <NavLink
             :activeItem="activeItem"
-            header="Typography"
-            link="/app/typography"
-            iconName="fa fa-font"
-            index="typography"
-            isHeader
-        />
-        <NavLink
-            :activeItem="activeItem"
-            header="Tables Basic"
-            link="/app/tables"
-            iconName="fa fa-table"
-            index="tables"
-            isHeader
-        />
-        <NavLink
-            :activeItem="activeItem"
-            header="Notifications"
-            link="/app/notifications"
-            iconName="fa fa-bell"
+            v-if="isPermitted('storage.view')"
+            header="Storage"
+            link="/app/storage"
+            iconName="fa fa-database"
             index="notifications"
             isHeader
-        />
-        <NavLink
-            :activeItem="activeItem"
-            header="Components"
-            link="/app/components"
-            iconName="fa fa-code"
-            index="components"
-            :childrenLinks="[
-              { header: 'Charts', link: '/app/components/charts' },
-              { header: 'Icons', link: '/app/components/icons' },
-              { header: 'Maps', link: '/app/components/maps' },
-            ]"
+            id="sidebar__storage"
         />
         <NavLink
             :activeItem="activeItem"
@@ -61,7 +37,7 @@
             header="Users"
             link="/app/user"
             iconName="fa fa-user"
-            index="notifications"
+            index="user"
             isHeader
             id="sidebar__user"
         />

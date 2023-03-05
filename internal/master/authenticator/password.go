@@ -5,7 +5,7 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"golang.org/x/crypto/bcrypt"
 	"kroseida.org/slixx/internal/master/application"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 )
 
 type Password struct {

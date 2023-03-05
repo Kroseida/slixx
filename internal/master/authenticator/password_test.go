@@ -5,7 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/master/authenticator"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 	"testing"
 )
 

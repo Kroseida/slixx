@@ -1,2 +1,2 @@
-$env:NODE_OPTIONS = "--openssl-legacy-provider"
+nodejs 16.18.1
 yarn serve

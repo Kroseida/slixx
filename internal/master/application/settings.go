@@ -1,29 +1,29 @@
 package application
 
 type Settings struct {
-	Authentication Authentication `json:"authentication",graphql:"authentication"`
-	Http           Http           `json:"http",graphql:"http"`
-	Database       Database       `json:"database",graphql:"database"`
-	Logger         Log            `json:"logger",graphql:"logger"`
+	Authentication Authentication `json:"authentication" graphql:"authentication"`
+	Http           Http           `json:"http" graphql:"http"`
+	Database       Database       `json:"database" graphql:"database"`
+	Logger         Log            `json:"logger" graphql:"logger"`
 }
 
 type Authentication struct {
-	HashCost        int `json:"hashCost",graphql:"hashCost"`
-	TokenSize       int `json:"tokenSize",graphql:"tokenSize"`
-	SessionDuration int `json:"sessionDuration",graphql:"sessionDuration"`
+	HashCost        int `json:"hashCost" graphql:"hashCost"`
+	TokenSize       int `json:"tokenSize" graphql:"tokenSize"`
+	SessionDuration int `json:"sessionDuration" graphql:"sessionDuration"`
 }
 
 type Http struct {
-	AllowedOrigin string `json:"AllowedOrigin",graphql:"AllowedOrigin"`
+	AllowedOrigin string `json:"AllowedOrigin" graphql:"AllowedOrigin"`
 }
 
 type Database struct {
-	Kind          string            `json:"kind",graphql:"kind"`
-	Configuration map[string]string `json:"configuration",graphql:"configuration"`
+	Kind          string            `json:"kind" graphql:"kind"`
+	Configuration map[string]string `json:"configuration" graphql:"configuration"`
 }
 
 type Log struct {
-	Mode string `json:"mode",graphql:"mode"`
+	Mode string `json:"mode" graphql:"mode"`
 }
 
 var DefaultSettings = Settings{

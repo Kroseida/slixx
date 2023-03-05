@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"kroseida.org/slixx/internal/master/application"
 	"kroseida.org/slixx/internal/master/datasource"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 	"os"
 	"time"
 )

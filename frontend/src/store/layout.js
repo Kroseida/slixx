@@ -5,10 +5,9 @@ export default {
     namespaced: true,
     state: {
         subscribeId: -1,
-        sidebarClose: false,
+        sidebarClose: true,
         sidebarStatic: false,
         sidebarActiveElement: null,
-        chatOpen: false,
         localUser: {
             id: '',
             name: "",
@@ -22,12 +21,16 @@ export default {
         },
         permissions: [
             {
+                value: 'user.view',
+                name: 'View User',
+            },
+            {
                 value: 'user.create',
                 name: 'Create User',
             },
             {
-                value: 'user.view',
-                name: 'View User',
+                value: 'user.delete',
+                name: 'Delete User',
             },
             {
                 value: 'user.update',
@@ -36,6 +39,32 @@ export default {
             {
                 value: 'user.permission.update',
                 name: 'Update User Permissions',
+            },
+
+            // Storage
+            {
+                value: 'storage.view',
+                name: 'View Storage',
+            },
+            {
+                value: 'storage.create',
+                name: 'Create Storage',
+            },
+            {
+                value: 'storage.delete',
+                name: 'Delete Storage',
+            },
+            {
+                value: 'storage.update',
+                name: 'Update Storage',
+            },
+            {
+                value: 'storage.configuration.update',
+                name: 'Update Storage Configuration',
+            },
+            {
+                value: 'storage.configuration.view',
+                name: 'View Storage Configuration',
             },
         ],
         isPermitted(permission) {
@@ -50,7 +79,7 @@ export default {
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
             query {
-                user: getLocalUser {
+                data: getLocalUser {
                     id
                     name
                     firstName

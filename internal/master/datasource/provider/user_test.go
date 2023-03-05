@@ -108,7 +108,52 @@ func Test_CreateUser_NameUsed(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_getUsers(t *testing.T) {
+func Test_DeleteUser(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	users, err := datasource.UserProvider.GetUsers()
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, 2, len(users))
+
+	_, err = datasource.UserProvider.DeleteUser(user.Id)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	users, err = datasource.UserProvider.GetUsers()
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, 1, len(users))
+
+	teardownSuite()
+}
+
+func Test_GetUsers(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	_, err := datasource.UserProvider.CreateUser(
