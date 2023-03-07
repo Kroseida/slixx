@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/jlaffaye/ftp"
-	"io"
 	"path/filepath"
 	"strings"
 	"time"
@@ -46,19 +45,24 @@ func (kind *FtpKind) Initialize(rawConfiguration any) error {
 	return nil
 }
 
-func (kind *FtpKind) Store(dataMap map[string][]byte) error {
-	for name, data := range dataMap {
-		err := kind.createParentDirectory(kind.Configuration.File + name)
-		if err != nil {
-			return err
-		}
+func (kind *FtpKind) Size(name string) (uint64, error) {
+	size, err := kind.Client.FileSize(name)
+	if err != nil {
+		return 0, err
+	}
+	return uint64(size), nil
+}
 
-		kind.Client.Delete(kind.Configuration.File + name) // ignore errors
-		err = kind.Client.Stor(kind.Configuration.File+name, bytes.NewBuffer(data))
+func (kind *FtpKind) Store(name string, data []byte, offset uint64) error {
+	err := kind.createParentDirectory(kind.Configuration.File + name)
+	if err != nil {
+		return err
+	}
 
-		if err != nil {
-			return err
-		}
+	err = kind.Client.StorFrom(kind.Configuration.File+name, bytes.NewBuffer(data), offset)
+
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -94,14 +98,24 @@ func (kind *FtpKind) listFiles(path string, files *[]string) error {
 	return nil
 }
 
-func (kind *FtpKind) Read(file string) ([]byte, error) {
-	reader, err := kind.Client.Retr(file)
+func (kind *FtpKind) Read(file string, offset uint64, size uint64) ([]byte, error) {
+	reader, err := kind.Client.RetrFrom(file, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer reader.Close()
+	bytes := make([]byte, size)
 
-	return io.ReadAll(reader)
+	_, err = reader.Read(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
 }
 
 func (kind *FtpKind) Parse(configurationJson string) (interface{}, error) {

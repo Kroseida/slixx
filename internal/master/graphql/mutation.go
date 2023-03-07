@@ -8,6 +8,7 @@ import (
 func registerMutation(schema *schemabuilder.Schema) {
 	obj := schema.Mutation()
 	obj.FieldFunc("createStorage", controller.CreateStorage)
+	obj.FieldFunc("updateStorage", controller.UpdateStorage)
 	obj.FieldFunc("deleteStorage", controller.DeleteStorage)
 	obj.FieldFunc("createUser", controller.CreateUser)
 	obj.FieldFunc("deleteUser", controller.DeleteUser)

@@ -101,6 +101,29 @@ func CreateStorage(ctx context.Context, args struct {
 	return &storageDto, err
 }
 
+func UpdateStorage(ctx context.Context, args struct {
+	Id            uuid.UUID `json:"id" graphql:"id"`
+	Name          *string   `json:"name" graphql:"name"`
+	Description   *string   `json:"description" graphql:"description"`
+	Kind          *string   `json:"kind" graphql:"kind"`
+	Configuration *string   `json:"configuration" graphql:"configuration"`
+}) (*Storage, error) {
+	if !IsPermitted(ctx, []string{"storage.update"}) {
+		return nil, graphql.NewSafeError("missing permission")
+	}
+	reactive.InvalidateAfter(ctx, 5*time.Second)
+	storage, err := datasource.StorageProvider.UpdateStorage(args.Id, args.Name, args.Description, args.Kind, args.Configuration)
+
+	if err != nil {
+		application.Logger.Debug(err)
+		return nil, err
+	}
+	var storageDto Storage
+	dto.Map(&storage, &storageDto)
+
+	return &storageDto, nil
+}
+
 func DeleteStorage(ctx context.Context, args struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }) (*Storage, error) {

@@ -13,12 +13,45 @@ export default {
             listener() {
                 this.client.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    if ((data.type === 'update' || data.type === 'result') && this.subscriptions[data.id].callback) {
+                    if ((data.type === 'update' || data.type === 'result') && this.subscriptions[data.id] && this.subscriptions[data.id].callback) {
                         this.subscriptions[data.id].callback(data);
                     } else if (data.type === 'error' && this.subscriptions[data.id] && this.subscriptions[data.id].error) {
                         this.subscriptions[data.id].error(data);
                     }
                 };
+            },
+            buildFields(fields) {
+                let query = '';
+                for (let field in fields) {
+                    if (typeof fields[field] === 'string') {
+                        query += fields[field] + '\n';
+                    }
+                    if (typeof fields[field] === 'object') {
+                        query += fields[field].name + '{\n' + this.buildFields(fields[field].sub) + '}\n';
+                    }
+                }
+                return query;
+            },
+            buildQuery({method, args, fields, isMutation}) {
+                let query = (isMutation ? 'mutation' : '') + ' {\ndata: ' + method + (args.length !== 0 ? '(' : '');
+                let first = true;
+                for (let key in args) {
+                    if (args[key] === undefined) {
+                        continue;
+                    }
+                    if (first) {
+                        first = false;
+                    } else {
+                        query += ', ';
+                    }
+                    if (typeof args[key] === 'string') {
+                        query += key + ': "' + args[key] + '"';
+                    } else {
+                        query += key + ': ' + args[key];
+                    }
+                }
+                query += (args.length !== 0 ? ')' : '') + ' {\n ' + this.buildFields(fields) + '}\n}';
+                return query;
             },
             subscribe(message, callback, error, id) {
                 if (!id) {

@@ -84,6 +84,10 @@ export default {
           field: 'name'
         },
         {
+          name: 'Email',
+          field: 'email'
+        },
+        {
           name: 'First Name',
           field: 'firstName'
         },

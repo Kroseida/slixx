@@ -53,7 +53,8 @@
         </Widget>
       </b-col>
       <b-col sm="12" md="12"
-             v-if="isPermitted('storage.configuration.update') || isPermitted('storage.configuration.view') && kinds[storage.kind] && storage.configuration">
+             v-if="(isPermitted('storage.configuration.update') || isPermitted('storage.configuration.view'))
+              && storage.configuration && $route.params.id !== 'new'">
         <Widget>
           <h4>Configuration</h4>
           <div class="form-group">
@@ -89,7 +90,8 @@
             <b-button type="submit"
                       variant="success"
                       id="storageDetails__save__button"
-                      @click="save">
+                      :disabled="!hasConfigurationChanges()"
+                      @click="saveConfiguration">
               Save Configuration
             </b-button>
           </div>
@@ -149,7 +151,7 @@ export default {
         this.storage.kind = this.storage.kind || Object.keys(this.kinds)[0];
         this.applyConfiguration();
       } catch (e) {
-        this.$toasted.error('Error while loading storage kinds: ' + data.message, {
+        this.$toasted.error('Error while loading storage kinds: ' + e.message, {
           duration: 5000,
           position: 'top-right',
           fullWidth: true,
@@ -160,6 +162,7 @@ export default {
       if (this.$route.params.id === 'new') {
         return;
       }
+
       this.$store.commit('storage/subscribeStorage', {
         storageId: this.$route.params.id,
         callback: () => {
@@ -191,6 +194,26 @@ export default {
         }
       }
     },
+    saveConfiguration() {
+      this.$store.commit('storage/saveConfiguration', {
+        callback: () => {
+          this.$toasted.success('Storage configuration was saved successfully', {
+            duration: 5000,
+            position: 'top-right',
+            fullWidth: true,
+            fitToScreen: true,
+          });
+        },
+        error: (data) => {
+          this.$toasted.error('Error while saving storage configuration: ' + data.message, {
+            duration: 5000,
+            position: 'top-right',
+            fullWidth: true,
+            fitToScreen: true,
+          });
+        }
+      });
+    },
     save() {
       if (this.$route.params.id === 'new') {
         this.$store.commit('storage/createStorage', {
@@ -215,17 +238,16 @@ export default {
         return;
       }
       this.$store.commit('storage/saveStorage', {
-        callback: (storage) => {
-          this.$toasted.success('Storage was created successfully', {
+        callback: () => {
+          this.$toasted.success('Storage was saved successfully', {
             duration: 5000,
             position: 'top-right',
             fullWidth: true,
             fitToScreen: true,
           });
-          this.$router.push({name: 'StorageDetails', params: {id: storage.id}});
         },
         error: (data) => {
-          this.$toasted.error('Error while creating storage: ' + data.message, {
+          this.$toasted.error('Error while saving storage: ' + data.message, {
             duration: 5000,
             position: 'top-right',
             fullWidth: true,
@@ -262,7 +284,15 @@ export default {
       this.$store.commit('storage/unsubscribeStorage');
     },
     hasChanges() {
-      return JSON.stringify(this.storage) !== JSON.stringify(this.originalStorage);
+      let storage = JSON.parse(JSON.stringify(this.storage));
+      delete storage.configuration;
+      let originalStorage = JSON.parse(JSON.stringify(this.originalStorage));
+      delete originalStorage.configuration;
+
+      return JSON.stringify(storage) !== JSON.stringify(originalStorage);
+    },
+    hasConfigurationChanges() {
+      return JSON.stringify(this.storage.configuration) !== JSON.stringify(this.originalStorage.configuration);
     },
   }
 };

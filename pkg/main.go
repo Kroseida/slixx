@@ -14,15 +14,18 @@ func main() {
 		Host:     "10.30.100.102:21",
 		Username: "test",
 		Password: "123123123",
-		File:     "/test/",
+		File:     "/test",
 	})
 	destination[0].Initialize(&storage.FtpKindConfiguration{
 		Host:     "10.30.100.102:21",
 		Username: "test",
 		Password: "123123123",
-		File:     "/backup/",
+		File:     "/backup",
 	})
 
 	targetStrategy := strategy.COPY
-	targetStrategy.Execute(origin, destination)
+	err := targetStrategy.Execute(origin, destination)
+	if err != nil {
+		panic(err)
+	}
 }

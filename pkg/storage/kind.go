@@ -3,9 +3,10 @@ package storage
 type Kind interface {
 	GetName() string
 	Initialize(configuration any) error
-	Store(dataMap map[string][]byte) error
+	Store(name string, data []byte, offset uint64) error
 	ListFiles() ([]string, error)
-	Read(file string) ([]byte, error)
+	Size(file string) (uint64, error)
+	Read(file string, offset uint64, size uint64) ([]byte, error)
 	Delete(file string) error
 	Parse(configurationJson string) (interface{}, error)
 	DefaultConfiguration() interface{}

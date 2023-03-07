@@ -62,6 +62,39 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 	return &storage, nil
 }
 
+func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, description *string, kind *string, configuration *string) (*model.Storage, error) {
+	storage, err := provider.GetStorage(id)
+	if storage == nil {
+		return nil, graphql.NewSafeError("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if name != nil {
+		if *name == "" {
+			return nil, graphql.NewSafeError("name can not be empty")
+		}
+		storage.Name = *name
+	}
+	if kind != nil {
+		storage.Kind = *kind
+	}
+	if configuration != nil {
+		storage.Configuration = *configuration
+	}
+	if description != nil {
+		storage.Description = *description
+	}
+
+	result := provider.Database.Save(&storage)
+	if isSqlError(result.Error) {
+		return nil, result.Error
+	}
+
+	return storage, nil
+}
+
 func (provider StorageProvider) GetStorages() ([]*model.Storage, error) {
 	var storages []*model.Storage
 	result := provider.Database.Find(&storages)

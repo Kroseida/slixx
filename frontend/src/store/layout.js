@@ -58,14 +58,6 @@ export default {
                 value: 'storage.update',
                 name: 'Update Storage',
             },
-            {
-                value: 'storage.configuration.update',
-                name: 'Update Storage Configuration',
-            },
-            {
-                value: 'storage.configuration.view',
-                name: 'View Storage Configuration',
-            },
         ],
         isPermitted(permission) {
             if (!this.localUser) {

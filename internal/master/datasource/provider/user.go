@@ -23,6 +23,9 @@ func (provider UserProvider) CreateUser(name string, email string, firstName str
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
+	if email != "" && !strings.Contains(email, "@") {
+		return nil, graphql.NewSafeError("invalid email")
+	}
 	if strings.Contains(name, " ") {
 		return nil, graphql.NewSafeError("name can not contain spaces")
 	}
@@ -106,6 +109,9 @@ func (provider UserProvider) UpdateUser(id uuid.UUID, name *string, firstName *s
 		user.Description = *description
 	}
 	if email != nil {
+		if *email != "" && !strings.Contains(*email, "@") {
+			return nil, graphql.NewSafeError("invalid email")
+		}
 		user.Email = *email
 	}
 
