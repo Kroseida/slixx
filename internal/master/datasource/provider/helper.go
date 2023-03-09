@@ -3,7 +3,12 @@ package provider
 import (
 	"gorm.io/gorm"
 	"math"
+	"regexp"
+	"strings"
 )
+
+var matchFirstCap = regexp.MustCompile("(.)([A-Z][a-z]+)")
+var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 
 func isSqlError(err error) bool {
 	if err == nil {
@@ -15,49 +20,55 @@ func isSqlError(err error) bool {
 	return true
 }
 
-type Pagination struct {
-	Limit      int         `json:"limit,omitempty;query:limit"`
-	Page       int         `json:"page,omitempty;query:page"`
-	Sort       string      `json:"sort,omitempty;query:sort"`
-	TotalRows  int64       `json:"total_rows"`
-	TotalPages int         `json:"total_pages"`
-	Rows       interface{} `json:"rows"`
+type Pagination[T any] struct {
+	Limit      int    `json:"limit,omitempty;query:limit"`
+	Page       int    `json:"page,omitempty;query:page"`
+	Sort       string `json:"sort,omitempty;query:sort"`
+	TotalRows  int64  `json:"totalRows"`
+	TotalPages int    `json:"totalPages"`
+	Rows       []T    `json:"rows"`
+	Search     string `json:"search"`
 }
 
-func (p *Pagination) GetOffset() int {
+func (p *Pagination[any]) GetOffset() int {
 	return (p.GetPage() - 1) * p.GetLimit()
 }
 
-func (p *Pagination) GetLimit() int {
+func (p *Pagination[any]) GetLimit() int {
 	if p.Limit == 0 {
-		p.Limit = 10
+		p.Limit = 20
+	}
+	if p.Limit > 200 {
+		p.Limit = 20
 	}
 	return p.Limit
 }
 
-func (p *Pagination) GetPage() int {
+func (p *Pagination[any]) GetPage() int {
 	if p.Page == 0 {
 		p.Page = 1
 	}
 	return p.Page
 }
 
-func (p *Pagination) GetSort() string {
+func (p *Pagination[any]) GetSort() string {
 	if p.Sort == "" {
-		p.Sort = "Id desc"
+		p.Sort = "created_at asc"
 	}
-	return p.Sort
+	return p.toSnakeCase(p.Sort)
 }
 
-func paginate(value interface{}, pagination *Pagination, db *gorm.DB) func(db *gorm.DB) *gorm.DB {
+func (p *Pagination[any]) toSnakeCase(str string) string {
+	snake := matchFirstCap.ReplaceAllString(str, "${1}_${2}")
+	snake = matchAllCap.ReplaceAllString(snake, "${1}_${2}")
+	return strings.ToLower(snake)
+}
+
+func paginate[T any](value T, searchField string, pagination *Pagination[T], db *gorm.DB) *gorm.DB {
 	var totalRows int64
-	db.Model(value).Count(&totalRows)
-
+	db.Model(value).Where(searchField+" like ?", "%"+pagination.Search+"%").Count(&totalRows)
 	pagination.TotalRows = totalRows
-	totalPages := int(math.Ceil(float64(totalRows) / float64(pagination.Limit)))
-	pagination.TotalPages = totalPages
+	pagination.TotalPages = int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
 
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Order(pagination.GetSort())
-	}
+	return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Where(searchField+" like ?", "%"+pagination.Search+"%").Order(pagination.GetSort())
 }

@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 	"kroseida.org/slixx/internal/master/application"
 	"kroseida.org/slixx/internal/master/authenticator"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/utils"
 	"strings"
 	"time"
@@ -19,9 +19,24 @@ type UserProvider struct {
 	Database *gorm.DB
 }
 
+var PERMISSIONS = map[string]string{
+	"user.view":              "View User",
+	"user.create":            "Create User",
+	"user.update":            "Update User Account",
+	"user.delete":            "Delete User",
+	"user.permission.update": "Update User Permissions",
+	"storage.view":           "View Storage",
+	"storage.create":         "Create Storage",
+	"storage.update":         "Update Storage",
+	"storage.delete":         "Delete Storage",
+}
+
 func (provider UserProvider) CreateUser(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
+	}
+	if email != "" && !strings.Contains(email, "@") {
+		return nil, graphql.NewSafeError("invalid email")
 	}
 	if strings.Contains(name, " ") {
 		return nil, graphql.NewSafeError("name can not contain spaces")
@@ -54,7 +69,7 @@ func (provider UserProvider) CreateUser(name string, email string, firstName str
 	return user, nil
 }
 
-func (provider UserProvider) UpdateUserName(id uuid.UUID, name string) (*model.User, error) {
+func (provider UserProvider) DeleteUser(id uuid.UUID) (*model.User, error) {
 	user, err := provider.GetUser(id)
 	if user == nil {
 		return nil, graphql.NewSafeError("user not found")
@@ -63,20 +78,7 @@ func (provider UserProvider) UpdateUserName(id uuid.UUID, name string) (*model.U
 		return nil, err
 	}
 
-	if strings.Contains(name, " ") {
-		return nil, graphql.NewSafeError("name can not contain spaces")
-	}
-	existingUser, err := provider.GetUserByName(name)
-	if existingUser != nil {
-		return nil, graphql.NewSafeError("name already in use")
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	user.Name = name
-
-	result := provider.Database.Save(&user)
+	result := provider.Database.Delete(&user)
 	if isSqlError(result.Error) {
 		return nil, result.Error
 	}
@@ -84,7 +86,7 @@ func (provider UserProvider) UpdateUserName(id uuid.UUID, name string) (*model.U
 	return user, nil
 }
 
-func (provider UserProvider) UpdateUserFirstName(id uuid.UUID, firstName string) (*model.User, error) {
+func (provider UserProvider) UpdateUser(id uuid.UUID, name *string, firstName *string, lastName *string, active *bool, description *string, email *string) (*model.User, error) {
 	user, err := provider.GetUser(id)
 	if user == nil {
 		return nil, graphql.NewSafeError("user not found")
@@ -93,83 +95,37 @@ func (provider UserProvider) UpdateUserFirstName(id uuid.UUID, firstName string)
 		return nil, err
 	}
 
-	user.FirstName = firstName
-
-	result := provider.Database.Save(&user)
-	if isSqlError(result.Error) {
-		return nil, result.Error
+	if name != nil {
+		if strings.Contains(*name, " ") {
+			return nil, graphql.NewSafeError("name can not contain spaces")
+		}
+		existingUser, err := provider.GetUserByName(*name)
+		if existingUser != nil {
+			return nil, graphql.NewSafeError("name already in use")
+		}
+		if err != nil {
+			return nil, err
+		}
+		user.Name = *name
 	}
-
-	return user, nil
-}
-
-func (provider UserProvider) UpdateUserLastName(id uuid.UUID, lastName string) (*model.User, error) {
-	user, err := provider.GetUser(id)
-	if user == nil {
-		return nil, graphql.NewSafeError("user not found")
+	if firstName != nil {
+		user.FirstName = *firstName
 	}
-	if err != nil {
-		return nil, err
+	if lastName != nil {
+		user.LastName = *lastName
 	}
-
-	user.LastName = lastName
-
-	result := provider.Database.Save(&user)
-	if isSqlError(result.Error) {
-		return nil, result.Error
+	if active != nil {
+		user.Active = *active
 	}
-
-	return user, nil
-}
-
-func (provider UserProvider) UpdateUserEmail(id uuid.UUID, email string) (*model.User, error) {
-	user, err := provider.GetUser(id)
-	if user == nil {
-		return nil, graphql.NewSafeError("user not found")
+	if description != nil {
+		user.Description = *description
 	}
-	if err != nil {
-		return nil, err
+	if email != nil {
+		if *email != "" && !strings.Contains(*email, "@") {
+			return nil, graphql.NewSafeError("invalid email")
+		}
+		user.Email = *email
 	}
-
-	user.Email = email
-
-	result := provider.Database.Save(&user)
-	if isSqlError(result.Error) {
-		return nil, result.Error
-	}
-
-	return user, nil
-}
-
-func (provider UserProvider) UpdateUserActive(id uuid.UUID, active bool) (*model.User, error) {
-	user, err := provider.GetUser(id)
-	if user == nil {
-		return nil, graphql.NewSafeError("user not found")
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	user.Active = active
-
-	result := provider.Database.Save(&user)
-	if isSqlError(result.Error) {
-		return nil, result.Error
-	}
-
-	return user, nil
-}
-
-func (provider UserProvider) UpdateUserDescription(id uuid.UUID, description string) (*model.User, error) {
-	user, err := provider.GetUser(id)
-	if user == nil {
-		return nil, graphql.NewSafeError("user not found")
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	user.Description = description
 
 	result := provider.Database.Save(&user)
 	if isSqlError(result.Error) {
@@ -226,6 +182,20 @@ func (provider UserProvider) GetUsers() ([]*model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (provider UserProvider) GetUsersPaged(pagination *Pagination[model.User]) (*Pagination[model.User], error) {
+	context := paginate(model.User{}, "name", pagination, provider.Database)
+
+	var users []model.User
+	result := context.Find(&users)
+
+	if isSqlError(result.Error) {
+		return nil, result.Error
+	}
+
+	pagination.Rows = users
+	return pagination, nil
 }
 
 func (provider UserProvider) GetUser(id uuid.UUID) (*model.User, error) {
@@ -412,6 +382,11 @@ func (provider UserProvider) CreateAuthentication(userId uuid.UUID, kind string,
 		return nil, graphql.NewSafeError("user not found")
 	}
 
+	err = json.Unmarshal([]byte(configuration), &struct{}{})
+	if err != nil {
+		return nil, err
+	}
+
 	authentication := &model.Authentication{
 		Id:            uuid.New(),
 		Kind:          kind,
@@ -456,12 +431,13 @@ func (provider UserProvider) defaultUserMigration() error {
 	if err != nil {
 		return err
 	}
-	_, err = provider.AddUserPermission(user.Id, []string{
-		"user.create",
-		"user.view",
-		"user.update",
-		"user.permission.update",
-	})
+	permissions := make([]string, 0)
+
+	for permission := range PERMISSIONS {
+		permissions = append(permissions, permission)
+	}
+
+	_, err = provider.AddUserPermission(user.Id, permissions)
 	if err != nil {
 		return err
 	}

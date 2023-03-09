@@ -44,70 +44,109 @@ export default {
             })
         },
         subscribeUser(state, {userId, error}) {
-            state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
-            query {
-                user: getUser(id: "${userId}") {
-                    id
-                    name
-                    firstName
-                    lastName
-                    email
-                    active
-                    createdAt
-                    updatedAt
-                    description
-                    permissions
-                }
-            }
-            `, (data) => {
+            let fullQuery = Vue.prototype.$graphql.buildQuery({
+                method: "getUser",
+                args: {
+                    id: userId,
+                },
+                fields: [
+                    "id",
+                    "name",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "active",
+                    "createdAt",
+                    "updatedAt",
+                    "description",
+                    "permissions"
+                ],
+                isMutation: false
+            });
+
+            state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(fullQuery, (data) => {
                 state.user = data;
                 state.originalUser = JSON.parse(JSON.stringify(data));
             }, error);
         },
+        deleteUser(state, {callback, error}) {
+            let fullQuery = Vue.prototype.$graphql.buildQuery({
+                method: "deleteUser",
+                args: {
+                    id: state.user.id,
+                },
+                fields: [
+                    "id",
+                ],
+                isMutation: true
+            });
+
+            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
+                state.user = data.message[0].data;
+                callback(state.user);
+                Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
+            }, error);
+        },
         createUser(state, {callback, error}) {
-            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
-            mutation {
-                user: createUser(description: "${state.user.description}", email: "${state.user.email}", firstName: "${state.user.firstName}", lastName: "${state.user.lastName}", name: "${state.user.name}", active: ${state.user.active}) {
-                    id
-                    name
-                    firstName
-                    lastName
-                    email
-                    active
-                    createdAt
-                    updatedAt
-                    description
-                    permissions
-                }
-            }
-            `, (data) => {
-                state.user = data.message[0].user;
+            let fullQuery = Vue.prototype.$graphql.buildQuery({
+                method: "createUser",
+                args: {
+                    description: state.user.description.replaceAll('"', '\\"'),
+                    email: state.user.email,
+                    firstName: state.user.firstName,
+                    lastName: state.user.lastName,
+                    name: state.user.name,
+                    active: state.user.active,
+                },
+                fields: [
+                    "id",
+                    "name",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "active",
+                    "createdAt",
+                    "updatedAt",
+                    "description",
+                    "permissions"
+                ],
+                isMutation: true
+            });
+
+            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
+                state.user = data.message[0].data;
                 callback(state.user);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
             }, error);
         },
         saveUser(state, {callback, error}) {
-            let fullQuery = 'mutation {';
-            if (state.user.name !== state.originalUser.name) {
-                fullQuery += `name: updateUserName(id: "${state.user.id}", name: "${state.user.name}") {id name}`;
-            }
-            if (state.user.firstName !== state.originalUser.firstName) {
-                fullQuery += `firstName: updateUserFirstName(id: "${state.user.id}", firstName: "${state.user.firstName}") {id firstName}`;
-            }
-            if (state.user.lastName !== state.originalUser.lastName) {
-                fullQuery += `lastName: updateUserLastName(id: "${state.user.id}", lastName: "${state.user.lastName}") {id lastName}`;
-            }
-            if (state.user.email !== state.originalUser.email) {
-                fullQuery += `email: updateUserEmail(id: "${state.user.id}", email: "${state.user.email}") {id email}`;
-            }
-            if (state.user.active !== state.originalUser.active) {
-                fullQuery += `active: updateUserActive(id: "${state.user.id}", active: ${state.user.active}) {id active}`;
-            }
-            if (state.user.description !== state.originalUser.description) {
-                fullQuery += `description: updateUserDescription(id: "${state.user.id}", description: "${state.user.description}") {id description}`;
-            }
-            fullQuery += '}';
-
+            let fullQuery = Vue.prototype.$graphql.buildQuery({
+                method: "updateUser",
+                args: {
+                    id: state.user.id,
+                    name: state.user.name !== state.originalUser.name ? state.user.name : undefined,
+                    firstName: state.user.firstName !== state.originalUser.firstName ? state.user.firstName : undefined,
+                    lastName: state.user.lastName !== state.originalUser.lastName ? state.user.lastName : undefined,
+                    email: state.user.email !== state.originalUser.email ? state.user.email : undefined,
+                    active: state.user.active !== state.originalUser.active ? (state.user.active === 'true') : undefined,
+                    description: state.user.description !== state.originalUser.description ?
+                        state.user.description.replaceAll("\\", "\\\\").replaceAll('"', '\\"') :
+                        undefined,
+                },
+                fields: [
+                    "id",
+                    "name",
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "active",
+                    "createdAt",
+                    "updatedAt",
+                    "description",
+                    "permissions"
+                ],
+                isMutation: true
+            });
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = -1;
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
@@ -115,6 +154,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -123,7 +163,7 @@ export default {
             state.subscribeId = -1;
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
             mutation {
-                permission: addUserPermission(id: "${state.user.id}", permissions: ["${permission}"]) {
+                data: addUserPermission(id: "${state.user.id}", permissions: ["${permission}"]) {
                     id
                 }
             }
@@ -132,6 +172,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -140,7 +181,7 @@ export default {
             state.subscribeId = -1;
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
             mutation {
-                permission: removeUserPermission(id: "${state.user.id}", permissions: ["${permission}"]) {
+                data: removeUserPermission(id: "${state.user.id}", permissions: ["${permission}"]) {
                     id
                 }
             }
@@ -149,6 +190,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -156,19 +198,26 @@ export default {
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
         },
         updatePassword(state, {callback, error}) {
+            let fullQuery = Vue.prototype.$graphql.buildQuery({
+                method: "createPasswordAuthentication",
+                args: {
+                    id: state.user.id,
+                    password: state.authentication.password.value,
+                },
+                fields: [
+                    "id",
+                ],
+                isMutation: true
+            });
+
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = -1;
-            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(`
-            mutation {
-                password: createPasswordAuthentication(id: "${state.user.id}", password: "${state.authentication.password.value}") {
-                    id
-                }
-            }
-            `, (data) => {
+            state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
                 callback(data);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         }

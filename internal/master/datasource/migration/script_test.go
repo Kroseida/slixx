@@ -74,4 +74,5 @@ func Test_Migrate(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	teardownSuite()
 }

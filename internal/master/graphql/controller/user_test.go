@@ -53,23 +53,22 @@ func Test_CreateUser(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_UpdateUserName_MissingPermission(t *testing.T) {
+func Test_DeleteUser_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserName(withPermissions([]string{"user.notupdate"}), controller.UpdateUserNameDto{
-		Id:   uuid.New(),
-		Name: "newName",
-	})
+
+	_, err := controller.DeleteUser(withPermissions([]string{"user.nodelete"}), controller.DeleteUserDto{})
+
 	if err == nil && err.Error() != "missing permission" {
 		t.Error("Expected error (permission denied)")
 		teardownSuite()
 		return
 	}
+
 	teardownSuite()
 }
 
-func Test_UpdateUserName(t *testing.T) {
+func Test_DeleteUser(t *testing.T) {
 	teardownSuite := setupSuite()
-
 	user, err := datasource.UserProvider.CreateUser(
 		"oldName",
 		"Test@test.de",
@@ -84,9 +83,11 @@ func Test_UpdateUserName(t *testing.T) {
 		return
 	}
 
-	_, err = controller.UpdateUserName(withPermissions([]string{"user.update"}), controller.UpdateUserNameDto{
-		Id:   user.Id,
-		Name: "newName",
+	userInDatabase, err := datasource.UserProvider.GetUser(user.Id)
+	assert.NotNil(t, userInDatabase)
+
+	_, err = controller.DeleteUser(withPermissions([]string{"user.delete"}), controller.DeleteUserDto{
+		Id: user.Id,
 	})
 	if err != nil {
 		t.Error(err)
@@ -94,274 +95,9 @@ func Test_UpdateUserName(t *testing.T) {
 		return
 	}
 
-	actualUser, err := datasource.UserProvider.GetUserByName("newName")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
+	userInDatabase, err = datasource.UserProvider.GetUser(user.Id)
+	assert.Nil(t, userInDatabase)
 
-	assert.Equal(t, "newName", actualUser.Name)
-	teardownSuite()
-}
-
-func Test_UpdateUserFirstName_MissingPermission(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserFirstName(withPermissions([]string{"user.notupdate"}), controller.UpdateUserFirstNameDto{
-		Id:        uuid.New(),
-		FirstName: "newName",
-	})
-	if err == nil && err.Error() != "missing permission" {
-		t.Error("Expected error (permission denied)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_UpdateUserFirstName(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	user, err := datasource.UserProvider.CreateUser(
-		"user",
-		"Test@test.de",
-		"Test",
-		"Test",
-		"Test",
-		true,
-	)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = controller.UpdateUserFirstName(withPermissions([]string{"user.update"}), controller.UpdateUserFirstNameDto{
-		Id:        user.Id,
-		FirstName: "max",
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "max", actualUser.FirstName)
-	teardownSuite()
-}
-
-func Test_UpdateUserLastName_MissingPermission(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserLastName(withPermissions([]string{"user.notupdate"}), controller.UpdateUserLastNameDto{
-		Id:       uuid.New(),
-		LastName: "newName",
-	})
-	if err == nil && err.Error() != "missing permission" {
-		t.Error("Expected error (permission denied)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_UpdateUserLastName(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	user, err := datasource.UserProvider.CreateUser(
-		"user",
-		"Test@test.de",
-		"Test",
-		"Test",
-		"Test",
-		true,
-	)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = controller.UpdateUserLastName(withPermissions([]string{"user.update"}), controller.UpdateUserLastNameDto{
-		Id:       user.Id,
-		LastName: "Müller",
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "Müller", actualUser.LastName)
-	teardownSuite()
-}
-
-func Test_UpdateUserEmail_MissingPermission(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserEmail(withPermissions([]string{"user.notupdate"}), controller.UpdateUserEmailDto{
-		Id:    uuid.New(),
-		Email: "newEmail",
-	})
-	if err == nil && err.Error() != "missing permission" {
-		t.Error("Expected error (permission denied)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_UpdateUserEmail(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	user, err := datasource.UserProvider.CreateUser(
-		"user",
-		"Test@test.de",
-		"Test",
-		"Test",
-		"Test",
-		true,
-	)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = controller.UpdateUserEmail(withPermissions([]string{"user.update"}), controller.UpdateUserEmailDto{
-		Id:    user.Id,
-		Email: "test@rande.org",
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "test@rande.org", actualUser.Email)
-	teardownSuite()
-}
-
-func Test_UpdateUserActive_MissingPermission(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserActive(withPermissions([]string{"user.notupdate"}), controller.UpdateUserActiveDto{
-		Id:     uuid.New(),
-		Active: false,
-	})
-	if err == nil && err.Error() != "missing permission" {
-		t.Error("Expected error (permission denied)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_UpdateUserActive(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	user, err := datasource.UserProvider.CreateUser(
-		"user",
-		"Test@test.de",
-		"Test",
-		"Test",
-		"Test",
-		true,
-	)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = controller.UpdateUserActive(withPermissions([]string{"user.update"}), controller.UpdateUserActiveDto{
-		Id:     user.Id,
-		Active: false,
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, false, actualUser.Active)
-	teardownSuite()
-}
-
-func Test_UpdateUserDescription_MissingPermission(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.UpdateUserDescription(withPermissions([]string{"user.notupdate"}), controller.UpdateUserDescriptionDto{
-		Id:          uuid.New(),
-		Description: "new description",
-	})
-	if err == nil && err.Error() != "missing permission" {
-		t.Error("Expected error (permission denied)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_UpdateUserDescription(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	user, err := datasource.UserProvider.CreateUser(
-		"user",
-		"Test@test.de",
-		"Test",
-		"Test",
-		"Test",
-		true,
-	)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = controller.UpdateUserDescription(withPermissions([]string{"user.update"}), controller.UpdateUserDescriptionDto{
-		Id:          user.Id,
-		Description: "new description",
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "new description", actualUser.Description)
 	teardownSuite()
 }
 
@@ -528,7 +264,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 
 func Test_GetUsers_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.GetUsers(withPermissions([]string{"user.notview"}))
+	_, err := controller.GetUsers(withPermissions([]string{"user.notview"}), controller.PageArgs{})
 	if err == nil && err.Error() != "missing permission" {
 		t.Error("Expected error (permission denied)")
 		teardownSuite()
@@ -539,14 +275,14 @@ func Test_GetUsers_MissingPermission(t *testing.T) {
 
 func Test_GetUsers(t *testing.T) {
 	teardownSuite := setupSuite()
-	users, err := controller.GetUsers(withPermissions([]string{"user.view"}))
+	users, err := controller.GetUsers(withPermissions([]string{"user.view"}), controller.PageArgs{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	assert.Equal(t, 1, len(users))
+	assert.Equal(t, 1, len(users.Rows))
 	teardownSuite()
 }
 
@@ -581,6 +317,7 @@ func Test_GetUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
+	teardownSuite()
 }
 
 func Test_GetLocalUser(t *testing.T) {
@@ -601,4 +338,5 @@ func Test_GetLocalUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
+	teardownSuite()
 }

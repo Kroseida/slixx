@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 	"github.com/google/uuid"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 )
 
 func IsPermitted(ctx context.Context, permissions []string) bool {

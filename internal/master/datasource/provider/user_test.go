@@ -4,6 +4,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/master/datasource"
+	"kroseida.org/slixx/internal/master/datasource/provider"
+	"kroseida.org/slixx/pkg/model"
 	"testing"
 	"time"
 )
@@ -108,7 +110,151 @@ func Test_CreateUser_NameUsed(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_getUsers(t *testing.T) {
+func Test_UpdateUser_Email(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	newEmail := "test"
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+	_, err = datasource.UserProvider.UpdateUser(user.Id, nil, nil, nil, nil, nil, &newEmail)
+	assert.NotNil(t, err)
+
+	newEmail = "test@test.de"
+	_, err = datasource.UserProvider.UpdateUser(user.Id, nil, nil, nil, nil, nil, &newEmail)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+	updatedUser, err := datasource.UserProvider.GetUser(user.Id)
+
+	assert.Equal(t, newEmail, updatedUser.Email)
+
+	teardownSuite()
+}
+
+func Test_UpdateUser_Name(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	newName := "Test2"
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	_, err = datasource.UserProvider.UpdateUser(user.Id, &newName, nil, nil, nil, nil, nil)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+	updatedUser, err := datasource.UserProvider.GetUser(user.Id)
+
+	assert.Equal(t, newName, updatedUser.Name)
+
+	teardownSuite()
+}
+
+func Test_DeleteUser(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	users, err := datasource.UserProvider.GetUsers()
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, 2, len(users))
+
+	_, err = datasource.UserProvider.DeleteUser(user.Id)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	users, err = datasource.UserProvider.GetUsers()
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, 1, len(users))
+
+	teardownSuite()
+}
+
+func Test_GetUsersPaged(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	_, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+	_, err = datasource.UserProvider.CreateUser(
+		"Test2",
+		"Test2@test.de",
+		"Test2",
+		"Test2",
+		"Test2",
+		true,
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	users, err := datasource.UserProvider.GetUsersPaged(&provider.Pagination[model.User]{
+		Page:  1,
+		Limit: 2,
+	})
+
+	assert.Equal(t, 2, len(users.Rows))
+	teardownSuite()
+}
+
+func Test_GetUsers(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	_, err := datasource.UserProvider.CreateUser(
@@ -459,5 +605,83 @@ func Test_Authenticate_InvalidUser(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	teardownSuite()
+}
+
+func Test_AddUserPermission(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	_, err = datasource.UserProvider.AddUserPermission(user.Id, []string{"test"})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	resolvedUser, err := datasource.UserProvider.GetUser(user.Id)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, "[\"test\"]", resolvedUser.Permissions)
+	teardownSuite()
+}
+
+func Test_RemoveUserPermission(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	user, err := datasource.UserProvider.CreateUser(
+		"Test",
+		"Test@test.de",
+		"Test",
+		"Test",
+		"Test",
+		true,
+	)
+
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+	_, err = datasource.UserProvider.AddUserPermission(user.Id, []string{"test", "test2", "test3"})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	_, err = datasource.UserProvider.RemoveUserPermission(user.Id, []string{"test2", "test3"})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	resolvedUser, err := datasource.UserProvider.GetUser(user.Id)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, "[\"test\"]", resolvedUser.Permissions)
 	teardownSuite()
 }

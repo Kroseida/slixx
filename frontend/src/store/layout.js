@@ -5,10 +5,10 @@ export default {
     namespaced: true,
     state: {
         subscribeId: -1,
-        sidebarClose: false,
+        permissionSubscribeId: -1,
+        sidebarClose: true,
         sidebarStatic: false,
         sidebarActiveElement: null,
-        chatOpen: false,
         localUser: {
             id: '',
             name: "",
@@ -20,24 +20,7 @@ export default {
             updatedAt: "",
             description: "",
         },
-        permissions: [
-            {
-                value: 'user.create',
-                name: 'Create User',
-            },
-            {
-                value: 'user.view',
-                name: 'View User',
-            },
-            {
-                value: 'user.update',
-                name: 'Update User Account',
-            },
-            {
-                value: 'user.permission.update',
-                name: 'Update User Permissions',
-            },
-        ],
+        permissions: [],
         isPermitted(permission) {
             if (!this.localUser) {
                 return false;
@@ -46,11 +29,25 @@ export default {
         }
     },
     mutations: {
+        subscribePermissions(state, {callback}) {
+            Vue.prototype.$graphql.unsubscribe(state.permissionSubscribeId);
+            state.permissionSubscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
+            query {
+                data: getPermissions {
+                    value
+                    name
+                }
+            }
+            `, (data) => {
+                state.permissions = data;
+                callback(data);
+            });
+        },
         subscribeLocalUser(state, {callback}) {
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
             query {
-                user: getLocalUser {
+                data: getLocalUser {
                     id
                     name
                     firstName

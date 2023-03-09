@@ -2,7 +2,7 @@
   <b-navbar class="header d-print-none app-header">
     <b-nav>
       <b-nav-item>
-        <a class="d-md-down-none px-1" href="#" @click="toggleSidebarMethod" id="barsTooltip">
+        <a class="px-1" href="#" @click="toggleSidebarMethod" id="barsTooltip">
           <i class='fa fa-bars' style="font-size: 21px"/>
         </a>
       </b-nav-item>

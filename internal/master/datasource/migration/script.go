@@ -4,7 +4,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"kroseida.org/slixx/internal/master/application"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 )
 
 type Script interface {
@@ -13,7 +13,8 @@ type Script interface {
 }
 
 var migrationScripts = []Script{
-	V1StorageInit{},
+	V1Initialize{},
+	V2Storage{},
 }
 
 func Migrate(database *gorm.DB) error {

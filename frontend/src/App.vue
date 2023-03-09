@@ -1,6 +1,6 @@
 <template>
   <div>
-    <router-view v-if="connectionState === 'CONNECTED' && userLoaded"/>
+    <router-view v-if="connectionState === 'CONNECTED' && userLoaded && permissionLoaded"/>
     <div v-if="connectionState === 'CONNECTING'">
       <div class="text-center">
         <div class="center" role="status">
@@ -31,6 +31,11 @@ export default {
           this.userLoaded = true;
         }
       });
+      this.$store.commit('layout/subscribePermissions', {
+        callback: () => {
+          this.permissionLoaded = true;
+        }
+      });
     };
     this.$graphql.onReset = () => {
       this.connectionState = "CONNECTING";
@@ -56,6 +61,7 @@ export default {
       connectionState: "CONNECTING",
       connectedBefore: false,
       userLoaded: false,
+      permissionLoaded: false,
     };
   },
 };

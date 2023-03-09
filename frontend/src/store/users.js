@@ -3,6 +3,12 @@ import Vue from "vue";
 const defaultState = () => ({
     subscribeId: -1,
     users: [],
+    table: {
+        search: "",
+        page: 1,
+        totalPages: 1,
+        totalRows: 1
+    }
 })
 
 export default {
@@ -15,21 +21,32 @@ export default {
         },
         subscribeUsers(state, {callback, error}) {
             state.users = [];
-            state.subscribeId = Vue.prototype.$graphql.subscribeTrackedArray(`
+            state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
             query {
-                users: getUsers {
-                    id
-                    name
-                    firstName
-                    lastName
-                    email
-                    active
-                    createdAt
-                    updatedAt
+                data: getUsers(limit: 10, search: "${state.table.search}", page: ${state.table.page}) {
+                    rows  {
+                      id
+                      name
+                      firstName
+                      lastName
+                      email
+                      active
+                      createdAt
+                      updatedAt
+                    }
+                    page {
+                      totalRows
+                      totalPages
+                    }          
                 }
             }
             `, (data) => {
-                state.users = data;
+                state.users = data.rows;
+                state.table.totalPages = data.page.totalPages;
+                if (state.table.totalPages === 0) {
+                    state.table.totalPages = 1;
+                }
+                state.table.totalRows = data.page.totalRows;
                 if (callback) {
                     callback();
                 }

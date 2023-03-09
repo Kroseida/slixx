@@ -5,11 +5,12 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/master/authenticator"
-	"kroseida.org/slixx/internal/master/datasource/model"
+	"kroseida.org/slixx/pkg/model"
 	"testing"
 )
 
 func Test_Validate(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 	authentication, err := setupAuthentication("test", "123123123")
 	if err != nil {
@@ -33,6 +34,7 @@ func Test_Validate(t *testing.T) {
 }
 
 func Test_Validate_WrongHash(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	configuration := map[string]string{
@@ -76,6 +78,7 @@ func Test_Validate_WrongHash(t *testing.T) {
 }
 
 func Test_Validate_Wrong_Name(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 	authentication, err := setupAuthentication("test", "123123123")
 	if err != nil {
@@ -122,6 +125,7 @@ func Test_Validate_Wrong_Password(t *testing.T) {
 }
 
 func Test_ParseRequestContainer(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	passwordConfiguration := authenticator.PasswordRequestContainer{
@@ -158,6 +162,7 @@ func Test_ParseRequestContainer_MissingName(t *testing.T) {
 }
 
 func Test_ParseRequestContainer_MissingPassword(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	passwordConfiguration := map[string]string{
@@ -176,6 +181,7 @@ func Test_ParseRequestContainer_MissingPassword(t *testing.T) {
 }
 
 func Test_ParseConfiguration(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	passwordConfiguration := authenticator.PasswordConfiguration{
@@ -199,6 +205,7 @@ func Test_ParseConfiguration(t *testing.T) {
 }
 
 func Test_ParseConfiguration_Without_Hash(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	passwordConfiguration := map[string]string{
@@ -219,6 +226,7 @@ func Test_ParseConfiguration_Without_Hash(t *testing.T) {
 }
 
 func Test_ParseConfiguration_Without_Name(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	passwordConfiguration := map[string]string{
@@ -239,6 +247,7 @@ func Test_ParseConfiguration_Without_Name(t *testing.T) {
 }
 
 func Test_GenerateConfigurationFromRequestContainer(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
 	configuration, err := kind.GenerateConfigurationFromRequestContainer(&authenticator.PasswordRequestContainer{

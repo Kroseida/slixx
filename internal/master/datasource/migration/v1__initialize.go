@@ -4,14 +4,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type V1StorageInit struct {
+type V1Initialize struct {
 }
 
-func (V1StorageInit) GetName() string {
+func (V1Initialize) GetName() string {
 	return "v1__initialize"
 }
 
-func (V1StorageInit) Migrate(database *gorm.DB) error {
+func (V1Initialize) Migrate(database *gorm.DB) error {
 	err := database.Exec(`CREATE TABLE users (id char(36) NOT NULL,
  												  name text NOT NULL,
  												  email text NOT NULL,

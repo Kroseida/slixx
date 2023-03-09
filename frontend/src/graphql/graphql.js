@@ -13,15 +13,51 @@ export default {
             listener() {
                 this.client.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    if ((data.type === 'update' || data.type === 'result') && this.subscriptions[data.id].callback) {
+                    if ((data.type === 'update' || data.type === 'result') && this.subscriptions[data.id] && this.subscriptions[data.id].callback) {
                         this.subscriptions[data.id].callback(data);
                     } else if (data.type === 'error' && this.subscriptions[data.id] && this.subscriptions[data.id].error) {
                         this.subscriptions[data.id].error(data);
                     }
                 };
             },
-            subscribe(message, callback, error) {
-                let id = this.nextId++;
+            buildFields(fields) {
+                let query = '';
+                for (let field in fields) {
+                    if (typeof fields[field] === 'string') {
+                        query += fields[field] + '\n';
+                    }
+                    if (typeof fields[field] === 'object') {
+                        query += fields[field].name + '{\n' + this.buildFields(fields[field].sub) + '}\n';
+                    }
+                }
+                return query;
+            },
+            buildQuery({method, args, fields, isMutation}) {
+                let query = (isMutation ? 'mutation' : '') + ' {\ndata: ' + method + (args.length !== 0 ? '(' : '');
+                let first = true;
+                for (let key in args) {
+                    if (args[key] === undefined) {
+                        continue;
+                    }
+                    if (first) {
+                        first = false;
+                    } else {
+                        query += ', ';
+                    }
+                    if (typeof args[key] === 'string') {
+                        query += key + ': "' + args[key] + '"';
+                    } else {
+                        query += key + ': ' + args[key];
+                    }
+                }
+                query += (args.length !== 0 ? ')' : '') + ' {\n ' + this.buildFields(fields) + '}\n}';
+                return query;
+            },
+            subscribe(message, callback, error, id) {
+                if (!id) {
+                    id = this.nextId++;
+                }
+
                 this.subscriptions[id] = {
                     callback,
                     error,
@@ -51,13 +87,12 @@ export default {
             subscribeTrackedObject(message, callback, error) {
                 let subscribeId = this.subscribe(message, (data) => {
                     if (data.message instanceof Array) {
-                        this.subscriptions[subscribeId].trackedObject = data.message[0].user;
+                        this.subscriptions[subscribeId].trackedObject = data.message[0].data;
+                        callback(this.subscriptions[subscribeId].trackedObject);
                     } else {
-                        Object.entries(data.message.user).forEach(([key, value]) => {
-                            this.subscriptions[subscribeId].trackedObject[key] = value;
-                        });
+                        this.unsubscribe(subscribeId)
+                        this.subscribeTrackedObject(message, callback, error, subscribeId)
                     }
-                    callback(this.subscriptions[subscribeId].trackedObject);
                 }, error);
                 this.subscriptions[subscribeId].trackedObject = {};
                 return subscribeId;
@@ -65,22 +100,12 @@ export default {
             subscribeTrackedArray(message, callback, error) {
                 let subscribeId = this.subscribe(message, (data) => {
                     if (data.message instanceof Array) {
-                        data.message[0].users.forEach((user) => {
-                            this.subscriptions[subscribeId].trackedObject.push(user);
+                        data.message[0].data.forEach((element) => {
+                            this.subscriptions[subscribeId].trackedObject.push(element);
                         });
                     } else {
-                        Object.entries(data.message.users).forEach(([key, value]) => {
-                            if (key === "$") {
-                                return;
-                            }
-                            if (!this.subscriptions[subscribeId].trackedObject[key]) {
-                                this.subscriptions[subscribeId].trackedObject.push(value[0]);
-                            } else {
-                                Object.entries(value).forEach(([key2, value2]) => {
-                                    this.subscriptions[subscribeId].trackedObject[key][key2] = value2;
-                                });
-                            }
-                        });
+                        this.unsubscribe(subscribeId)
+                        this.subscribeTrackedObject(message, callback, error, subscribeId)
                     }
                     callback(this.subscriptions[subscribeId].trackedObject);
                 }, error);

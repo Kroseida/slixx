@@ -9,7 +9,7 @@
 *.dll
 *.so
 *.dylib
-slixx.db
+*slixx.db
 slixx.exe
 
 # Test binary, built with `go test -c`
@@ -27,6 +27,8 @@ scripts/pkg/
 
 # Go workspace file
 go.work
+coverage.html
+coverage
 
 # Frontend
 frontend/.idea
