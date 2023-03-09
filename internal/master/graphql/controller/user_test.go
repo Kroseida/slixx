@@ -317,6 +317,7 @@ func Test_GetUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
+	teardownSuite()
 }
 
 func Test_GetLocalUser(t *testing.T) {
@@ -337,4 +338,5 @@ func Test_GetLocalUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
+	teardownSuite()
 }

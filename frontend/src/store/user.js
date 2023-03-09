@@ -154,6 +154,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -171,6 +172,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -188,6 +190,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         },
@@ -214,6 +217,7 @@ export default {
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
                 this.commit('user/subscribeUser', {
                     userId: state.user.id,
+                    error
                 });
             }, error);
         }

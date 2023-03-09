@@ -5,6 +5,7 @@ export default {
     namespaced: true,
     state: {
         subscribeId: -1,
+        permissionSubscribeId: -1,
         sidebarClose: true,
         sidebarStatic: false,
         sidebarActiveElement: null,
@@ -19,46 +20,7 @@ export default {
             updatedAt: "",
             description: "",
         },
-        permissions: [
-            {
-                value: 'user.view',
-                name: 'View User',
-            },
-            {
-                value: 'user.create',
-                name: 'Create User',
-            },
-            {
-                value: 'user.delete',
-                name: 'Delete User',
-            },
-            {
-                value: 'user.update',
-                name: 'Update User Account',
-            },
-            {
-                value: 'user.permission.update',
-                name: 'Update User Permissions',
-            },
-
-            // Storage
-            {
-                value: 'storage.view',
-                name: 'View Storage',
-            },
-            {
-                value: 'storage.create',
-                name: 'Create Storage',
-            },
-            {
-                value: 'storage.delete',
-                name: 'Delete Storage',
-            },
-            {
-                value: 'storage.update',
-                name: 'Update Storage',
-            },
-        ],
+        permissions: [],
         isPermitted(permission) {
             if (!this.localUser) {
                 return false;
@@ -67,6 +29,20 @@ export default {
         }
     },
     mutations: {
+        subscribePermissions(state, {callback}) {
+            Vue.prototype.$graphql.unsubscribe(state.permissionSubscribeId);
+            state.permissionSubscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
+            query {
+                data: getPermissions {
+                    value
+                    name
+                }
+            }
+            `, (data) => {
+                state.permissions = data;
+                callback(data);
+            });
+        },
         subscribeLocalUser(state, {callback}) {
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`

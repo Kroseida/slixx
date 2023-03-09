@@ -5,6 +5,7 @@
       }}</h2>
     <b-row>
       <b-col sm="12" md="12">
+        {{ hasExternalChanges }}
         <Widget>
           <h4>Details</h4>
           <div class="form-group">
@@ -164,7 +165,7 @@
 </template>
 
 <script>
-import {mapState, mapActions} from 'vuex';
+import {mapState} from 'vuex';
 
 export default {
   name: 'UserDetails',
@@ -173,7 +174,7 @@ export default {
     return {}
   },
   computed: {
-    ...mapState('user', ['user', 'originalUser', 'authentication']),
+    ...mapState('user', ['user', 'originalUser', 'authentication', 'hasExternalChanges']),
     ...mapState('layout', ['permissions', 'localUser', 'isPermitted']),
   },
   methods: {

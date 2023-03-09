@@ -41,9 +41,11 @@ type StoragesPage struct {
 	Page
 }
 
-func GetStorage(ctx context.Context, args struct {
+type GetStorageDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
-}) (*Storage, error) {
+}
+
+func GetStorage(ctx context.Context, args GetStorageDto) (*Storage, error) {
 	if !IsPermitted(ctx, []string{"storage.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -53,10 +55,10 @@ func GetStorage(ctx context.Context, args struct {
 		application.Logger.Debug(err)
 		return nil, err
 	}
-	var storageDto Storage
-	dto.Map(storage, &storageDto)
+	var storageDto *Storage
+	dto.Map(&storage, &storageDto)
 
-	return &storageDto, nil
+	return storageDto, nil
 }
 
 func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
@@ -80,12 +82,14 @@ func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
 	return &pageDtos, nil
 }
 
-func CreateStorage(ctx context.Context, args struct {
+type CreateStorageDto struct {
 	Name          string `json:"name" graphql:"name"`
 	Description   string `json:"description" graphql:"description"`
 	Kind          string `json:"kind" graphql:"kind"`
 	Configuration string `json:"configuration" graphql:"configuration"`
-}) (*Storage, error) {
+}
+
+func CreateStorage(ctx context.Context, args CreateStorageDto) (*Storage, error) {
 	if !IsPermitted(ctx, []string{"storage.create"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -101,13 +105,15 @@ func CreateStorage(ctx context.Context, args struct {
 	return &storageDto, err
 }
 
-func UpdateStorage(ctx context.Context, args struct {
+type UpdateStorageDto struct {
 	Id            uuid.UUID `json:"id" graphql:"id"`
 	Name          *string   `json:"name" graphql:"name"`
 	Description   *string   `json:"description" graphql:"description"`
 	Kind          *string   `json:"kind" graphql:"kind"`
 	Configuration *string   `json:"configuration" graphql:"configuration"`
-}) (*Storage, error) {
+}
+
+func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error) {
 	if !IsPermitted(ctx, []string{"storage.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -124,9 +130,11 @@ func UpdateStorage(ctx context.Context, args struct {
 	return &storageDto, nil
 }
 
-func DeleteStorage(ctx context.Context, args struct {
+type DeleteStorageDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
-}) (*Storage, error) {
+}
+
+func DeleteStorage(ctx context.Context, args DeleteStorageDto) (*Storage, error) {
 	if !IsPermitted(ctx, []string{"storage.delete"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}

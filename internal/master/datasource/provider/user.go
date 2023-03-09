@@ -19,6 +19,18 @@ type UserProvider struct {
 	Database *gorm.DB
 }
 
+var PERMISSIONS = map[string]string{
+	"user.view":              "View User",
+	"user.create":            "Create User",
+	"user.update":            "Update User Account",
+	"user.delete":            "Delete User",
+	"user.permission.update": "Update User Permissions",
+	"storage.view":           "View Storage",
+	"storage.create":         "Create Storage",
+	"storage.update":         "Update Storage",
+	"storage.delete":         "Delete Storage",
+}
+
 func (provider UserProvider) CreateUser(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
@@ -419,13 +431,13 @@ func (provider UserProvider) defaultUserMigration() error {
 	if err != nil {
 		return err
 	}
-	_, err = provider.AddUserPermission(user.Id, []string{
-		"user.delete",
-		"user.create",
-		"user.view",
-		"user.update",
-		"user.permission.update",
-	})
+	permissions := make([]string, 0)
+
+	for permission := range PERMISSIONS {
+		permissions = append(permissions, permission)
+	}
+
+	_, err = provider.AddUserPermission(user.Id, permissions)
 	if err != nil {
 		return err
 	}

@@ -7,10 +7,12 @@ import (
 )
 
 func Test_KindString_PASSWORD(t *testing.T) {
+	t.Parallel()
 	assert.Equal(t, "password", authenticator.PASSWORD)
 }
 
 func Test_GetKind(t *testing.T) {
+	t.Parallel()
 	kind := authenticator.GetKind(authenticator.PASSWORD)
 
 	if kind == nil {

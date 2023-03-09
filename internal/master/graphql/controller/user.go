@@ -229,10 +229,10 @@ func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
 		application.Logger.Debug(err)
 		return nil, err
 	}
-	var userDto User
+	var userDto *User
 	dto.Map(&user, &userDto)
 
-	return &userDto, nil
+	return userDto, nil
 }
 
 type DeleteUserDto struct {
@@ -269,4 +269,20 @@ func GetLocalUser(ctx context.Context) (*User, error) {
 	dto.Map(&user, &userDto)
 
 	return &userDto, nil
+}
+
+type PermissionDto struct {
+	Value string `json:"value" graphql:"value"`
+	Name  string `json:"name" graphql:"name"`
+}
+
+func GetPermissions() ([]PermissionDto, error) {
+	permissionDtos := make([]PermissionDto, 0)
+	for value, name := range provider.PERMISSIONS {
+		permissionDtos = append(permissionDtos, PermissionDto{
+			Value: value,
+			Name:  name,
+		})
+	}
+	return permissionDtos, nil
 }

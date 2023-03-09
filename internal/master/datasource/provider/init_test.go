@@ -10,7 +10,8 @@ import (
 )
 
 func setupSuite() func() {
-	os.Remove("slixx.db")
+	databaseName := "slixx.db"
+	os.Remove(databaseName)
 
 	loggerConfig := zap.NewProductionConfig()
 	loggerConfig.EncoderConfig.TimeKey = "timestamp"
@@ -27,6 +28,6 @@ func setupSuite() func() {
 
 	return func() {
 		datasource.Close()
-		os.Remove("slixx.db")
+		os.Remove(databaseName)
 	}
 }
