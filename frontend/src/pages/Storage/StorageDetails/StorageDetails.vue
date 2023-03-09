@@ -53,8 +53,8 @@
         </Widget>
       </b-col>
       <b-col sm="12" md="12"
-             v-if="(isPermitted('storage.configuration.update') || isPermitted('storage.configuration.view'))
-              && storage.configuration && $route.params.id !== 'new'">
+             v-if="(isPermitted('storage.update') || isPermitted('storage.view'))
+              && !!storage.configuration && $route.params.id !== 'new'">
         <Widget>
           <h4>Configuration</h4>
           <div class="form-group">
@@ -64,21 +64,21 @@
                 <label>{{ configurationDescription[0] }}</label>
                 <StorageConfigurationKindLong
                     v-if="configurationDescription[1] === 'LONG'"
-                    :isPermitted="isPermitted('storage.configuration.update')"
+                    :isPermitted="isPermitted('storage.update')"
                     :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
                     :fieldName="configurationDescription[0]"/>
                 <StorageConfigurationKindPassword
                     v-else-if="configurationDescription[1] === 'PASSWORD'"
-                    :isPermitted="isPermitted('storage.configuration.update')"
+                    :isPermitted="isPermitted('storage.update')"
                     :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
                     :fieldName="configurationDescription[0]"/>
                 <StorageConfigurationKindString
                     v-else
-                    :isPermitted="isPermitted('storage.configuration.update')"
+                    :isPermitted="isPermitted('storage.update')"
                     :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
