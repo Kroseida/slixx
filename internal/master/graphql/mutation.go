@@ -7,6 +7,9 @@ import (
 
 func registerMutation(schema *schemabuilder.Schema) {
 	obj := schema.Mutation()
+	obj.FieldFunc("createJob", controller.CreateJob)
+	obj.FieldFunc("updateJob", controller.UpdateJob)
+	obj.FieldFunc("deleteJob", controller.DeleteJob)
 	obj.FieldFunc("createStorage", controller.CreateStorage)
 	obj.FieldFunc("updateStorage", controller.UpdateStorage)
 	obj.FieldFunc("deleteStorage", controller.DeleteStorage)

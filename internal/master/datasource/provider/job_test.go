@@ -4,6 +4,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/master/datasource"
+	"kroseida.org/slixx/internal/master/datasource/provider"
+	"kroseida.org/slixx/pkg/model"
 	"testing"
 )
 
@@ -34,7 +36,7 @@ func Test_CreateJob(t *testing.T) {
 	assert.Equal(t, 1, len(jobs))
 	assert.Equal(t, "Test", jobs[0].Name)
 	assert.Equal(t, "COPY", jobs[0].Strategy)
-	assert.Equal(t, "{}", jobs[0].Configuration)
+	assert.Equal(t, "{\"blockSize\":0}", jobs[0].Configuration)
 	teardownSuite()
 }
 
@@ -91,7 +93,9 @@ func Test_UpdateJob(t *testing.T) {
 	}
 
 	updatedName := "Updated Name"
-	datasource.JobProvider.UpdateJob(job.Id, &updatedName, nil, nil, nil, nil, nil)
+	updatedConfiguration := "{}"
+	updatedStrategy := "COPY"
+	datasource.JobProvider.UpdateJob(job.Id, &updatedName, nil, &updatedStrategy, &updatedConfiguration, nil, nil)
 
 	jobs, err := datasource.JobProvider.GetJobs()
 	if err != nil {
@@ -101,6 +105,8 @@ func Test_UpdateJob(t *testing.T) {
 	}
 
 	assert.Equal(t, jobs[0].Name, updatedName)
+	assert.Equal(t, "{\"blockSize\":0}", jobs[0].Configuration)
+	assert.Equal(t, updatedStrategy, jobs[0].Strategy)
 	teardownSuite()
 }
 
@@ -194,5 +200,33 @@ func Test_GetJob(t *testing.T) {
 	}
 
 	assert.Equal(t, "Test", job.Name)
+	teardownSuite()
+}
+
+func Test_GetJobsPaged(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	_, err = datasource.JobProvider.CreateJob("Test", "Test", "COPY", "{}", storage.Id, storage.Id)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	jobs, err := datasource.JobProvider.GetJobsPaged(&provider.Pagination[model.Job]{})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, 1, len(jobs.Rows))
 	teardownSuite()
 }

@@ -40,3 +40,12 @@ func Test_Map(t *testing.T) {
 	assert.Equal(t, testObject.Blub["blub"], testObjectDto.Blub["blub"])
 	assert.Equal(t, "", testObjectDto.Blub["anotherBlub"])
 }
+
+func Test_Map_Error(t *testing.T) {
+	var testObjectDto TestObjectDto
+	var testObject = "Test"
+
+	assert.Panics(t, func() {
+		dto.Map(&testObject, &testObjectDto)
+	})
+}

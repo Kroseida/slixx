@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/master/datasource"
+	"kroseida.org/slixx/internal/master/datasource/provider"
 	"kroseida.org/slixx/internal/master/graphql/controller"
 	"testing"
 )
@@ -50,6 +51,47 @@ func Test_CreateUser(t *testing.T) {
 	assert.Equal(t, "description", actualUser.Description)
 	assert.Equal(t, "test@test.de", actualUser.Email)
 	assert.Equal(t, true, actualUser.Active)
+	teardownSuite()
+}
+
+func Test_UpdateUser(t *testing.T) {
+	teardownSuite := setupSuite()
+	user, err := controller.CreateUser(withPermissions([]string{"user.create"}), controller.CreateUserDto{
+		Name:        "Testaaaaaa",
+		FirstName:   "test",
+		LastName:    "test",
+		Email:       "test@test.de",
+		Description: "description",
+		Active:      true,
+	})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	updatedName := "TestNewName"
+	_, err = controller.UpdateUser(withPermissions([]string{"user.update"}), controller.UpdateUserDto{
+		Id:   user.Id,
+		Name: &updatedName,
+	})
+
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	updatedUser, err := controller.GetUser(withPermissions([]string{"user.view"}), controller.GetUserDto{
+		Id: user.Id,
+	})
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, updatedName, updatedUser.Name)
 	teardownSuite()
 }
 
@@ -338,5 +380,19 @@ func Test_GetLocalUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
+	teardownSuite()
+}
+
+func Test_GetPermissions(t *testing.T) {
+	teardownSuite := setupSuite()
+
+	permissions, err := controller.GetPermissions()
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
+
+	assert.Equal(t, len(provider.PERMISSIONS), len(permissions))
 	teardownSuite()
 }

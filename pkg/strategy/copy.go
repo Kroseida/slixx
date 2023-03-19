@@ -10,7 +10,7 @@ type CopyStrategy struct {
 }
 
 type CopyStrategyConfiguration struct {
-	blockSize int
+	BlockSize int `json:"blockSize"`
 }
 
 func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {
@@ -57,24 +57,24 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 		return err
 	}
 
-	iterations := int(size) / strategy.Configuration.blockSize
-	lastBlockSize := int(size) % strategy.Configuration.blockSize
+	iterations := int(size) / strategy.Configuration.BlockSize
+	lastBlockSize := int(size) % strategy.Configuration.BlockSize
 	if lastBlockSize != 0 {
 		iterations++
 	}
 
 	for index := 0; index < iterations; index++ {
-		readSize := strategy.Configuration.blockSize
+		readSize := strategy.Configuration.BlockSize
 		if index == iterations-1 && lastBlockSize != 0 {
 			readSize = lastBlockSize
 		}
 
-		data, err := origin.Read(file, uint64(index*strategy.Configuration.blockSize), uint64(readSize))
+		data, err := origin.Read(file, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
 		if err != nil {
 			return err
 		}
 
-		err = destination.Store(file, data, uint64(index*strategy.Configuration.blockSize))
+		err = destination.Store(file, data, uint64(index*strategy.Configuration.BlockSize))
 		if err != nil {
 			return err
 		}
