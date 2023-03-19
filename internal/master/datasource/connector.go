@@ -11,6 +11,7 @@ import (
 
 var StorageProvider provider.StorageProvider
 var UserProvider provider.UserProvider
+var JobProvider provider.JobProvider
 var localDatabase *gorm.DB
 
 func Connect() error {
@@ -29,6 +30,11 @@ func Connect() error {
 
 	StorageProvider = provider.StorageProvider{Database: localDatabase}
 	UserProvider = provider.UserProvider{Database: localDatabase}
+	JobProvider = provider.JobProvider{
+		Database:        localDatabase,
+		StorageProvider: &StorageProvider,
+	}
+
 	err = UserProvider.Init()
 	if err != nil {
 		return err
