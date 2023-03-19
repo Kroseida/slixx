@@ -10,8 +10,10 @@ type Strategy interface {
 	DefaultConfiguration() interface{}
 }
 
+var COPY = &CopyStrategy{}
+
 var strategies = map[string]Strategy{
-	"COPY": &CopyStrategy{},
+	"COPY": COPY,
 }
 
 func ValueOf(name string) Strategy {
