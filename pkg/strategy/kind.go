@@ -3,6 +3,7 @@ package strategy
 import "kroseida.org/slixx/pkg/storage"
 
 type Strategy interface {
+	GetName() string
 	Initialize(configuration any) error
 	Execute(origin storage.Kind, destination storage.Kind) error
 	Restore(origin storage.Kind, destination storage.Kind) error

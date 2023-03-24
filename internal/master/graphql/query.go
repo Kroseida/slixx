@@ -15,5 +15,6 @@ func registerQuery(schema *schemabuilder.Schema) {
 	obj.FieldFunc("getUser", controller.GetUser)
 	obj.FieldFunc("getLocalUser", controller.GetLocalUser)
 	obj.FieldFunc("getStorageKinds", controller.GetStorageKinds)
+	obj.FieldFunc("getJobStrategies", controller.GetJobStrategies)
 	obj.FieldFunc("getPermissions", controller.GetPermissions)
 }

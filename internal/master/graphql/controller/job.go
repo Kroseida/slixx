@@ -10,6 +10,8 @@ import (
 	"kroseida.org/slixx/internal/master/datasource/provider"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
+	"kroseida.org/slixx/pkg/strategy"
+	"reflect"
 	"time"
 )
 
@@ -149,4 +151,38 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 	dto.Map(job, &jobDto)
 
 	return &jobDto, err
+}
+
+type JobStrategyDescriptionDto struct {
+	Name          string                                   `json:"name" graphql:"name"`
+	Configuration []JobStrategyConfigurationDescriptionDto `json:"configuration" graphql:"configuration"`
+}
+
+type JobStrategyConfigurationDescriptionDto struct {
+	Name    string `json:"name" graphql:"name"`
+	Kind    string `json:"kind" graphql:"kind"`
+	Default string `json:"default" graphql:"default"`
+}
+
+func GetJobStrategies() ([]JobStrategyDescriptionDto, error) {
+	var descriptions []JobStrategyDescriptionDto
+	for _, kind := range strategy.Values() {
+		var configurations []JobStrategyConfigurationDescriptionDto
+
+		val := reflect.ValueOf(kind.DefaultConfiguration()).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			configurations = append(configurations, JobStrategyConfigurationDescriptionDto{
+				Name:    val.Type().Field(i).Tag.Get("json"),
+				Kind:    val.Type().Field(i).Tag.Get("slixx"),
+				Default: val.Type().Field(i).Tag.Get("default"),
+			})
+		}
+
+		descriptions = append(descriptions, JobStrategyDescriptionDto{
+			Name:          kind.GetName(),
+			Configuration: configurations,
+		})
+	}
+
+	return descriptions, nil
 }

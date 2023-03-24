@@ -7,6 +7,7 @@
           Previous
         </li>
         <li :class="'page-item page-link ' + (page === target ? 'active-page-item' : '')"
+            :key="target"
             v-for="target in pages()"
             @click="onChange(target)">
           {{ target }}
@@ -19,7 +20,7 @@
     </div>
     <div v-else>
       <select v-model="pageSelect" class="form-control pagination-select" @change="onChange(pageSelect * 1)">
-        <option v-for="target in pages()" :value="target">Page {{ target }}</option>
+        <option v-for="target in pages()" :value="target" :key="target">Page {{ target }}</option>
       </select>
     </div>
   </div>
@@ -32,8 +33,7 @@ export default {
     totalPages: {type: Number, default: 1},
     page: {type: Number, default: 1},
     onChange: {
-      type: Function, default: (page) => {
-      }
+      type: Function, default: () => {}
     }
   },
   data() {

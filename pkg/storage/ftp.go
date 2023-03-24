@@ -15,11 +15,11 @@ type FtpKind struct {
 }
 
 type FtpKindConfiguration struct {
-	Host     string `json:"host" slixx:"HOST"`
-	Timeout  int64  `json:"timeout" slixx:"LONG"`
-	File     string `json:"file" slixx:"PATH"`
-	Username string `json:"username" slixx:"STRING"`
-	Password string `json:"password" slixx:"PASSWORD"`
+	Host     string `json:"host" slixx:"HOST" default:"ftp.slixx.app"`
+	Timeout  int64  `json:"timeout" slixx:"LONG" default:"1000"`
+	File     string `json:"file" slixx:"PATH" default:"/"`
+	Username string `json:"username" slixx:"STRING" default:"root"`
+	Password string `json:"password" slixx:"PASSWORD" default:""`
 }
 
 func (kind *FtpKind) GetName() string {

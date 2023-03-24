@@ -3,25 +3,35 @@ import Vue from "vue";
 const defaultState = () => ({
     subscribeId: -1,
     updatedSubscriptionId: -1,
-    storage: {
+    job: {
         id: '',
         name: "",
-        kind: "",
+        strategy: "",
         description: "",
         createdAt: "",
         updatedAt: "",
         configuration: {},
+        originStorageId: "",
+        destinationStorageId: "",
     },
-    originalStorage: {
+    originalJob: {
         id: '',
         name: "",
-        kind: "",
+        strategy: "",
         description: "",
         createdAt: "",
         updatedAt: "",
         configuration: {},
+        originStorageId: "",
+        destinationStorageId: "",
     },
-    kinds: {}
+    strategies: {},
+    storages: [],
+    table: {
+        page: 1,
+        totalPages: 1,
+        totalRows: 1
+    }
 })
 
 export default {
@@ -34,9 +44,36 @@ export default {
                 state[key] = initial[key]
             })
         },
-        subscribeKinds(state, {error, callback}) {
+        subscribeStorages(state, {callback, error, filter}) {
+            state.storages = [];
+            state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(`
+            query {
+                data: getStorages(limit: 10, search: "${filter}", page: ${state.table.page}) {
+                    rows  {
+                      id
+                      name
+                    }
+                    page {
+                      totalRows
+                      totalPages
+                    } 
+                }
+            }
+            `, (data) => {
+                state.storages = data.rows;
+                state.table.totalPages = data.page.totalPages;
+                if (state.table.totalPages === 0) {
+                    state.table.totalPages = 1;
+                }
+                state.table.totalRows = data.page.totalRows;
+                if (callback) {
+                    callback(data);
+                }
+            }, error);
+        },
+        subscribeStrategies(state, {error, callback}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "getStorageKinds",
+                method: "getJobStrategies",
                 args: [],
                 fields: [
                     "name",
@@ -52,48 +89,50 @@ export default {
                 isMutation: false
             });
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(fullQuery, (data) => {
-                state.kinds = {};
-                data.forEach(kind => {
+                state.strategies = {};
+                data.forEach(strategy => {
                     let configuration = {};
-                    kind.configuration.forEach(config => {
+                    strategy.configuration.forEach(config => {
                         configuration[config.name] = {
                             kind: config.kind,
                             default: config.default
                         };
                     });
-                    state.kinds[kind.name] = configuration;
+                    state.strategies[strategy.name] = configuration;
                 });
-                callback(state.kinds);
+                callback(state.strategies);
             }, error);
         },
-        subscribeStorage(state, {storageId, error, callback}) {
+        subscribeJob(state, {jobId, error, callback}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "getStorage",
+                method: "getJob",
                 args: {
-                    id: storageId
+                    id: jobId
                 },
                 fields: [
                     "id",
                     "name",
-                    "kind",
+                    "strategy",
                     "configuration",
+                    "originStorageId",
+                    "destinationStorageId",
                 ],
                 isMutation: false
             });
             state.subscribeId = Vue.prototype.$graphql.subscribeTrackedObject(fullQuery, (data) => {
-                state.storage = data;
-                state.storage.configuration = JSON.parse(state.storage.configuration);
-                state.originalStorage = JSON.parse(JSON.stringify(state.storage));
+                state.job = data;
+                state.job.configuration = JSON.parse(state.job.configuration);
+                state.originalJob = JSON.parse(JSON.stringify(state.job));
                 if (callback) {
-                    callback(state.storage);
+                    callback(state.job);
                 }
             }, error);
         },
-        deleteStorage(state, {callback, error}) {
+        deleteJob(state, {callback, error}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "deleteStorage",
+                method: "deleteJob",
                 args: {
-                    id: state.storage.id
+                    id: state.job.id
                 },
                 fields: [
                     "id",
@@ -102,42 +141,44 @@ export default {
             });
 
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
-                state.storage = data.message[0].data;
-                callback(state.storage);
+                state.job = data.message[0].data;
+                callback(state.job);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
             }, error);
         },
-        createStorage(state, {callback, error}) {
+        createJob(state, {callback, error}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "createStorage",
+                method: "createJob",
                 args: {
-                    name: state.storage.name,
-                    description: state.storage.description,
-                    kind: state.storage.kind,
-                    configuration: JSON.stringify(state.storage.configuration)
+                    name: state.job.name,
+                    description: state.job.description,
+                    strategy: state.job.strategy,
+                    configuration: JSON.stringify(state.job.configuration)
                         .replaceAll("\\", "\\\\")
-                        .replaceAll('"', '\\"')
+                        .replaceAll('"', '\\"'),
+                    originStorageId: state.job.originStorageId,
+                    destinationStorageId: state.job.destinationStorageId,
                 },
                 fields: [
                     "id",
                     "name",
-                    "kind",
+                    "strategy",
                 ],
                 isMutation: true
             });
 
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
-                state.storage = data.message[0].data;
-                callback(state.storage);
+                state.job = data.message[0].data;
+                callback(state.job);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
             }, error);
         },
         saveConfiguration(state, {callback, error}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "updateStorage",
+                method: "updateJob",
                 args: {
-                    id: state.storage.id,
-                    configuration: JSON.stringify(state.storage.configuration)
+                    id: state.job.id,
+                    configuration: JSON.stringify(state.job.configuration)
                         .replaceAll("\\", "\\\\")
                         .replaceAll('"', '\\"')
                 },
@@ -151,18 +192,18 @@ export default {
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
                 callback(data);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
-                this.commit('storage/subscribeStorage', {
-                    storageId: state.storage.id,
+                this.commit('job/subscribeJob', {
+                    jobId: state.job.id,
                 });
             }, error);
         },
-        saveStorage(state, {callback, error}) {
+        saveJob(state, {callback, error}) {
             let fullQuery = Vue.prototype.$graphql.buildQuery({
-                method: "updateStorage",
+                method: "updateJob",
                 args: {
-                    id: state.storage.id,
-                    name: state.storage.name === state.originalStorage.name ? undefined : state.storage.name,
-                    description: state.storage.description === state.originalStorage.description ? undefined : state.storage.description,
+                    id: state.job.id,
+                    name: state.job.name === state.originalJob.name ? undefined : state.job.name,
+                    description: state.job.description === state.originalJob.description ? undefined : state.job.description,
                 },
                 fields: [
                     "id",
@@ -175,12 +216,12 @@ export default {
             state.updatedSubscriptionId = Vue.prototype.$graphql.subscribe(fullQuery, (data) => {
                 callback(data);
                 Vue.prototype.$graphql.unsubscribe(state.updatedSubscriptionId);
-                this.commit('storage/subscribeStorage', {
-                    storageId: state.storage.id,
+                this.commit('job/subscribeJob', {
+                    jobId: state.job.id,
                 });
             }, error);
         },
-        unsubscribeStorage(state) {
+        unsubscribeJob(state) {
             Vue.prototype.$graphql.unsubscribe(state.subscribeId);
         },
     }

@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h2 class="page-title">{{
-        $route.params.id === 'new' ? 'Create new storage' : storage ? 'Storage - ' + storage.name : '?'
-      }}</h2>
+    <h2 class="page-title">
+      {{ $route.params.id === 'new' ? 'Create new storage' : storage ? 'Storage - ' + storage.name : '?' }}
+    </h2>
     <b-row>
       <b-col sm="12" md="12">
         <Widget>
@@ -25,6 +25,7 @@
                         id="storageDetails__kind"
                         v-model="storage.kind">
                   <option v-for="kind in Object.keys(kinds)"
+                          :key="kind"
                           :value="kind"
                           :disabled="!isPermitted('storage.update') && $route.params.id !== 'new'">
                     {{ kind }}
@@ -60,26 +61,24 @@
           <div class="form-group">
             <b-row>
               <b-col md="6" class="form-col"
+                     :key="configurationDescription[0]"
                      v-for="configurationDescription in Object.entries(kinds[storage.kind] || {})">
                 <label>{{ configurationDescription[0] }}</label>
-                <StorageConfigurationKindLong
-                    v-if="configurationDescription[1] === 'LONG'"
+                <ConfigurationKindLong
+                    v-if="configurationDescription[1].kind === 'LONG'"
                     :isPermitted="isPermitted('storage.update')"
-                    :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
                     :fieldName="configurationDescription[0]"/>
-                <StorageConfigurationKindPassword
-                    v-else-if="configurationDescription[1] === 'PASSWORD'"
+                <ConfigurationKindPassword
+                    v-else-if="configurationDescription[1].kind === 'PASSWORD'"
                     :isPermitted="isPermitted('storage.update')"
-                    :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
                     :fieldName="configurationDescription[0]"/>
-                <StorageConfigurationKindString
+                <ConfigurationKindString
                     v-else
                     :isPermitted="isPermitted('storage.update')"
-                    :storage="storage"
                     :field="storage.configuration[configurationDescription[0]]"
                     :handle="handleConfigurationChange"
                     :fieldName="configurationDescription[0]"/>
@@ -103,16 +102,16 @@
 
 <script>
 import {mapState} from 'vuex';
-import StorageConfigurationKindString from './storageConfigurationKind/StorageConfigurationKindString.vue';
-import StorageConfigurationKindPassword from './storageConfigurationKind/StorageConfigurationKindPassword.vue';
-import StorageConfigurationKindLong from './storageConfigurationKind/StorageConfigurationKindLong.vue';
+import ConfigurationKindLong from "@/components/Configuration/ConfigurationKindLong.vue";
+import ConfigurationKindPassword from "@/components/Configuration/ConfigurationKindPassword.vue";
+import ConfigurationKindString from "@/components/Configuration/ConfigurationKindString.vue";
 
 export default {
   name: 'StorageDetails',
   components: {
-    StorageConfigurationKindString,
-    StorageConfigurationKindPassword,
-    StorageConfigurationKindLong
+    ConfigurationKindLong,
+    ConfigurationKindPassword,
+    ConfigurationKindString
   },
   data() {
     return {}
@@ -183,14 +182,14 @@ export default {
         if (this.storage.configuration[entry[0]]) {
           continue;
         }
-        if (entry[1] === 'LONG') {
-          this.storage.configuration[entry[0]] = 0;
-        } else if (entry[1] === 'DOUBLE') {
-          this.storage.configuration[entry[0]] = 0.0;
-        } else if (entry[1] === 'BOOLEAN') {
-          this.storage.configuration[entry[0]] = false;
+        if (entry[1].kind === 'LONG') {
+          this.storage.configuration[entry[0]] = Number(entry[1].default || 0);
+        } else if (entry[1].kind === 'DOUBLE') {
+          this.storage.configuration[entry[0]] = Number(entry[1].default || 0);
+        } else if (entry[1].kind === 'BOOLEAN') {
+          this.storage.configuration[entry[0]] = Boolean(entry[1].default || false);
         } else {
-          this.storage.configuration[entry[0]] = '';
+          this.storage.configuration[entry[0]] = entry[1].default || '';
         }
       }
     },

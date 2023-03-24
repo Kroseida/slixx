@@ -23,18 +23,28 @@
             id="sidebar__dashboard"/>
         <NavLink
             :activeItem="activeItem"
+            v-if="isPermitted('job.view')"
+            header="Job"
+            link="/app/job"
+            iconName="fa fa-tasks"
+            index="job"
+            isHeader
+            id="sidebar__job"
+        />
+        <NavLink
+            :activeItem="activeItem"
             v-if="isPermitted('storage.view')"
             header="Storage"
             link="/app/storage"
             iconName="fa fa-database"
-            index="notifications"
+            index="storage"
             isHeader
             id="sidebar__storage"
         />
         <NavLink
             :activeItem="activeItem"
             v-if="isPermitted('user.view')"
-            header="Users"
+            header="User"
             link="/app/user"
             iconName="fa fa-user"
             index="user"

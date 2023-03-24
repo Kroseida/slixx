@@ -66,9 +66,9 @@ func (p *Pagination[any]) toSnakeCase(str string) string {
 
 func paginate[T any](value T, searchField string, pagination *Pagination[T], db *gorm.DB) *gorm.DB {
 	var totalRows int64
-	db.Model(value).Where(searchField+" like ?", "%"+pagination.Search+"%").Count(&totalRows)
+	db.Model(value).Where(searchField+" like ?", "%"+pagination.Search+"%").Or("id like ?", "%"+pagination.Search+"%").Count(&totalRows)
 	pagination.TotalRows = totalRows
 	pagination.TotalPages = int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
 
-	return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Where(searchField+" like ?", "%"+pagination.Search+"%").Order(pagination.GetSort())
+	return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Where(searchField+" like ?", "%"+pagination.Search+"%").Or("id like ?", "%"+pagination.Search+"%").Order(pagination.GetSort())
 }

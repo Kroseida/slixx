@@ -10,7 +10,11 @@ type CopyStrategy struct {
 }
 
 type CopyStrategyConfiguration struct {
-	BlockSize int `json:"blockSize"`
+	BlockSize int `json:"blockSize" slixx:"LONG" default:"4096"`
+}
+
+func (strategy *CopyStrategy) GetName() string {
+	return "COPY"
 }
 
 func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {

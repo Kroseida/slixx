@@ -155,8 +155,9 @@ type StorageKindDescriptionDto struct {
 }
 
 type StorageConfigurationDescriptionDto struct {
-	Name string `json:"name" graphql:"name"`
-	Kind string `json:"kind" graphql:"kind"`
+	Name    string `json:"name" graphql:"name"`
+	Kind    string `json:"kind" graphql:"kind"`
+	Default string `json:"default" graphql:"default"`
 }
 
 func GetStorageKinds() ([]StorageKindDescriptionDto, error) {
@@ -167,8 +168,9 @@ func GetStorageKinds() ([]StorageKindDescriptionDto, error) {
 		val := reflect.ValueOf(kind.DefaultConfiguration()).Elem()
 		for i := 0; i < val.NumField(); i++ {
 			configurations = append(configurations, StorageConfigurationDescriptionDto{
-				Name: val.Type().Field(i).Tag.Get("json"),
-				Kind: val.Type().Field(i).Tag.Get("slixx"),
+				Name:    val.Type().Field(i).Tag.Get("json"),
+				Kind:    val.Type().Field(i).Tag.Get("slixx"),
+				Default: val.Type().Field(i).Tag.Get("default"),
 			})
 		}
 
