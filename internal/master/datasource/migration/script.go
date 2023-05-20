@@ -15,6 +15,7 @@ type Script interface {
 var migrationScripts = []Script{
 	V1Initialize{},
 	V2Storage{},
+	V3Job{},
 }
 
 func Migrate(database *gorm.DB) error {

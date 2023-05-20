@@ -2,22 +2,29 @@ package strategy
 
 import "kroseida.org/slixx/pkg/storage"
 
-type Kind interface {
-	Execute(origin storage.Kind, destination []storage.Kind) error
-	Restore(origin storage.Kind, destination []storage.Kind, destinationIndex int) error
+type Strategy interface {
+	GetName() string
+	Initialize(configuration any) error
+	Execute(origin storage.Kind, destination storage.Kind) error
+	Restore(origin storage.Kind, destination storage.Kind) error
+	Parse(configurationJson string) (interface{}, error)
+	DefaultConfiguration() interface{}
 }
 
-var COPY Kind = &CopyKind{}
+var COPY = &CopyStrategy{}
 
-func ValueOf(name string) Kind {
-	if name == "COPY" {
-		return COPY
-	}
-	return nil
+var strategies = map[string]Strategy{
+	"COPY": COPY,
 }
 
-func Values() []Kind {
-	return []Kind{
-		COPY,
+func ValueOf(name string) Strategy {
+	return strategies[name]
+}
+
+func Values() []Strategy {
+	values := make([]Strategy, 0, len(strategies))
+	for _, value := range strategies {
+		values = append(values, value)
 	}
+	return values
 }

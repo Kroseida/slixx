@@ -7,6 +7,8 @@ import storages from "@/store/storages";
 import user from './user';
 import login from './login';
 import storage from "./storage";
+import jobs from "./jobs";
+import job from "./job";
 
 Vue.use(Vuex);
 
@@ -17,6 +19,8 @@ export default new Vuex.Store({
         storages,
         user,
         login,
-        storage
+        storage,
+        jobs,
+        job,
     },
 });

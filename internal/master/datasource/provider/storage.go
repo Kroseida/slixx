@@ -6,7 +6,7 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"gorm.io/gorm"
 	"kroseida.org/slixx/pkg/model"
-	"kroseida.org/slixx/pkg/storage"
+	_storage "kroseida.org/slixx/pkg/storage"
 )
 
 // StorageProvider Storage Provider
@@ -31,15 +31,15 @@ func (provider StorageProvider) DeleteStorage(id uuid.UUID) (*model.Storage, err
 	return storage, nil
 }
 
-func (provider StorageProvider) CreateStorage(name string, description string, kind string, configuration string) (*model.Storage, error) {
+func (provider StorageProvider) CreateStorage(name string, description string, kindName string, configuration string) (*model.Storage, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
-	kindType := storage.ValueOf(kind)
-	if kindType == nil {
-		return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", kind)
+	kind := _storage.ValueOf(kindName)
+	if kind == nil {
+		return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", kindName)
 	}
-	parsedConfiguration, err := kindType.Parse(configuration)
+	parsedConfiguration, err := kind.Parse(configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -51,14 +51,11 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 
 	configuration = string(rawConfiguration)
 
-	if storage.ValueOf(kind) == nil {
-		return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", kind)
-	}
 	storage := model.Storage{
 		Id:            uuid.New(),
 		Name:          name,
 		Description:   description,
-		Kind:          kind,
+		Kind:          kindName,
 		Configuration: configuration,
 	}
 
@@ -70,10 +67,10 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 	return &storage, nil
 }
 
-func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, description *string, kind *string, configuration *string) (*model.Storage, error) {
+func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, description *string, kindName *string, configuration *string) (*model.Storage, error) {
 	updateStorage, err := provider.GetStorage(id)
 	if updateStorage == nil {
-		return nil, graphql.NewSafeError("user not found")
+		return nil, graphql.NewSafeError("storage not found")
 	}
 	if err != nil {
 		return nil, err
@@ -85,15 +82,15 @@ func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, descri
 		}
 		updateStorage.Name = *name
 	}
-	if kind != nil {
-		kindType := storage.ValueOf(*kind)
-		if kindType == nil {
-			return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", *kind)
+	if kindName != nil {
+		kind := _storage.ValueOf(*kindName)
+		if kind == nil {
+			return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", *kindName)
 		}
-		updateStorage.Kind = *kind
+		updateStorage.Kind = *kindName
 	}
 	if configuration != nil {
-		kindType := storage.ValueOf(updateStorage.Kind)
+		kindType := _storage.ValueOf(updateStorage.Kind)
 
 		parsedConfiguration, err := kindType.Parse(*configuration)
 		if err != nil {

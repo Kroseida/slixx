@@ -1,18 +1,21 @@
 <template>
   <div>
     <input class="form-control no-border"
-           type="password"
+           type="text"
            v-model="value"
-           :id="'storageConfiguration__' + fieldName"
+           :id="'configuration__' + fieldName"
            :readonly="!isPermitted"/>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'StorageConfigurationKindLong',
+  name: 'ConfigurationKindLong',
   components: {},
   watch: {
+    field() {
+      this.$set(this, 'value', this.field);
+    },
     value() {
       this.handle(this.fieldName, this.value);
     },
@@ -23,10 +26,6 @@ export default {
   props: {
     isPermitted: {
       type: Boolean,
-      required: true
-    },
-    storage: {
-      type: Object,
       required: true
     },
     fieldName: {

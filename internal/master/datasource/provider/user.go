@@ -29,6 +29,10 @@ var PERMISSIONS = map[string]string{
 	"storage.create":         "Create Storage",
 	"storage.update":         "Update Storage",
 	"storage.delete":         "Delete Storage",
+	"job.view":               "View Job",
+	"job.create":             "Create Job",
+	"job.update":             "Update Job",
+	"job.delete":             "Delete Job",
 }
 
 func (provider UserProvider) CreateUser(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {

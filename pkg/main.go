@@ -1,29 +1,29 @@
 package main
 
 import (
-	"kroseida.org/slixx/pkg/storage"
-	"kroseida.org/slixx/pkg/strategy"
+	_storage "kroseida.org/slixx/pkg/storage"
+	_strategy "kroseida.org/slixx/pkg/strategy"
 )
 
 // This is just a sample.
 func main() {
-	origin := &storage.FtpKind{}
-	destination := []storage.Kind{&storage.FtpKind{}}
+	origin := &_storage.FtpKind{}
+	destination := &_storage.FtpKind{}
 
-	origin.Initialize(&storage.FtpKindConfiguration{
+	origin.Initialize(&_storage.FtpKindConfiguration{
 		Host:     "10.30.100.102:21",
 		Username: "test",
 		Password: "123123123",
 		File:     "/test",
 	})
-	destination[0].Initialize(&storage.FtpKindConfiguration{
+	destination.Initialize(&_storage.FtpKindConfiguration{
 		Host:     "10.30.100.102:21",
 		Username: "test",
 		Password: "123123123",
 		File:     "/backup",
 	})
 
-	targetStrategy := strategy.COPY
+	targetStrategy := _strategy.COPY
 	err := targetStrategy.Execute(origin, destination)
 	if err != nil {
 		panic(err)

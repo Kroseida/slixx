@@ -1,20 +1,38 @@
 package strategy
 
 import (
+	"encoding/json"
 	"kroseida.org/slixx/pkg/storage"
 )
 
-type CopyKind struct {
+type CopyStrategy struct {
+	Configuration *CopyStrategyConfiguration
 }
 
-func (kind *CopyKind) Execute(origin storage.Kind, destination []storage.Kind) error {
+type CopyStrategyConfiguration struct {
+	BlockSize int `json:"blockSize" slixx:"LONG" default:"4096"`
+}
+
+func (strategy *CopyStrategy) GetName() string {
+	return "COPY"
+}
+
+func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {
+	configuration := rawConfiguration.(*CopyStrategyConfiguration)
+
+	strategy.Configuration = configuration
+
+	return nil
+}
+
+func (strategy *CopyStrategy) Execute(origin storage.Kind, destination storage.Kind) error {
 	files, err := origin.ListFiles()
 	if err != nil {
 		return err
 	}
 	// Copy file by file. This should not be a problem for large files based on memory usage.
 	for _, file := range files {
-		err = kind.copy(origin, destination, file)
+		err = strategy.copy(origin, destination, file)
 		if err != nil {
 			return err
 		}
@@ -22,13 +40,13 @@ func (kind *CopyKind) Execute(origin storage.Kind, destination []storage.Kind) e
 	return nil
 }
 
-func (kind *CopyKind) Restore(origin storage.Kind, destination []storage.Kind, destinationIndex int) error {
-	files, err := destination[destinationIndex].ListFiles()
+func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.Kind) error {
+	files, err := destination.ListFiles()
 	if err != nil {
 		return err
 	}
 	for _, file := range files {
-		err = kind.copy(destination[destinationIndex], []storage.Kind{origin}, file)
+		err = strategy.copy(destination, origin, file)
 		if err != nil {
 			return err
 		}
@@ -36,36 +54,47 @@ func (kind *CopyKind) Restore(origin storage.Kind, destination []storage.Kind, d
 	return nil
 }
 
-func (kind *CopyKind) copy(origin storage.Kind, destination []storage.Kind, file string) error {
-	blockSize := 1024 // TODO: Make this configurable
-
+func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind, file string) error {
 	// Read File Size
 	size, err := origin.Size(file)
 	if err != nil {
 		return err
 	}
 
-	iterations := int(size) / blockSize
-	lastBlockSize := int(size) % blockSize
+	iterations := int(size) / strategy.Configuration.BlockSize
+	lastBlockSize := int(size) % strategy.Configuration.BlockSize
 	if lastBlockSize != 0 {
 		iterations++
 	}
 
-	for i := 0; i < iterations; i++ {
-		readSize := blockSize
-		if i == iterations-1 && lastBlockSize != 0 {
+	for index := 0; index < iterations; index++ {
+		readSize := strategy.Configuration.BlockSize
+		if index == iterations-1 && lastBlockSize != 0 {
 			readSize = lastBlockSize
 		}
-		data, err := origin.Read(file, uint64(i*blockSize), uint64(readSize))
+
+		data, err := origin.Read(file, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
 		if err != nil {
 			return err
 		}
-		for _, dest := range destination {
-			err = dest.Store(file, data, uint64(i*blockSize))
-			if err != nil {
-				return err
-			}
+
+		err = destination.Store(file, data, uint64(index*strategy.Configuration.BlockSize))
+		if err != nil {
+			return err
 		}
 	}
 	return nil
+}
+
+func (strategy *CopyStrategy) Parse(configurationJson string) (interface{}, error) {
+	var configuration CopyStrategyConfiguration
+	err := json.Unmarshal([]byte(configurationJson), &configuration)
+	if err != nil {
+		return nil, err
+	}
+	return &configuration, nil
+}
+
+func (strategy *CopyStrategy) DefaultConfiguration() interface{} {
+	return &CopyStrategyConfiguration{}
 }
