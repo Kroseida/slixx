@@ -125,7 +125,7 @@ export default {
                     this.client.close();
                     this.onReset();
                 }
-                this.client = new WebSocket(`ws://localhost:3030/graphql?authorization=${token}`);
+                this.client = new WebSocket(`ws://testaaaaa@localhost:3030/graphql?authorization=${token}`);
                 this.listener();
                 this.client.addEventListener('open', () => {
                     this.onConnected();

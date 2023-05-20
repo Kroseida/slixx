@@ -26,6 +26,14 @@ func (kind *FtpKind) GetName() string {
 	return "FTP"
 }
 
+func (kind *FtpKind) CanStore() bool {
+	return true
+}
+
+func (kind *FtpKind) CanRead() bool {
+	return true
+}
+
 func (kind *FtpKind) Initialize(rawConfiguration any) error {
 	configuration := rawConfiguration.(*FtpKindConfiguration)
 

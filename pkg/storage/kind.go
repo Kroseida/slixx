@@ -10,6 +10,8 @@ type Kind interface {
 	Delete(file string) error
 	Parse(configurationJson string) (interface{}, error)
 	DefaultConfiguration() interface{}
+	CanStore() bool
+	CanRead() bool
 	Close() error
 }
 
