@@ -49,7 +49,6 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 	if kind == nil {
 		return nil, graphql.NewSafeError("Invalid storage kind \"%s\"", kindName)
 	}
-
 	// Check if configuration is valid
 	parsedConfiguration, err := kind.Parse(configuration)
 	if err != nil {
@@ -60,6 +59,8 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 	if err != nil {
 		return nil, err
 	}
+
+	configuration = string(rawConfiguration)
 
 	storage := model.Storage{
 		Id:            uuid.New(),
