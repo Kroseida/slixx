@@ -761,6 +761,11 @@
     debug "^3.1.0"
     lodash.once "^4.1.1"
 
+"@fortawesome/fontawesome-free@^6.0.0-beta2":
+  version "6.0.0-beta2"
+  resolved "https://registry.npmjs.org/@fortawesome/fontawesome-free/-/fontawesome-free-6.0.0-beta2.tgz"
+  integrity sha512-od2COSiBZ70dB5YgZuZEJ3Jy3RHFUhKKjN4dBxNVtmC8DYlyuI4q9wUSzmpLWXQVnRTADRoOLywA9E6SRaS6YQ==
+
 "@hapi/address@2.x.x":
   version "2.1.4"
   resolved "https://registry.npmjs.org/@hapi/address/-/address-2.1.4.tgz"

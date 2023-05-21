@@ -96,7 +96,7 @@ export default {
                     firstName: state.user.firstName,
                     lastName: state.user.lastName,
                     name: state.user.name,
-                    active: state.user.active,
+                    active: state.user.active === 'true',
                 },
                 fields: [
                     "id",

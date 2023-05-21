@@ -93,9 +93,8 @@ export default {
     ...mapState('layout', ['localUser', 'isPermitted'])
   },
   methods: {
-    ...mapActions('users', ['subscribeJobs', 'unsubscribeJobs']),
-    open(user) {
-      this.$router.push({name: 'JobDetails', params: {id: user.id}});
+    open(job) {
+      this.$router.push({name: 'JobDetails', params: {id: job.id}});
     },
     openNew() {
       this.$router.push({name: 'JobDetails', params: {id: 'new'}});

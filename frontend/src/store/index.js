@@ -9,6 +9,8 @@ import login from './login';
 import storage from "./storage";
 import jobs from "./jobs";
 import job from "./job";
+import satellites from "./satellites";
+import satellite from "./satellite";
 
 Vue.use(Vuex);
 
@@ -22,5 +24,7 @@ export default new Vuex.Store({
         storage,
         jobs,
         job,
+        satellites,
+        satellite
     },
 });

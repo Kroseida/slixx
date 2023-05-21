@@ -24,6 +24,16 @@
         <NavLink
             :activeItem="activeItem"
             v-if="isPermitted('job.view')"
+            header="Satellite"
+            link="/app/satellite"
+            iconName="fa-solid fa-satellite"
+            index="satellite"
+            isHeader
+            id="sidebar__satellite"
+        />
+        <NavLink
+            :activeItem="activeItem"
+            v-if="isPermitted('job.view')"
             header="Job"
             link="/app/job"
             iconName="fa fa-tasks"

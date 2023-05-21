@@ -16,7 +16,7 @@
                        name="name"
                        v-model="job.name"
                        id="jobDetails__name"
-                       :readonly="!isPermitted('job.update')"/>
+                       :readonly="!isPermitted('job.update') && $route.params.id !== 'new'"/>
               </b-col>
               <b-col lg="4" md="4" xs="12" class="form-col">
                 <label>Strategy</label>
@@ -35,35 +35,51 @@
               <b-col lg="4" md="4" xs="0"/>
               <b-col lg="4" md="4" xs="12" class="form-col">
                 <label>Origin Storage</label>
-                <vue-simple-suggest
-                    display-attribute="id"
-                    valueAttribute="id"
-                    v-model="job.originStorageId"
-                    :debounce="500"
-                    :list="getStorages">
+                <div v-if="isPermitted('job.update') || $route.params.id === 'new'">
+                  <vue-simple-suggest
+                      display-attribute="id"
+                      valueAttribute="id"
+                      v-model="job.originStorageId"
+                      :debounce="500"
+                      :list="getStorages">
+                    <input class="form-control no-border"
+                           :value="job.originStorageId || ''"
+                           type="text"/>
+                    <div slot="suggestion-item" slot-scope="{ suggestion }">
+                      <span>{{ suggestion.name }}</span>
+                    </div>
+                  </vue-simple-suggest>
+                </div>
+                <div v-else>
                   <input class="form-control no-border"
                          :value="job.originStorageId || ''"
-                         type="text"/>
-                  <div slot="suggestion-item" slot-scope="{ suggestion }">
-                    <span>{{ suggestion.name }}</span>
-                  </div>
-                </vue-simple-suggest>
+                         type="text"
+                         readonly/>
+                </div>
               </b-col>
               <b-col lg="4" md="4" xs="12" class="form-col">
                 <label>Destination Storage</label>
-                <vue-simple-suggest
-                    display-attribute="id"
-                    value-attribute="id"
-                    v-model="job.destinationStorageId"
-                    :debounce="500"
-                    :list="getStorages">
+                <div v-if="isPermitted('job.update') || $route.params.id === 'new'">
+                  <vue-simple-suggest
+                      display-attribute="id"
+                      value-attribute="id"
+                      v-model="job.destinationStorageId"
+                      :debounce="500"
+                      :list="getStorages">
+                    <input class="form-control no-border"
+                           :value="job.destinationStorageId || ''"
+                           type="text"/>
+                    <div slot="suggestion-item" slot-scope="{ suggestion }">
+                      <span>{{ suggestion.name }}</span>
+                    </div>
+                  </vue-simple-suggest>
+                </div>
+                <div v-else>
                   <input class="form-control no-border"
                          :value="job.destinationStorageId || ''"
-                         type="text"/>
-                  <div slot="suggestion-item" slot-scope="{ suggestion }">
-                    <span>{{ suggestion.name }}</span>
-                  </div>
-                </vue-simple-suggest>
+                         type="text"
+                         readonly/>
+                </div>
               </b-col>
             </b-row>
           </div>
@@ -78,7 +94,7 @@
             <b-button type="submit"
                       style="margin-left: 5px;"
                       variant="danger"
-                      :disabled="$route.params.id === 'new' || !isPermitted('user.delete') || $route.params.id === localUser.id"
+                      :disabled="$route.params.id === 'new' || !isPermitted('job.delete') || $route.params.id === localUser.id"
                       id="jobDetails__delete__button"
                       @click="deleteJob">
               Delete Job

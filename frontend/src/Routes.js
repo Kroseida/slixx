@@ -12,6 +12,8 @@ import StorageList from "@/pages/Storage/StorageList/StorageList.vue";
 import StorageDetails from "@/pages/Storage/StorageDetails/StorageDetails.vue";
 import JobList from "@/pages/Job/JobList/JobList.vue";
 import JobDetails from "@/pages/Job/JobDetails/JobDetails.vue";
+import SatelliteList from "@/pages/Satellite/SatelliteList/SatelliteList.vue";
+import SatelliteDetails from "@/pages/Satellite/SatelliteDetails/SatelliteDetails.vue";
 
 Vue.use(Router);
 
@@ -67,6 +69,16 @@ export default new Router({
                     name: 'JobDetails',
                     component: JobDetails,
                 },
+                {
+                    path: 'satellite',
+                    name: 'SatelliteList',
+                    component: SatelliteList,
+                },
+                {
+                    path: 'satellite/:id',
+                    name: 'SatelliteDetails',
+                    component: SatelliteDetails,
+                }
             ],
         },
     ],

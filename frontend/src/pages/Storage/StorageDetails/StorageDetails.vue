@@ -16,7 +16,7 @@
                        name="name"
                        v-model="storage.name"
                        id="storageDetails__name"
-                       :readonly="!isPermitted('storage.update')"/>
+                       :readonly="!isPermitted('storage.update') && $route.params.id !== 'new'"/>
               </b-col>
               <b-col lg="4" md="4" xs="12" class="form-col">
                 <label>Kind</label>
@@ -45,7 +45,7 @@
             <b-button type="submit"
                       style="margin-left: 5px;"
                       variant="danger"
-                      :disabled="$route.params.id === 'new' || !isPermitted('user.delete') || $route.params.id === localUser.id"
+                      :disabled="$route.params.id === 'new' || !isPermitted('storage.delete') || $route.params.id === localUser.id"
                       id="storageDetails__delete__button"
                       @click="deleteStorage">
               Delete Storage

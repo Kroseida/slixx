@@ -93,9 +93,8 @@ export default {
     ...mapState('layout', ['localUser', 'isPermitted'])
   },
   methods: {
-    ...mapActions('users', ['subscribeStorages', 'unsubscribeStorages']),
-    open(user) {
-      this.$router.push({name: 'StorageDetails', params: {id: user.id}});
+    open(storage) {
+      this.$router.push({name: 'StorageDetails', params: {id: storage.id}});
     },
     openNew() {
       this.$router.push({name: 'StorageDetails', params: {id: 'new'}});
