@@ -1,11 +1,11 @@
-package satellite
+package syncnetwork
 
 import (
 	"bufio"
 	"errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm/utils"
-	"kroseida.org/slixx/pkg/satellite/protocol"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	"net"
 	"strconv"
 )
@@ -26,6 +26,7 @@ type ConnectedClient struct {
 	Id         *string
 	Reader     *bufio.Reader
 	Writer     *bufio.Writer
+	Server     *Server
 }
 
 func (client *ConnectedClient) Send(packet protocol.Packet) error {
@@ -89,6 +90,7 @@ func (server *Server) Listen() error {
 			Id:         nil,
 			Reader:     bufio.NewReader(connection),
 			Writer:     bufio.NewWriter(connection),
+			Server:     server,
 		}
 		go server.handleConnection(&client)
 	}

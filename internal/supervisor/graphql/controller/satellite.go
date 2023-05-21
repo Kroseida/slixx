@@ -116,7 +116,7 @@ func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, 
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := datasource.SatelliteProvider.UpdateSatellite(
+	satellite, err := service.UpdateSatellite(
 		args.Id,
 		args.Name,
 		args.Description,

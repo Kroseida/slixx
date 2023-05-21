@@ -1,7 +1,7 @@
 package satellite
 
 import (
-	"kroseida.org/slixx/pkg/satellite/protocol"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 )
 
 type Handler struct {

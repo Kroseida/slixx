@@ -6,9 +6,9 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/pkg/model"
-	"kroseida.org/slixx/pkg/satellite"
-	"kroseida.org/slixx/pkg/satellite/protocol"
-	"kroseida.org/slixx/pkg/satellite/protocol/handshake"
+	"kroseida.org/slixx/pkg/syncnetwork"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol/handshake"
 	"time"
 )
 
@@ -32,7 +32,7 @@ func Watchdog() {
 			satellitesMap[satellite.Id] = satellite
 		}
 		for _, client := range clients {
-			delete(satellitesMap, client.model.Id)
+			delete(satellitesMap, client.Model.Id)
 		}
 		for id := range satellitesMap {
 			RemoveClient(id)
@@ -47,15 +47,20 @@ func RemoveClient(id uuid.UUID) {
 	if client == nil {
 		return
 	}
-	client.client.Close()
+	client.Client.Close()
 	delete(clients, id)
+}
+
+func GetClient(id uuid.UUID) *WrappedClient {
+	return clients[id]
 }
 
 func ProvideClient(configuration model.Satellite) {
 	if IsProvided(configuration.Id) {
+		ApplyUpdates(configuration)
 		return
 	}
-	client := satellite.Client{
+	client := syncnetwork.Client{
 		Address:  configuration.Address,
 		Token:    configuration.Token,
 		Closed:   false,
@@ -71,8 +76,23 @@ func ProvideClient(configuration model.Satellite) {
 	go client.Dial(5*time.Second, 5*time.Second)
 
 	clients[configuration.Id] = &WrappedClient{
-		model:  configuration,
-		client: &client,
+		Model:  configuration,
+		Client: &client,
+	}
+}
+
+func ApplyUpdates(configuration model.Satellite) {
+	client := clients[configuration.Id]
+	if client == nil {
+		return
+	}
+	if client.Model.Address != configuration.Address {
+		client.Model.Address = configuration.Address
+		client.Client.Address = configuration.Address
+	}
+	if client.Model.Token != configuration.Token {
+		client.Model.Token = configuration.Token
+		client.Client.Token = configuration.Token
 	}
 }
 

@@ -1,8 +1,8 @@
-package satellite
+package syncnetwork
 
 import (
-	"kroseida.org/slixx/pkg/satellite/protocol"
-	"kroseida.org/slixx/pkg/satellite/protocol/handshake/packet"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol/handshake/packet"
 )
 
 var PACKETS = map[int64]protocol.Packet{

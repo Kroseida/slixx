@@ -4,15 +4,15 @@ import (
 	"kroseida.org/slixx/internal/satellite/application"
 	satelliteProtocol "kroseida.org/slixx/internal/satellite/syncnetwork/protocol/satellite"
 	supervisorProtocol "kroseida.org/slixx/internal/satellite/syncnetwork/protocol/supervisor"
-	"kroseida.org/slixx/pkg/satellite"
-	"kroseida.org/slixx/pkg/satellite/protocol"
-	handshakeProtocol "kroseida.org/slixx/pkg/satellite/protocol/handshake"
+	"kroseida.org/slixx/pkg/syncnetwork"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
+	handshakeProtocol "kroseida.org/slixx/pkg/syncnetwork/protocol/handshake"
 )
 
-var server satellite.Server
+var server syncnetwork.Server
 
 func Listen() error {
-	server := satellite.Server{
+	server := syncnetwork.Server{
 		BindAddress: application.CurrentSettings.Satellite.Network.BindAddress,
 		Token:       application.CurrentSettings.Satellite.AuthenticationToken,
 		Handler: map[string]protocol.Handler{

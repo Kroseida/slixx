@@ -3,7 +3,7 @@ package service
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	_satellite "kroseida.org/slixx/internal/supervisor/syncnetwork"
+	"kroseida.org/slixx/internal/supervisor/syncnetwork"
 	"kroseida.org/slixx/pkg/model"
 )
 
@@ -14,7 +14,24 @@ func CreateSatellite(name string, description string, address string, token stri
 	}
 
 	// Create a connection to the satellite
-	go _satellite.ProvideClient(*satellite)
+	go syncnetwork.ProvideClient(*satellite)
+
+	return satellite, err
+}
+
+func UpdateSatellite(id uuid.UUID, name *string, description *string, address *string, token *string) (*model.Satellite, error) {
+	satellite, err := datasource.SatelliteProvider.UpdateSatellite(id, name, description, address, token)
+	if err != nil {
+		return nil, err
+	}
+
+	go func() {
+		syncnetwork.ApplyUpdates(*satellite)
+		client := syncnetwork.GetClient(id)
+		if client != nil && client.Client != nil && client.Client.Connection != nil {
+			client.Client.Connection.Close() // force a reconnect
+		}
+	}()
 
 	return satellite, err
 }
@@ -26,7 +43,7 @@ func DeleteSatellite(id uuid.UUID) (*model.Satellite, error) {
 	}
 
 	// Remove the connection to the satellite
-	go _satellite.RemoveClient(satellite.Id)
+	go syncnetwork.RemoveClient(satellite.Id)
 
 	return satellite, err
 }

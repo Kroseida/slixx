@@ -107,6 +107,8 @@ export default {
                     id: state.satellite.id,
                     name: state.satellite.name === state.originalSatellite.name ? undefined : state.satellite.name,
                     description: state.satellite.description === state.originalSatellite.description ? undefined : state.satellite.description,
+                    address: state.satellite.address === state.originalSatellite.address ? undefined : state.satellite.address,
+                    token: state.satellite.token === state.originalSatellite.token ? undefined : state.satellite.token,
                 },
                 fields: [
                     "id",
