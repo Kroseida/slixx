@@ -16,6 +16,17 @@ func Test_GetJob(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	executor, err := datasource.SatelliteProvider.CreateSatellite(
+		"Executor",
+		"description",
+		"address",
+		"token",
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
 
 	created, err := controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa",
@@ -24,6 +35,7 @@ func Test_GetJob(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	if err != nil {
 		t.Error(err)
@@ -60,6 +72,17 @@ func Test_GetJobs(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	executor, err := datasource.SatelliteProvider.CreateSatellite(
+		"Executor",
+		"description",
+		"address",
+		"token",
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
 
 	_, err = controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa",
@@ -68,6 +91,7 @@ func Test_GetJobs(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	_, err = controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa2",
@@ -76,6 +100,7 @@ func Test_GetJobs(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	_, err = controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa3",
@@ -84,6 +109,7 @@ func Test_GetJobs(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	if err != nil {
 		t.Error(err)
@@ -112,6 +138,17 @@ func Test_DeleteJob(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	executor, err := datasource.SatelliteProvider.CreateSatellite(
+		"Executor",
+		"description",
+		"address",
+		"token",
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
 
 	_, err = controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa",
@@ -120,6 +157,7 @@ func Test_DeleteJob(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	if err != nil {
 		t.Error(err)
@@ -153,6 +191,17 @@ func Test_CreateJob(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	executor, err := datasource.SatelliteProvider.CreateSatellite(
+		"Executor",
+		"description",
+		"address",
+		"token",
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
 
 	createdJob, err := controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa",
@@ -161,6 +210,7 @@ func Test_CreateJob(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	if err != nil {
 		t.Error(err)
@@ -196,6 +246,17 @@ func Test_UpdateJob(t *testing.T) {
 		teardownSuite()
 		return
 	}
+	executor, err := datasource.SatelliteProvider.CreateSatellite(
+		"Executor",
+		"description",
+		"address",
+		"token",
+	)
+	if err != nil {
+		t.Error(err)
+		teardownSuite()
+		return
+	}
 
 	createdJob, err := controller.CreateJob(withPermissions([]string{"job.create"}), controller.CreateJobDto{
 		Name:                 "Testaaaaaa",
@@ -204,6 +265,7 @@ func Test_UpdateJob(t *testing.T) {
 		Configuration:        "{}",
 		OriginStorageId:      storage.Id,
 		DestinationStorageId: storage.Id,
+		ExecutorSatelliteId:  executor.Id,
 	})
 	if err != nil {
 		t.Error(err)

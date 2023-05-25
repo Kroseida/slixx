@@ -15,7 +15,7 @@ type SyncedLogger struct {
 
 func (l *SyncedLogger) Info(args ...interface{}) {
 	l.Logger.Info(args)
-	l.appendLine("info", args)
+	l.appendLine("info", args...)
 }
 
 func (l *SyncedLogger) Debug(args ...interface{}) {
@@ -25,12 +25,12 @@ func (l *SyncedLogger) Debug(args ...interface{}) {
 
 func (l *SyncedLogger) Error(args ...interface{}) {
 	l.Logger.Error(args)
-	l.appendLine("error", args)
+	l.appendLine("error", args...)
 }
 
 func (l *SyncedLogger) Warn(args ...interface{}) {
 	l.Logger.Warn(args)
-	l.appendLine("warn", args)
+	l.appendLine("warn", args...)
 }
 
 func (l *SyncedLogger) appendLine(level string, args ...interface{}) {
