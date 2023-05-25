@@ -8,6 +8,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	"kroseida.org/slixx/internal/supervisor/service"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/storage"
@@ -94,7 +95,7 @@ func CreateStorage(ctx context.Context, args CreateStorageDto) (*Storage, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := datasource.StorageProvider.CreateStorage(args.Name, args.Description, args.Kind, args.Configuration)
+	storage, err := service.CreateStorage(args.Name, args.Description, args.Kind, args.Configuration)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -118,7 +119,7 @@ func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := datasource.StorageProvider.UpdateStorage(
+	storage, err := service.UpdateStorage(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -144,7 +145,7 @@ func DeleteStorage(ctx context.Context, args DeleteStorageDto) (*Storage, error)
 	if !IsPermitted(ctx, []string{"storage.delete"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	storage, err := datasource.StorageProvider.DeleteStorage(args.Id)
+	storage, err := service.DeleteStorage(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

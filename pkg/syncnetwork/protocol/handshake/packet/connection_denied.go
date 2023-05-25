@@ -12,7 +12,7 @@ func (packet *ConnectionDenied) PacketId() int64 {
 }
 
 func (packet *ConnectionDenied) Protocol() []string {
-	return []string{protocol.HandshakeProtocol, protocol.SupervisorProtocol, protocol.SatelliteProtocol}
+	return []string{protocol.Handshake, protocol.Supervisor, protocol.Satellite}
 }
 
 func (packet *ConnectionDenied) Serialize(buffer *bytebuf.ByteBuffer) error {

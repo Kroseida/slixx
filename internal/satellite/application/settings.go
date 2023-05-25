@@ -1,6 +1,8 @@
 package application
 
-import "kroseida.org/slixx/pkg/utils"
+import (
+	"kroseida.org/slixx/pkg/utils"
+)
 
 type Settings struct {
 	Logger    Log       `json:"logger" graphql:"logger"`

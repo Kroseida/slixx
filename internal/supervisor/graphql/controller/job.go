@@ -8,6 +8,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	"kroseida.org/slixx/internal/supervisor/service"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/strategy"
@@ -25,15 +26,7 @@ type Job struct {
 	UpdatedAt            time.Time
 	OriginStorageId      uuid.UUID
 	DestinationStorageId uuid.UUID
-}
-
-type JobPrototype struct {
-	Id          uuid.UUID `sql:"default:uuid_generate_v4()"`
-	Name        string
-	Description string
-	Strategy    string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ExecutorSatelliteId  uuid.UUID
 }
 
 type GetJobDto struct {
@@ -41,7 +34,7 @@ type GetJobDto struct {
 }
 
 type JobsPage struct {
-	Rows []JobPrototype `json:"rows" graphql:"rows"`
+	Rows []Job `json:"rows" graphql:"rows"`
 	Page
 }
 
@@ -89,6 +82,7 @@ type CreateJobDto struct {
 	Configuration        string
 	OriginStorageId      uuid.UUID
 	DestinationStorageId uuid.UUID
+	ExecutorSatelliteId  uuid.UUID
 }
 
 func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
@@ -96,7 +90,15 @@ func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := datasource.JobProvider.CreateJob(args.Name, args.Description, args.Strategy, args.Configuration, args.OriginStorageId, args.DestinationStorageId)
+	job, err := service.CreateJob(
+		args.Name,
+		args.Description,
+		args.Strategy,
+		args.Configuration,
+		args.OriginStorageId,
+		args.DestinationStorageId,
+		args.ExecutorSatelliteId,
+	)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -115,6 +117,7 @@ type UpdateJobDto struct {
 	Configuration        *string
 	OriginStorageId      *uuid.UUID
 	DestinationStorageId *uuid.UUID
+	ExecutorSatelliteId  *uuid.UUID
 }
 
 func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
@@ -122,7 +125,16 @@ func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := datasource.JobProvider.UpdateJob(args.Id, args.Name, args.Description, args.Strategy, args.Configuration, args.OriginStorageId, args.DestinationStorageId)
+	job, err := service.UpdateJob(
+		args.Id,
+		args.Name,
+		args.Description,
+		args.Strategy,
+		args.Configuration,
+		args.OriginStorageId,
+		args.DestinationStorageId,
+		args.ExecutorSatelliteId,
+	)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -142,7 +154,7 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := datasource.JobProvider.DeleteJob(args.Id)
+	job, err := service.DeleteJob(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

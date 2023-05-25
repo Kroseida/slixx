@@ -128,3 +128,13 @@ func (provider SatelliteProvider) GetSatellite(id uuid.UUID) (*model.Satellite, 
 
 	return satellite, nil
 }
+
+func (provider SatelliteProvider) CreateSatelliteLogs(logs []*model.SatelliteLogEntry) error {
+	result := provider.Database.Create(&logs)
+
+	if isSqlError(result.Error) {
+		return result.Error
+	}
+
+	return nil
+}

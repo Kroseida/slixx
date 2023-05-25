@@ -1,5 +1,5 @@
 package application
 
-import "go.uber.org/zap"
+import "kroseida.org/slixx/pkg/utils"
 
-var Logger *zap.SugaredLogger
+var Logger utils.Logger

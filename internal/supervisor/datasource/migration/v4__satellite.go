@@ -26,9 +26,11 @@ func (V4Satellite) Migrate(database *gorm.DB) error {
 		return err
 	}
 
-	err = database.Exec(`CREATE TABLE satellite_logs (id char(36) NOT NULL,
+	err = database.Exec(`CREATE TABLE satellite_log_entries (id char(36) NOT NULL,
 														  satellite_id char(36) NOT NULL,
 														  message text NOT NULL,
+														  level char(36) NOT NULL,
+														  logged_at DATETIME,									  
 														  created_at DATETIME,
 														  updated_at DATETIME,
 														  deleted_at DATETIME,
@@ -37,5 +39,11 @@ func (V4Satellite) Migrate(database *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+
+	err = database.Exec(`ALTER TABLE jobs ADD COLUMN executor_satellite_id char(36) DEFAULT NULL`).Error
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

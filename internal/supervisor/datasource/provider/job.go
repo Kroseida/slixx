@@ -11,8 +11,9 @@ import (
 
 // JobProvider Job Provider
 type JobProvider struct {
-	Database        *gorm.DB
-	StorageProvider *StorageProvider
+	Database          *gorm.DB
+	StorageProvider   *StorageProvider
+	SatelliteProvider *SatelliteProvider
 }
 
 func (provider JobProvider) DeleteJob(id uuid.UUID) (*model.Job, error) {
@@ -32,7 +33,15 @@ func (provider JobProvider) DeleteJob(id uuid.UUID) (*model.Job, error) {
 	return job, nil
 }
 
-func (provider JobProvider) CreateJob(name string, description string, strategyName string, configuration string, originStorageId uuid.UUID, destinationStorageId uuid.UUID) (*model.Job, error) {
+func (provider JobProvider) CreateJob(
+	name string,
+	description string,
+	strategyName string,
+	configuration string,
+	originStorageId uuid.UUID,
+	destinationStorageId uuid.UUID,
+	executorSatelliteId uuid.UUID,
+) (*model.Job, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
@@ -68,6 +77,11 @@ func (provider JobProvider) CreateJob(name string, description string, strategyN
 		return nil, graphql.NewSafeError("destination storage not found")
 	}
 
+	executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
+	if executorSatellite == nil {
+		return nil, graphql.NewSafeError("executor satellite not found")
+	}
+
 	configuration = string(rawConfiguration)
 
 	job := model.Job{
@@ -78,6 +92,7 @@ func (provider JobProvider) CreateJob(name string, description string, strategyN
 		Configuration:        configuration,
 		OriginStorageId:      originStorageId,
 		DestinationStorageId: destinationStorageId,
+		ExecutorSatelliteId:  executorSatelliteId,
 	}
 
 	result := provider.Database.Create(&job)
@@ -88,7 +103,16 @@ func (provider JobProvider) CreateJob(name string, description string, strategyN
 	return &job, nil
 }
 
-func (provider JobProvider) UpdateJob(id uuid.UUID, name *string, description *string, strategyName *string, configuration *string, originStorage *uuid.UUID, destinationStorage *uuid.UUID) (*model.Job, error) {
+func (provider JobProvider) UpdateJob(
+	id uuid.UUID,
+	name *string,
+	description *string,
+	strategyName *string,
+	configuration *string,
+	originStorageId *uuid.UUID,
+	destinationStorageId *uuid.UUID,
+	executorSatelliteId *uuid.UUID,
+) (*model.Job, error) {
 	updateJob, err := provider.GetJob(id)
 	if updateJob == nil {
 		return nil, graphql.NewSafeError("job not found")
@@ -128,11 +152,38 @@ func (provider JobProvider) UpdateJob(id uuid.UUID, name *string, description *s
 	if description != nil {
 		updateJob.Description = *description
 	}
-	if originStorage != nil {
-		updateJob.OriginStorageId = *originStorage
+	if originStorageId != nil {
+		// Check if origin storages exist
+		originStorage, err := provider.StorageProvider.GetStorage(*originStorageId)
+		if err != nil {
+			return nil, err
+		}
+		if originStorage == nil {
+			return nil, graphql.NewSafeError("origin storage not found")
+		}
+		updateJob.OriginStorageId = *originStorageId
 	}
-	if destinationStorage != nil {
-		updateJob.DestinationStorageId = *destinationStorage
+	if destinationStorageId != nil {
+		// Check if destination storages exist
+		destinationStorage, err := provider.StorageProvider.GetStorage(*destinationStorageId)
+		if err != nil {
+			return nil, err
+		}
+		if destinationStorage == nil {
+			return nil, graphql.NewSafeError("destination storage not found")
+		}
+		updateJob.DestinationStorageId = *destinationStorageId
+	}
+	if executorSatelliteId != nil {
+		// Check if executor satellite exist
+		executorSatellite, err := provider.SatelliteProvider.GetSatellite(*executorSatelliteId)
+		if err != nil {
+			return nil, err
+		}
+		if executorSatellite == nil {
+			return nil, graphql.NewSafeError("executor satellite not found")
+		}
+		updateJob.ExecutorSatelliteId = *executorSatelliteId
 	}
 
 	result := provider.Database.Save(&updateJob)

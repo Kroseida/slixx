@@ -17,7 +17,7 @@ func (packet *Handshake) PacketId() int64 {
 }
 
 func (packet *Handshake) Protocol() []string {
-	return []string{protocol.HandshakeProtocol}
+	return []string{protocol.Handshake}
 }
 
 func (packet *Handshake) Serialize(buffer *bytebuf.ByteBuffer) error {

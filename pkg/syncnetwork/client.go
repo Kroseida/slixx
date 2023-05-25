@@ -3,26 +3,28 @@ package syncnetwork
 import (
 	"bufio"
 	"errors"
-	"go.uber.org/zap"
-	"gorm.io/gorm/utils"
+	gormUtils "gorm.io/gorm/utils"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol/handshake/packet"
+	"kroseida.org/slixx/pkg/utils"
 	"net"
 	"strconv"
 	"time"
 )
 
 type Client struct {
-	Address         string
-	Connection      net.Conn
-	Closed          bool
-	Logger          *zap.SugaredLogger
-	Token           string
-	Protocol        string
-	CurrentProtocol string
-	Handler         map[string]protocol.Handler
-	Reader          *bufio.Reader
-	Writer          *bufio.Writer
+	Address                string
+	Connection             net.Conn
+	Closed                 bool
+	Logger                 utils.Logger
+	Token                  string
+	Protocol               string
+	CurrentProtocol        string
+	Handler                map[string]protocol.Handler
+	Reader                 *bufio.Reader
+	Writer                 *bufio.Writer
+	AfterProtocolSelection func(protocol.WrappedClient)
+	Version                string
 }
 
 func (client *Client) Close() {
@@ -51,7 +53,7 @@ func (client *Client) Dial(timeout time.Duration, reconnectAfter time.Duration) 
 			continue
 		}
 		client.Connection = connection
-		client.CurrentProtocol = protocol.HandshakeProtocol
+		client.CurrentProtocol = protocol.Handshake
 		client.Reader = bufio.NewReader(connection)
 		client.Writer = bufio.NewWriter(connection)
 
@@ -59,7 +61,7 @@ func (client *Client) Dial(timeout time.Duration, reconnectAfter time.Duration) 
 		err = client.Send(&packet.Handshake{
 			Token:          client.Token,
 			TargetProtocol: client.Protocol,
-			Version:        "1.0.0", // TODO: Get version from somewhere else
+			Version:        client.Version,
 		})
 		if err != nil {
 			client.Logger.Error("Failed to send handshake packet to satellite sync network (" + client.Address + "): " + err.Error())
@@ -83,14 +85,14 @@ func (client *Client) Dial(timeout time.Duration, reconnectAfter time.Duration) 
 }
 
 func (client *Client) Send(packet protocol.Packet) error {
-	if !utils.Contains(packet.Protocol(), client.CurrentProtocol) {
+	if !gormUtils.Contains(packet.Protocol(), client.CurrentProtocol) {
 		return errors.New("Packet with id " + strconv.Itoa(int(packet.PacketId())) + " is not supported by the current protocol (" + client.CurrentProtocol + ")")
 	}
 	return protocol.SendPacket(*client.Writer, packet)
 }
 
 func (client *Client) listen() error {
-	client.Logger.Info("Connected to satellite sync network (" + client.Address + ")")
+	client.Logger.Info("Connected to sync network (" + client.Address + ")")
 	for !client.Closed {
 		packet, err := protocol.ReadPacket(client.Reader, PACKETS)
 		if err != nil {
@@ -103,7 +105,7 @@ func (client *Client) listen() error {
 		}
 		err = handler.Handle(client, packet)
 		if err != nil {
-			client.Logger.Error("Error while handling packet: ", err)
+			client.Logger.Error("Error while handling packet with id ("+strconv.Itoa(int(packet.PacketId()))+"): ", err)
 		}
 	}
 	return nil

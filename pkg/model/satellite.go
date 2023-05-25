@@ -15,11 +15,12 @@ type Satellite struct {
 	UpdatedAt   time.Time
 }
 
-type SatelliteLogs struct {
+type SatelliteLogEntry struct {
 	Id          uuid.UUID `sql:"default:uuid_generate_v4()"`
 	SatelliteId uuid.UUID
 	Level       string
 	Message     string
+	LoggedAt    time.Time
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

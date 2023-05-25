@@ -3,21 +3,24 @@ package syncnetwork
 import (
 	"bufio"
 	"errors"
-	"go.uber.org/zap"
-	"gorm.io/gorm/utils"
+	"github.com/google/uuid"
+	gormUtils "gorm.io/gorm/utils"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
+	"kroseida.org/slixx/pkg/utils"
 	"net"
 	"strconv"
 )
 
 type Server struct {
+	Id               *uuid.UUID
 	BindAddress      string
 	Token            string
 	listener         net.Listener
 	Handler          map[string]protocol.Handler
 	closed           bool
-	Logger           *zap.SugaredLogger
-	ActiveConnection []ConnectedClient
+	Logger           utils.Logger
+	Version          string
+	ActiveConnection []*ConnectedClient
 }
 
 type ConnectedClient struct {
@@ -30,7 +33,7 @@ type ConnectedClient struct {
 }
 
 func (client *ConnectedClient) Send(packet protocol.Packet) error {
-	if !utils.Contains(packet.Protocol(), client.Protocol) {
+	if !gormUtils.Contains(packet.Protocol(), client.Protocol) {
 		return errors.New("Packet with id " + strconv.Itoa(int(packet.PacketId())) + " is not supported by the current protocol (" + client.Protocol + ")")
 	}
 	return protocol.SendPacket(*client.Writer, packet)
@@ -48,7 +51,7 @@ func (server *Server) Close(client *ConnectedClient) error {
 
 func (server *Server) BroadcastSatellites(packet protocol.Packet) error {
 	for _, client := range server.ActiveConnection {
-		if client.Protocol != protocol.SatelliteProtocol {
+		if client.Protocol != protocol.Satellite {
 			continue
 		}
 		err := client.Send(packet)
@@ -86,12 +89,14 @@ func (server *Server) Listen() error {
 		server.Logger.Info("New connection from: ", connection.RemoteAddr().String())
 		client := ConnectedClient{
 			Connection: &connection,
-			Protocol:   protocol.HandshakeProtocol,
+			Protocol:   protocol.Handshake,
 			Id:         nil,
 			Reader:     bufio.NewReader(connection),
 			Writer:     bufio.NewWriter(connection),
 			Server:     server,
 		}
+		server.ActiveConnection = append(server.ActiveConnection, &client)
+
 		go server.handleConnection(&client)
 	}
 	return nil

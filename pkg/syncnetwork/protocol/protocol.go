@@ -2,13 +2,14 @@ package protocol
 
 import (
 	"bufio"
+	"encoding/binary"
 	"fmt"
 	"kroseida.org/slixx/pkg/utils/bytebuf"
 )
 
-var SupervisorProtocol = "SUPERVISOR"
-var SatelliteProtocol = "SATELLITE"
-var HandshakeProtocol = "HANDSHAKE"
+var Supervisor = "SUPERVISOR"
+var Satellite = "SATELLITE"
+var Handshake = "HANDSHAKE"
 
 type Packet interface {
 	PacketId() int64
@@ -20,6 +21,8 @@ type Packet interface {
 func SendPacket(writer bufio.Writer, packet Packet) error {
 	buffer := bytebuf.Get()
 	defer bytebuf.Put(buffer)
+
+	// Send Packet id as second
 	buffer.WriteInt64(packet.PacketId())
 
 	err := packet.Serialize(buffer)
@@ -27,7 +30,15 @@ func SendPacket(writer bufio.Writer, packet Packet) error {
 		return err
 	}
 
-	_, err = writer.Write(append(buffer.Bytes(), 0x04))
+	length := bytebuf.Get()
+	defer bytebuf.Put(length)
+
+	// Send Packet Length as first
+	length.WriteInt64(int64(buffer.Len()))
+
+	data := append(length.Bytes(), buffer.Bytes()...)
+
+	_, err = writer.Write(data)
 	if err != nil {
 		return err
 	}
@@ -41,10 +52,22 @@ func SendPacket(writer bufio.Writer, packet Packet) error {
 }
 
 func ReadPacket(reader *bufio.Reader, packetRegistry map[int64]Packet) (Packet, error) {
+	// Read Packet Length as first
+	length, err := binary.ReadVarint(reader)
+	if err != nil {
+		return nil, err
+	}
+
 	buffer := bytebuf.Get()
 	defer bytebuf.Put(buffer)
 
-	data, err := reader.ReadBytes(0x04)
+	data := make([]byte, length)
+
+	_, err = reader.Read(data)
+	if err != nil {
+		return nil, err
+	}
+
 	buffer.SetBytes(data)
 
 	if err != nil {
@@ -52,15 +75,18 @@ func ReadPacket(reader *bufio.Reader, packetRegistry map[int64]Packet) (Packet, 
 	}
 	packetId := buffer.ReadInt64()
 
-	packet := packetRegistry[packetId]
-	if packet == nil {
+	packetType := packetRegistry[packetId] // this is a pointer to a packet
+	if packetType == nil {
 		return nil, fmt.Errorf("unknown packet id: %d", packetId)
 	}
-	err = packet.Deserialize(buffer)
+	packet := &packetType
+
+	err = (*packet).Deserialize(buffer)
 	if err != nil {
 		return nil, err
 	}
-	return packet, nil
+
+	return *packet, nil
 }
 
 type Handler interface {

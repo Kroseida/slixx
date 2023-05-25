@@ -1,6 +1,7 @@
 package main
 
 import (
+	"kroseida.org/slixx/internal/common"
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/graphql"
@@ -16,13 +17,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	application.Logger = utils.CreateLogger(application.CurrentSettings.Logger.Mode)
-	application.Logger.Info("Starting Slixx supervisor")
+	application.Logger = utils.CreateLogger(application.CurrentSettings.Logger.Mode, "supervisor.log")
+	application.Logger.Info("Starting Slixx supervisor v" + common.CurrentVersion)
 
 	application.Logger.Info("Initializing database connection")
 	err = datasource.Connect()
 	if err != nil {
-		application.Logger.Errorw("Failed to initialize database connection", "error", err)
+		application.Logger.Error("Failed to initialize database connection", err)
 		os.Exit(1)
 		return
 	}
@@ -33,7 +34,7 @@ func main() {
 	application.Logger.Info("Initializing GraphQL API Server on " + application.CurrentSettings.Http.BindAddress)
 	err = graphql.Start()
 	if err != nil {
-		application.Logger.Errorw("Failed to initialize GraphQL API Server", "error", err)
+		application.Logger.Error("Failed to initialize GraphQL API Server", err)
 		os.Exit(1)
 		return
 	}
