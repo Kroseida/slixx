@@ -15,8 +15,7 @@ import (
 	"time"
 )
 
-var clients = make(map[uuid.UUID]*WrappedClient)
-var CachedLogs []*model.SatelliteLogEntry
+var Clients = make(map[uuid.UUID]*WrappedClient)
 
 func Watchdog() {
 	for {
@@ -35,7 +34,7 @@ func Watchdog() {
 		for _, satellite := range satellites {
 			satellitesMap[satellite.Id] = satellite
 		}
-		for _, client := range clients {
+		for _, client := range Clients {
 			delete(satellitesMap, client.Model.Id)
 		}
 		for id := range satellitesMap {
@@ -47,16 +46,16 @@ func Watchdog() {
 }
 
 func RemoveClient(id uuid.UUID) {
-	client := clients[id]
+	client := Clients[id]
 	if client == nil {
 		return
 	}
 	client.Client.Close()
-	delete(clients, id)
+	delete(Clients, id)
 }
 
 func GetClient(id uuid.UUID) *WrappedClient {
-	return clients[id]
+	return Clients[id]
 }
 
 func ProvideClient(configuration model.Satellite) {
@@ -87,14 +86,14 @@ func ProvideClient(configuration model.Satellite) {
 	// TODO: make timeout configurable in the database or in the configuration file - not sure yet
 	go client.Dial(5*time.Second, 5*time.Second)
 
-	clients[configuration.Id] = &WrappedClient{
+	Clients[configuration.Id] = &WrappedClient{
 		Model:  configuration,
 		Client: &client,
 	}
 }
 
 func ApplyUpdates(configuration model.Satellite) {
-	client := clients[configuration.Id]
+	client := Clients[configuration.Id]
 	if client == nil {
 		return
 	}
@@ -109,6 +108,6 @@ func ApplyUpdates(configuration model.Satellite) {
 }
 
 func IsProvided(id uuid.UUID) bool {
-	_, bool := clients[id]
+	_, bool := Clients[id]
 	return bool
 }

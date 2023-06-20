@@ -1,7 +1,7 @@
 package supervisor
 
 import (
-	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/service/satellitelogservice"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
 )
@@ -17,5 +17,5 @@ func (h *Handler) Handle(client protocol.WrappedClient, p protocol.Packet) error
 }
 
 func (h *Handler) HandleSyncLogs(_ protocol.WrappedClient, logs *supervisorPacket.SyncLogs) error {
-	return datasource.SatelliteProvider.CreateSatelliteLogs(logs.Logs)
+	return satellitelogservice.Create(logs.Logs)
 }

@@ -8,7 +8,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
-	"kroseida.org/slixx/internal/supervisor/service"
+	"kroseida.org/slixx/internal/supervisor/service/satelliteservice"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"time"
@@ -91,7 +91,7 @@ func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*Satellite, 
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 
-	satellite, err := service.CreateSatellite(args.Name, args.Description, args.Address, args.Token)
+	satellite, err := satelliteservice.Create(args.Name, args.Description, args.Address, args.Token)
 
 	if err != nil {
 		application.Logger.Debug(err)
@@ -116,7 +116,7 @@ func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, 
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := service.UpdateSatellite(
+	satellite, err := satelliteservice.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -142,7 +142,7 @@ func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, 
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := service.DeleteSatellite(args.Id)
+	satellite, err := satelliteservice.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

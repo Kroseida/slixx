@@ -8,7 +8,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
-	"kroseida.org/slixx/internal/supervisor/service"
+	"kroseida.org/slixx/internal/supervisor/service/jobservice"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/strategy"
@@ -90,7 +90,7 @@ func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := service.CreateJob(
+	job, err := jobservice.Create(
 		args.Name,
 		args.Description,
 		args.Strategy,
@@ -125,7 +125,7 @@ func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := service.UpdateJob(
+	job, err := jobservice.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -154,7 +154,7 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := service.DeleteJob(args.Id)
+	job, err := jobservice.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

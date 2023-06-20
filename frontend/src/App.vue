@@ -1,70 +1,92 @@
 <template>
   <div>
-    <router-view v-if="connectionState === 'CONNECTED' && userLoaded && permissionLoaded"/>
-    <div v-if="connectionState === 'CONNECTING'">
+    <router-view
+      v-if="globalStore.connectionState === 'CONNECTED'
+      && globalStore.userLoaded
+      && constantsStore.permissionLoaded
+      && constantsStore.storageKindsLoaded
+      && constantsStore.jobStrategiesLoaded"
+    />
+    <div v-else>
       <div class="text-center">
-        <div class="center" role="status">
-          <div class="spinner-border text-primary">
-            <span class="sr-only">Loading...</span>
-          </div>
-        </div>
+        <q-spinner size="50px" color="primary" style="margin-top: 250px"/>
+        <div class="text-grey-9 text-h6 text-weight-bold" style="margin-top: 50px">Connecting to backend server</div>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-export default {
-  name: "App",
-  computed: {},
-  mounted() {
-    this.$graphql.onConnected = () => {
-      this.connectionState = "CONNECTED";
-      this.$store.commit('layout/subscribeLocalUser', {
-        callback: (user) => {
-          const currentPath = this.$router.history.current.path;
-          if (currentPath === '/login' && user) {
-            this.$router.push('/app/dashboard');
-          } else if (currentPath !== '/login' && !user) {
-            this.$router.push('/login');
-          }
-          this.userLoaded = true;
+import {defineComponent} from 'vue'
+import {useGlobalStore} from "stores/global";
+import {useConstantsStore} from "stores/constants";
+import {useRouter} from 'vue-router'
+import {Notify} from "quasar";
+
+export default defineComponent({
+  name: 'App',
+  setup() {
+    return {
+      globalStore: useGlobalStore(),
+      router: useRouter(),
+      constantsStore: useConstantsStore(),
+    }
+  },
+  handleError(message) {
+    Notify.create({
+      message,
+      color: 'negative',
+      icon: 'report_problem',
+      position: 'top',
+    })
+  },
+  async mounted() {
+    if (localStorage.getItem('_darkMode') == 'true') {
+      this.globalStore.setDarkMode(this.$q.dark, true)
+    } else {
+      this.globalStore.setDarkMode(this.$q.dark, false)
+    }
+
+    this.$controller.graphql.onConnected = async () => {
+      this.globalStore.connectionState = "CONNECTED";
+      this.globalStore.connectedBefore = true;
+      await this.globalStore.subscribeLocalUser((user) => {
+        this.constantsStore.subscribePermissions(this.handleError);
+        this.constantsStore.subscribeStorageKinds(this.handleError);
+        this.constantsStore.subscribeJobStrategies(this.handleError);
+
+        const currentPath = this.router.options.history.location;
+
+        if (currentPath.indexOf('/auth') !== -1 && user) {
+          this.router.push('/');
+        } else if (currentPath.indexOf('/auth') === -1 && !user) {
+          this.router.push('/auth');
         }
-      });
-      this.$store.commit('layout/subscribePermissions', {
-        callback: () => {
-          this.permissionLoaded = true;
-        }
-      });
+      }, this.handleError);
+    }
+
+    this.$controller.graphql.onReset = () => {
+      this.globalStore.connectionState = "CONNECTING";
     };
-    this.$graphql.onReset = () => {
-      this.connectionState = "CONNECTING";
-    };
-    this.$graphql.onClose = () => {
-      this.connectionState = "CLOSED";
-      this.userLoaded = false;
-      this.$toasted.error('Lost connection to backend server', {
-        duration: 5000,
+
+    this.$controller.graphql.onClose = () => {
+      this.globalStore.connectionState = "CLOSED";
+      this.globalStore.userLoaded = false;
+      this.globalStore.permissionLoaded = false;
+      Notify.create({
+        message: 'Lost connection to backend server',
+        color: 'negative',
         position: 'top-right',
-        fullWidth: true,
-        fitToScreen: true,
-      });
+        timeout: 0,
+      })
     };
+
     setInterval(() => {
-      if(this.connectionState === 'CONNECTING') {
-        this.$graphql.reconnect(localStorage.getItem('token'));
+      if (this.globalStore.connectionState === 'CONNECTING') {
+        this.$controller.graphql.reconnect(localStorage.getItem('_auth'));
       }
     }, 5000);
-  },
-  data() {
-    return {
-      connectionState: "CONNECTING",
-      connectedBefore: false,
-      userLoaded: false,
-      permissionLoaded: false,
-    };
-  },
-};
-</script>
 
-<style src="./styles/theme.scss" lang="scss"/>
+  }
+})
+</script>

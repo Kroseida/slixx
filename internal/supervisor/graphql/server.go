@@ -83,8 +83,11 @@ func Start() error {
 	introspection.AddIntrospectionToSchema(schema)
 
 	// Expose schema and graphiql.
-	http.Handle("/", HTTPHandler(schema))
+	http.Handle("/api", HTTPHandler(schema))
 	http.Handle("/graphql", handler(schema))
-	http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
+
+	if application.CurrentSettings.Http.EnableGraphiql {
+		http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
+	}
 	return http.ListenAndServe(application.CurrentSettings.Http.BindAddress, nil)
 }

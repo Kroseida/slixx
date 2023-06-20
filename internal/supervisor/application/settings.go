@@ -14,8 +14,9 @@ type Authentication struct {
 }
 
 type Http struct {
-	AllowedOrigin string `json:"AllowedOrigin" graphql:"AllowedOrigin"`
-	BindAddress   string `json:"bindAddress" graphql:"bindAddress"`
+	AllowedOrigin  string `json:"AllowedOrigin" graphql:"AllowedOrigin"`
+	BindAddress    string `json:"bindAddress" graphql:"bindAddress"`
+	EnableGraphiql bool   `json:"enableGraphiql" graphql:"enableGraphiql"`
 }
 
 type Database struct {
@@ -34,8 +35,9 @@ var DefaultSettings = Settings{
 		SessionDuration: 12,
 	},
 	Http: Http{
-		AllowedOrigin: "*",
-		BindAddress:   ":3030",
+		AllowedOrigin:  "*",
+		BindAddress:    ":3030",
+		EnableGraphiql: false,
 	},
 	Database: Database{
 		Kind: "sqlite",

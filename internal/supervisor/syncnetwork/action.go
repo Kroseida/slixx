@@ -14,7 +14,7 @@ func SyncStorages() {
 		return
 	}
 
-	for _, client := range clients {
+	for _, client := range Clients {
 		client.Client.Send(&supervisorPacket.SyncStorage{
 			Storages: storages,
 		})
@@ -29,7 +29,7 @@ func SyncJobs() {
 		return
 	}
 
-	for _, client := range clients {
+	for _, client := range Clients {
 		client.Client.Send(&supervisorPacket.SyncJob{
 			Jobs: jobs,
 		})

@@ -77,10 +77,12 @@ func (provider JobProvider) CreateJob(
 		return nil, graphql.NewSafeError("destination storage not found")
 	}
 
-	executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
-	if executorSatellite == nil {
-		return nil, graphql.NewSafeError("executor satellite not found")
-	}
+	// TODO: add this againe
+	// Check if executor satellite exists
+	//executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
+	//if executorSatellite == nil {
+	//	return nil, graphql.NewSafeError("executor satellite not found")
+	//}
 
 	configuration = string(rawConfiguration)
 
