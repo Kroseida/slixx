@@ -24,7 +24,7 @@ var DefaultContainer = ContainerModel{
 var Container = DefaultContainer
 
 func GenerateCache() error {
-	cacheJson, err := json.Marshal(Container)
+	cacheJson, err := json.Marshal(&Container)
 	if err != nil {
 		return err
 	}

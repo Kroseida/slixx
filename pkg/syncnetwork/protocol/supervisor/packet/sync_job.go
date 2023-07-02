@@ -3,6 +3,7 @@ package packet
 import (
 	"encoding/json"
 	"kroseida.org/slixx/pkg/model"
+	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	"kroseida.org/slixx/pkg/utils/bytebuf"
 )
 
@@ -15,7 +16,7 @@ func (packet *SyncJob) PacketId() int64 {
 }
 
 func (packet *SyncJob) Protocol() []string {
-	return []string{"supervisor"}
+	return []string{protocol.Supervisor}
 }
 
 func (packet *SyncJob) Serialize(buffer *bytebuf.ByteBuffer) error {

@@ -3,7 +3,7 @@ package storageservice
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork"
+	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
 )
 
@@ -13,7 +13,7 @@ func Create(name string, description string, kindName string, configuration stri
 		return nil, err
 	}
 
-	go syncnetwork.SyncStorages()
+	go action.SyncStorages()
 
 	return storage, nil
 }
@@ -31,7 +31,7 @@ func Update(id uuid.UUID, name *string, description *string, kindName *string, c
 		return nil, err
 	}
 
-	go syncnetwork.SyncStorages()
+	go action.SyncStorages()
 
 	return storage, nil
 }
@@ -42,7 +42,7 @@ func Delete(id uuid.UUID) (*model.Storage, error) {
 		return nil, err
 	}
 
-	go syncnetwork.SyncStorages()
+	go action.SyncStorages()
 
 	return storage, nil
 }

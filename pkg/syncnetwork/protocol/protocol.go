@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"kroseida.org/slixx/pkg/utils/bytebuf"
+	"reflect"
 )
 
 var Supervisor = "SUPERVISOR"
@@ -75,18 +76,18 @@ func ReadPacket(reader *bufio.Reader, packetRegistry map[int64]Packet) (Packet, 
 	}
 	packetId := buffer.ReadInt64()
 
-	packetType := packetRegistry[packetId] // this is a pointer to a packet
+	packetType := packetRegistry[packetId]
 	if packetType == nil {
-		return nil, fmt.Errorf("unknown packet id: %d", packetId)
+		return nil, fmt.Errorf("unknown packet *id: %d", packetId)
 	}
-	packet := &packetType
+	packet := reflect.New(reflect.TypeOf(packetType).Elem()).Interface().(Packet)
 
-	err = (*packet).Deserialize(buffer)
+	err = packet.Deserialize(buffer)
 	if err != nil {
 		return nil, err
 	}
 
-	return *packet, nil
+	return packet, nil
 }
 
 type Handler interface {

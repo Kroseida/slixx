@@ -9,10 +9,19 @@ import (
 
 // SatelliteProvider Satellite Provider
 type SatelliteProvider struct {
-	Database *gorm.DB
+	Database    *gorm.DB
+	JobProvider *JobProvider
 }
 
 func (provider SatelliteProvider) DeleteSatellite(id uuid.UUID) (*model.Satellite, error) {
+	jobs, err := provider.JobProvider.GetJobByExecutorSatelliteId(id)
+	if err != nil {
+		return nil, err
+	}
+	if len(jobs) > 0 {
+		return nil, graphql.NewSafeError("satellite is in use")
+	}
+
 	satellite, err := provider.GetSatellite(id)
 	if satellite == nil {
 		return nil, graphql.NewSafeError("satellite not found")

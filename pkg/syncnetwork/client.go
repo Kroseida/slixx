@@ -64,7 +64,7 @@ func (client *Client) Dial(timeout time.Duration, reconnectAfter time.Duration) 
 			Version:        client.Version,
 		})
 		if err != nil {
-			client.Logger.Error("Failed to send handshake packet to satellite sync network (" + client.Address + "): " + err.Error())
+			client.Logger.Error("Failed to send handshake packet *to satellite sync network (" + client.Address + "): " + err.Error())
 			client.Close()
 		}
 
@@ -105,7 +105,7 @@ func (client *Client) listen() error {
 		}
 		err = handler.Handle(client, packet)
 		if err != nil {
-			client.Logger.Error("Error while handling packet with id ("+strconv.Itoa(int(packet.PacketId()))+"): ", err)
+			client.Logger.Error("Error while handling packet *with id ("+strconv.Itoa(int(packet.PacketId()))+"): ", err)
 		}
 	}
 	return nil

@@ -34,13 +34,15 @@ func Connect() error {
 		JobProvider: &JobProvider,
 	}
 	UserProvider = provider.UserProvider{Database: localDatabase}
-	SatelliteProvider = provider.SatelliteProvider{
-		Database: localDatabase,
-	}
 	JobProvider = provider.JobProvider{
 		Database:          localDatabase,
 		StorageProvider:   &StorageProvider,
 		SatelliteProvider: &SatelliteProvider,
+	}
+
+	SatelliteProvider = provider.SatelliteProvider{
+		Database:    localDatabase,
+		JobProvider: &JobProvider,
 	}
 
 	err = UserProvider.Init()

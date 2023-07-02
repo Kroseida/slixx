@@ -3,7 +3,7 @@ package jobservice
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork"
+	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
 )
 
@@ -29,7 +29,7 @@ func Create(
 		return nil, err
 	}
 
-	syncnetwork.SyncJobs()
+	action.SyncJobs()
 
 	return job, err
 }
@@ -58,7 +58,7 @@ func Update(
 		return nil, err
 	}
 
-	syncnetwork.SyncJobs()
+	action.SyncJobs()
 
 	return job, err
 }
@@ -69,7 +69,7 @@ func Delete(id uuid.UUID) (*model.Job, error) {
 		return nil, err
 	}
 
-	syncnetwork.SyncJobs()
+	action.SyncJobs()
 
 	return job, err
 }

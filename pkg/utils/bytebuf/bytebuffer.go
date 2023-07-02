@@ -2,6 +2,7 @@ package bytebuf
 
 import (
 	"encoding/binary"
+	"math"
 )
 
 type ByteBuffer struct {
@@ -31,6 +32,22 @@ func (b *ByteBuffer) WriteInt64(num int64) {
 func (b *ByteBuffer) ReadInt64() int64 {
 	num, len := binary.Varint(b.B)
 	b.B = b.B[len:]
+	return num
+}
+
+func (b *ByteBuffer) WriteFloat64(num float64) {
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, math.Float64bits(num))
+	b.B = append(b.B, buf...)
+}
+
+func (b *ByteBuffer) ReadFloat64() float64 {
+	buf := b.Read()
+	if len(buf) < 8 {
+		// Handle insufficient data
+		return 0
+	}
+	num := math.Float64frombits(binary.BigEndian.Uint64(buf))
 	return num
 }
 

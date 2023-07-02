@@ -2,12 +2,13 @@ package utils
 
 import (
 	"encoding/json"
+	"kroseida.org/slixx/pkg/utils/fileutils"
 	"os"
 )
 
 func LoadSettings(file string, settings interface{}, defaultSettings interface{}) error {
 	var err error
-	if !FileExists(file) {
+	if !fileutils.FileExists(file) {
 		err = CreateSettings(file, defaultSettings)
 	}
 	if err != nil {

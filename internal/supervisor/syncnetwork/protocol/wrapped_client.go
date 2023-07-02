@@ -1,4 +1,4 @@
-package syncnetwork
+package protocol
 
 import (
 	"kroseida.org/slixx/pkg/model"

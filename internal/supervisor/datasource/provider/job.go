@@ -77,12 +77,11 @@ func (provider JobProvider) CreateJob(
 		return nil, graphql.NewSafeError("destination storage not found")
 	}
 
-	// TODO: add this againe
 	// Check if executor satellite exists
-	//executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
-	//if executorSatellite == nil {
-	//	return nil, graphql.NewSafeError("executor satellite not found")
-	//}
+	executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
+	if executorSatellite == nil {
+		return nil, graphql.NewSafeError("executor satellite not found")
+	}
 
 	configuration = string(rawConfiguration)
 
@@ -238,6 +237,19 @@ func (provider JobProvider) GetJob(id uuid.UUID) (*model.Job, error) {
 func (provider JobProvider) GetJobByStorageId(id uuid.UUID) ([]*model.Job, error) {
 	var job []*model.Job
 	result := provider.Database.Find(&job, "origin_storage_id = ? OR destination_storage_id = ?", id, id)
+	if isSqlError(result.Error) {
+		return nil, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return nil, nil
+	}
+
+	return job, nil
+}
+
+func (provider JobProvider) GetJobByExecutorSatelliteId(id uuid.UUID) ([]*model.Job, error) {
+	var job []*model.Job
+	result := provider.Database.Find(&job, "executor_satellite_id = ?", id)
 	if isSqlError(result.Error) {
 		return nil, result.Error
 	}

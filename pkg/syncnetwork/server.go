@@ -56,7 +56,7 @@ func (server *Server) BroadcastSatellites(packet protocol.Packet) error {
 		}
 		err := client.Send(packet)
 		if err != nil {
-			server.Logger.Error("Error while broadcasting packet to client", err)
+			server.Logger.Error("Error while broadcasting packet *to client", err)
 			continue // We don't want to stop the broadcast if one client fails
 		}
 	}
@@ -67,7 +67,7 @@ func (server *Server) Broadcast(packet protocol.Packet) error {
 	for _, client := range server.ActiveConnection {
 		err := client.Send(packet)
 		if err != nil {
-			server.Logger.Error("Error while broadcasting packet to client", err)
+			server.Logger.Error("Error while broadcasting packet *to client", err)
 			continue // We don't want to stop the broadcast if one client fails
 		}
 	}
@@ -106,7 +106,7 @@ func (server *Server) handleConnection(client *ConnectedClient) {
 	for true {
 		packet, err := protocol.ReadPacket(client.Reader, PACKETS)
 		if err != nil {
-			// Close connection if we can't read a packet so we don't get stuck in a loop and force a reconnect
+			// Close connection if we can't read a packet *so we don't get stuck in a loop and force a reconnect
 			server.Close(client)
 			return
 		}
