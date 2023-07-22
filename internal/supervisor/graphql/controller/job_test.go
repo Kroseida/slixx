@@ -56,7 +56,7 @@ func Test_GetJob(t *testing.T) {
 	assert.Equal(t, "Testaaaaaa", job.Name)
 	assert.Equal(t, "description", job.Description)
 	assert.Equal(t, "COPY", job.Strategy)
-	assert.Equal(t, "{\"blockSize\":0}", job.Configuration)
+	assert.Equal(t, "{\"blockSize\":0,\"parallel\":0}", job.Configuration)
 	assert.Equal(t, storage.Id, job.OriginStorageId)
 	assert.Equal(t, storage.Id, job.DestinationStorageId)
 
@@ -231,7 +231,7 @@ func Test_CreateJob(t *testing.T) {
 	assert.Equal(t, "Testaaaaaa", job.Name)
 	assert.Equal(t, "description1", job.Description)
 	assert.Equal(t, "COPY", job.Strategy)
-	assert.Equal(t, "{\"blockSize\":0}", job.Configuration)
+	assert.Equal(t, "{\"blockSize\":0,\"parallel\":0}", job.Configuration)
 	assert.Equal(t, storage.Id, job.OriginStorageId)
 	assert.Equal(t, storage.Id, job.DestinationStorageId)
 	teardownSuite()
