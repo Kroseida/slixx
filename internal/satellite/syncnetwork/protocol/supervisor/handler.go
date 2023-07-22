@@ -10,6 +10,7 @@ import (
 	syncnetworkBase "kroseida.org/slixx/pkg/syncnetwork"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
+	"kroseida.org/slixx/pkg/utils"
 	"strconv"
 )
 
@@ -49,6 +50,11 @@ func (h *Handler) HandleSyncStorage(client protocol.WrappedClient, storage *supe
 func (h *Handler) HandleSyncJob(client protocol.WrappedClient, job *supervisorPacket.SyncJob) error {
 	c := client.(*syncnetworkBase.ConnectedClient)
 
+	jobIdsBeforeSync := make([]uuid.UUID, len(syncdata.Container.Jobs))
+	for _, job := range syncdata.Container.Jobs {
+		jobIdsBeforeSync = append(jobIdsBeforeSync, job.Id)
+	}
+
 	syncdata.Container.Jobs = map[uuid.UUID]*model.Job{}
 
 	for _, job := range job.Jobs {
@@ -57,6 +63,20 @@ func (h *Handler) HandleSyncJob(client protocol.WrappedClient, job *supervisorPa
 	syncdata.GenerateCache()
 
 	c.Server.Logger.Info("Synced " + strconv.Itoa(len(syncdata.Container.Jobs)) + " jobs from supervisor")
+
+	jobIdsAfterSync := make([]uuid.UUID, len(syncdata.Container.Jobs))
+	for _, job := range syncdata.Container.Jobs {
+		jobIdsAfterSync = append(jobIdsAfterSync, job.Id)
+	}
+
+	newJobIds := make([]uuid.UUID, 0)
+	for _, jobId := range jobIdsAfterSync {
+		if !utils.ContainsUUID(jobIdsBeforeSync, jobId) {
+			newJobIds = append(newJobIds, jobId)
+		}
+	}
+	backup.SendBackupInfos(newJobIds)
+
 	return nil
 }
 

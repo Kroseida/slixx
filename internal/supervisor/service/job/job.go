@@ -1,11 +1,20 @@
-package jobservice
+package job
 
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
 )
+
+func Get(id uuid.UUID) (*model.Job, error) {
+	return datasource.JobProvider.GetJob(id)
+}
+
+func GetPaged(pagination *provider.Pagination[model.Job]) (*provider.Pagination[model.Job], error) {
+	return datasource.JobProvider.GetJobsPaged(pagination)
+}
 
 func Create(
 	name string,

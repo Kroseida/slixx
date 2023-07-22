@@ -78,6 +78,20 @@ func (kind *FtpKind) Store(name string, data []byte, offset uint64) error {
 	return nil
 }
 
+func (kind *FtpKind) FileInfo(name string) (fileutils.FileInfo, error) {
+	info, err := kind.Client.GetEntry(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
+	if err != nil {
+		return fileutils.FileInfo{}, err
+	}
+	return fileutils.FileInfo{
+		FullDirectory: fileutils.FixedPathName(kind.Configuration.File + name),
+		RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(kind.Configuration.File+name, kind.Configuration.File)),
+		CreatedAt:     info.Time.Unix(),
+		Directory:     info.Type == ftp.EntryTypeFolder,
+		Size:          info.Size,
+	}, nil
+}
+
 func (kind *FtpKind) CreateDirectory(name string) error {
 	err := kind.Client.MakeDir(kind.Configuration.File + name)
 	if err != nil {

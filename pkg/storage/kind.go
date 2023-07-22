@@ -9,6 +9,7 @@ type Kind interface {
 	GetName() string
 	Initialize(configuration any) error
 	Store(name string, data []byte, offset uint64) error
+	FileInfo(name string) (fileutils.FileInfo, error)
 	CreateDirectory(name string) error
 	ListFiles(directory string) ([]fileutils.FileInfo, error)
 	Size(file string) (uint64, error)

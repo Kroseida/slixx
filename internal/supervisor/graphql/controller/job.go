@@ -6,9 +6,8 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
-	"kroseida.org/slixx/internal/supervisor/service/jobservice"
+	jobService "kroseida.org/slixx/internal/supervisor/service/job"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/strategy"
@@ -43,7 +42,7 @@ func GetJob(ctx context.Context, args GetJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := datasource.JobProvider.GetJob(args.Id)
+	job, err := jobService.Get(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -63,7 +62,7 @@ func GetJobs(ctx context.Context, args PageArgs) (*JobsPage, error) {
 	var pagination provider.Pagination[model.Job]
 	dto.Map(&args, &pagination)
 
-	pages, err := datasource.JobProvider.GetJobsPaged(&pagination)
+	pages, err := jobService.GetPaged(&pagination)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -90,7 +89,7 @@ func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := jobservice.Create(
+	job, err := jobService.Create(
 		args.Name,
 		args.Description,
 		args.Strategy,
@@ -125,7 +124,7 @@ func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := jobservice.Update(
+	job, err := jobService.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -154,7 +153,7 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	job, err := jobservice.Delete(args.Id)
+	job, err := jobService.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

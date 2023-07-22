@@ -1,11 +1,20 @@
-package storageservice
+package storage
 
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
 )
+
+func Get(id uuid.UUID) (*model.Storage, error) {
+	return datasource.StorageProvider.GetStorage(id)
+}
+
+func GetPaged(pagination *provider.Pagination[model.Storage]) (*provider.Pagination[model.Storage], error) {
+	return datasource.StorageProvider.GetStoragesPaged(pagination)
+}
 
 func Create(name string, description string, kindName string, configuration string) (*model.Storage, error) {
 	storage, err := datasource.StorageProvider.CreateStorage(name, description, kindName, configuration)

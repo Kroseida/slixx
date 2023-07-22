@@ -11,7 +11,64 @@ import (
 	"kroseida.org/slixx/pkg/storage"
 	storageRegistry "kroseida.org/slixx/pkg/storage"
 	strategyRegistry "kroseida.org/slixx/pkg/strategy"
+	"kroseida.org/slixx/pkg/utils"
 )
+
+func SendBackupInfos(ids []uuid.UUID) {
+	for _, job := range syncdata.Container.Jobs {
+		if !utils.ContainsUUID(ids, job.Id) {
+			continue
+		}
+
+		strategy := strategyRegistry.ValueOf(job.Strategy)
+		if strategy == nil {
+			application.Logger.Error("Unknown strategy of job", job.Id, "(", job.Strategy, ")")
+			continue
+		}
+		parsedConfiguration, err := strategy.Parse(job.Configuration)
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+
+		// Initialize strategy
+		err = strategy.Initialize(parsedConfiguration)
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+
+		destinationStorage, err := loadAndInitializeStorage(*syncdata.Container.Storages[job.DestinationStorageId])
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+
+		// Get backup infos
+		backupInfos, err := strategy.ListBackups(destinationStorage)
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+
+		// Send backup infos so supervisor can update its database
+		for _, backupInfo := range backupInfos {
+			action.SendRawBackupInfo(backupInfo.Id, &job.Id, backupInfo.CreatedAt)
+		}
+
+		// Close everything
+		err = destinationStorage.Close()
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+		err = strategy.Close()
+		if err != nil {
+			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
+			continue
+		}
+	}
+}
 
 func JobCheckupLoop() {
 	for {
@@ -67,7 +124,7 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 	}
 
 	// Execute strategy
-	err = strategy.Execute(originStorage, destinationStorage, func(status strategyRegistry.BackupStatusUpdate) {
+	backupInfo, err := strategy.Execute(originStorage, destinationStorage, func(status strategyRegistry.BackupStatusUpdate) {
 		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
 		status.JobId = &job.Id
 		action.SendBackupStatusUpdate(id, status)
@@ -75,6 +132,8 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 	if err != nil {
 		return err
 	}
+
+	action.SendRawBackupInfo(backupInfo.Id, &job.Id, backupInfo.CreatedAt)
 
 	// Close everything
 	originStorage.Close()

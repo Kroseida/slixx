@@ -19,7 +19,7 @@ type UserProvider struct {
 	Database *gorm.DB
 }
 
-var PERMISSIONS = map[string]string{
+var Permissions = map[string]string{
 	"user.view":              "View User",
 	"user.create":            "Create User",
 	"user.update":            "Update User Account",
@@ -441,7 +441,7 @@ func (provider UserProvider) defaultUserMigration() error {
 	}
 	permissions := make([]string, 0)
 
-	for permission := range PERMISSIONS {
+	for permission := range Permissions {
 		permissions = append(permissions, permission)
 	}
 

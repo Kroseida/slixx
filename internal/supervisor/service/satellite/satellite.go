@@ -1,11 +1,20 @@
-package satelliteservice
+package satellite
 
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork"
 	"kroseida.org/slixx/pkg/model"
 )
+
+func Get(id uuid.UUID) (*model.Satellite, error) {
+	return datasource.SatelliteProvider.GetSatellite(id)
+}
+
+func GetPaged(pagination *provider.Pagination[model.Satellite]) (*provider.Pagination[model.Satellite], error) {
+	return datasource.SatelliteProvider.GetSatellitesPaged(pagination)
+}
 
 func Create(name string, description string, address string, token string) (*model.Satellite, error) {
 	satellite, err := datasource.SatelliteProvider.CreateSatellite(name, description, address, token)

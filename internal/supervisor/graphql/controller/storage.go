@@ -6,9 +6,8 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
-	"kroseida.org/slixx/internal/supervisor/service/storageservice"
+	storageService "kroseida.org/slixx/internal/supervisor/service/storage"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/storage"
@@ -51,7 +50,7 @@ func GetStorage(ctx context.Context, args GetStorageDto) (*Storage, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := datasource.StorageProvider.GetStorage(args.Id)
+	storage, err := storageService.Get(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -71,7 +70,7 @@ func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
 	var pagination provider.Pagination[model.Storage]
 	dto.Map(&args, &pagination)
 
-	pages, err := datasource.StorageProvider.GetStoragesPaged(&pagination)
+	pages, err := storageService.GetPaged(&pagination)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -95,7 +94,7 @@ func CreateStorage(ctx context.Context, args CreateStorageDto) (*Storage, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := storageservice.Create(args.Name, args.Description, args.Kind, args.Configuration)
+	storage, err := storageService.Create(args.Name, args.Description, args.Kind, args.Configuration)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -119,7 +118,7 @@ func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := storageservice.Update(
+	storage, err := storageService.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -145,7 +144,7 @@ func DeleteStorage(ctx context.Context, args DeleteStorageDto) (*Storage, error)
 	if !IsPermitted(ctx, []string{"storage.delete"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	storage, err := storageservice.Delete(args.Id)
+	storage, err := storageService.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

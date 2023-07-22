@@ -42,13 +42,9 @@ func (b *ByteBuffer) WriteFloat64(num float64) {
 }
 
 func (b *ByteBuffer) ReadFloat64() float64 {
-	buf := b.Read()
-	if len(buf) < 8 {
-		// Handle insufficient data
-		return 0
-	}
-	num := math.Float64frombits(binary.BigEndian.Uint64(buf))
-	return num
+	num := binary.BigEndian.Uint64(b.B)
+	b.B = b.B[8:]
+	return math.Float64frombits(num)
 }
 
 func (b *ByteBuffer) Write(p []byte) {

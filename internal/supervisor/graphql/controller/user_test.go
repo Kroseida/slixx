@@ -393,6 +393,6 @@ func Test_GetPermissions(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, len(provider.PERMISSIONS), len(permissions))
+	assert.Equal(t, len(provider.Permissions), len(permissions))
 	teardownSuite()
 }

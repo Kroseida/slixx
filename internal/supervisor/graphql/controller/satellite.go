@@ -6,9 +6,8 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
-	"kroseida.org/slixx/internal/supervisor/service/satelliteservice"
+	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"time"
@@ -46,7 +45,7 @@ func GetSatellite(ctx context.Context, args GetSatelliteDto) (*Satellite, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := datasource.SatelliteProvider.GetSatellite(args.Id)
+	satellite, err := satelliteService.Get(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -66,7 +65,7 @@ func GetSatellites(ctx context.Context, args PageArgs) (*SatellitesPage, error) 
 	var pagination provider.Pagination[model.Satellite]
 	dto.Map(&args, &pagination)
 
-	pages, err := datasource.SatelliteProvider.GetSatellitesPaged(&pagination)
+	pages, err := satelliteService.GetPaged(&pagination)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -91,7 +90,7 @@ func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*Satellite, 
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 
-	satellite, err := satelliteservice.Create(args.Name, args.Description, args.Address, args.Token)
+	satellite, err := satelliteService.Create(args.Name, args.Description, args.Address, args.Token)
 
 	if err != nil {
 		application.Logger.Debug(err)
@@ -116,7 +115,7 @@ func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, 
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := satelliteservice.Update(
+	satellite, err := satelliteService.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -142,7 +141,7 @@ func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, 
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	satellite, err := satelliteservice.Delete(args.Id)
+	satellite, err := satelliteService.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

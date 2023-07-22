@@ -36,5 +36,13 @@ func (handler *ServerHandler) HandleHandshake(client protocol.WrappedClient, han
 	c.Protocol = handshake.TargetProtocol
 	c.Server.Logger.Info("Connection of client(" + (*c.Connection).RemoteAddr().String() + ") accepted as " + c.Protocol)
 
-	return c.Send(&packet.ConnectionAccepted{})
+	err := c.Send(&packet.ConnectionAccepted{})
+	if err != nil {
+		return err
+	}
+
+	if c.Server.AfterProtocolSelection != nil {
+		c.Server.AfterProtocolSelection(client)
+	}
+	return nil
 }

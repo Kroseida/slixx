@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/google/uuid"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
+	backupService "kroseida.org/slixx/internal/supervisor/service/backup"
 )
 
 type ExecuteBackupDto struct {
@@ -10,6 +10,6 @@ type ExecuteBackupDto struct {
 }
 
 func ExecuteBackup(execute ExecuteBackupDto) (ExecuteBackupDto, error) {
-	action.SendExecuteBackup(execute.JobId)
+	backupService.Execute(execute.JobId)
 	return execute, nil
 }

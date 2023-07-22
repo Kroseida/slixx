@@ -12,15 +12,16 @@ import (
 )
 
 type Server struct {
-	Id               *uuid.UUID
-	BindAddress      string
-	Token            string
-	listener         net.Listener
-	Handler          map[string]protocol.Handler
-	closed           bool
-	Logger           utils.Logger
-	Version          string
-	ActiveConnection []*ConnectedClient
+	Id                     *uuid.UUID
+	BindAddress            string
+	Token                  string
+	listener               net.Listener
+	Handler                map[string]protocol.Handler
+	closed                 bool
+	Logger                 utils.Logger
+	Version                string
+	ActiveConnection       []*ConnectedClient
+	AfterProtocolSelection func(protocol.WrappedClient)
 }
 
 type ConnectedClient struct {

@@ -1,4 +1,4 @@
-package satellitelogservice
+package satellitelog
 
 import (
 	"kroseida.org/slixx/internal/supervisor/datasource"

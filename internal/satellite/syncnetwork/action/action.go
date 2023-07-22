@@ -7,6 +7,7 @@ import (
 	"kroseida.org/slixx/pkg/strategy"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
+	"time"
 )
 
 func SyncLogsToSupervisor() {
@@ -43,6 +44,21 @@ func SendBackupStatusUpdate(id *uuid.UUID, status strategy.BackupStatusUpdate) {
 			Percentage: status.Percentage,
 			StatusType: status.StatusType,
 			Message:    status.Message,
+		})
+	}
+}
+
+func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, date time.Time) {
+	// iterate over all connection in server
+	for _, connection := range manager.Server.ActiveConnection {
+		if connection.Protocol != protocol.Supervisor {
+			continue
+		}
+
+		connection.Send(&packet.RawBackupInfo{
+			Id:    id,
+			JobId: jobId,
+			Date:  date,
 		})
 	}
 }

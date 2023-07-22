@@ -278,7 +278,7 @@ type PermissionDto struct {
 
 func GetPermissions() ([]PermissionDto, error) {
 	permissionDtos := make([]PermissionDto, 0)
-	for value, name := range provider.PERMISSIONS {
+	for value, name := range provider.Permissions {
 		permissionDtos = append(permissionDtos, PermissionDto{
 			Value: value,
 			Name:  name,

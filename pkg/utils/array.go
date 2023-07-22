@@ -1,8 +1,10 @@
 package utils
 
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
+import "github.com/google/uuid"
+
+func ContainsUUID(ids []uuid.UUID, id uuid.UUID) bool {
+	for _, v := range ids {
+		if v == id {
 			return true
 		}
 	}

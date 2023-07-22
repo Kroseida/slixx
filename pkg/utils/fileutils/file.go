@@ -25,9 +25,12 @@ func FileExists(fileName string) bool {
 
 func FixedPathName(path string) string {
 	fixedPath := path
+
+	// Remove double slashes
 	for strings.Contains(fixedPath, "//") {
 		fixedPath = strings.ReplaceAll(fixedPath, "//", "/")
 	}
+
 	return fixedPath
 }
 
@@ -35,7 +38,7 @@ func ParentDirectory(path string) string {
 	return path[0:strings.LastIndex(path, "/")]
 }
 
-func SplitArrayBySize(array []FileInfo, n int) [][]FileInfo {
+func SplitArrayBySize(array []FileInfo, n int) ([][]FileInfo, []uint64) {
 	// Sort the array in descending order based on the "Size" field
 	sort.SliceStable(array, func(i, j int) bool {
 		return array[i].Size > array[j].Size
@@ -61,5 +64,5 @@ func SplitArrayBySize(array []FileInfo, n int) [][]FileInfo {
 		totalSizes[minIndex] += array[i].Size
 	}
 
-	return result
+	return result, totalSizes
 }

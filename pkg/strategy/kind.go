@@ -4,12 +4,13 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/pkg/storage"
 	"reflect"
+	"time"
 )
 
 type Strategy interface {
 	GetName() string
 	Initialize(configuration any) error
-	Execute(origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) error
+	Execute(origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error)
 	Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID) error
 	Parse(configurationJson string) (interface{}, error)
 	DefaultConfiguration() interface{}
@@ -27,7 +28,7 @@ type BackupStatusUpdate struct {
 
 type RawBackupInfo struct {
 	Id        *uuid.UUID `json:"id"`
-	CreatedAt int64      `json:"createdAt"`
+	CreatedAt time.Time  `json:"createdAt"`
 }
 
 var COPY = &CopyStrategy{}
