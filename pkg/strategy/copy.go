@@ -323,7 +323,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 	if err != nil {
 		return err
 	}
-	strategy.Configuration.BlockSize = 4096 * 1024 * 1024 * 1024
+	
 	iterations := int(size) / strategy.Configuration.BlockSize
 	lastBlockSize := int(size) % strategy.Configuration.BlockSize
 
