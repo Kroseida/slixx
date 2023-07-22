@@ -25,10 +25,8 @@ func CreatePasswordAuthentication(userId uuid.UUID, password string) (*model.Aut
 		return nil, graphql.NewSafeError("user not found")
 	}
 
-	err = datasource.UserProvider.DeleteAuthenticationOfKind(authenticator.PASSWORD, userId)
-	if err != nil {
-		return nil, err
-	}
+	// Remove any existing password authentications for this user
+	datasource.UserProvider.DeleteAuthenticationOfKind(authenticator.PASSWORD, userId)
 
 	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
 
