@@ -8,6 +8,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	userService "kroseida.org/slixx/internal/supervisor/service/user"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"time"
@@ -143,7 +144,7 @@ func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*U
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.RemoveUserPermission(args.Id, args.Permissions)
+	user, err := userService.RemovePermission(args.Id, args.Permissions)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -165,7 +166,7 @@ func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDt
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	authentication, err := datasource.UserProvider.CreatePasswordAuthentication(args.Id, args.Password)
+	authentication, err := userService.CreatePasswordAuthentication(args.Id, args.Password)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -183,7 +184,7 @@ type PasswordAuthenticationDto struct {
 
 func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*ExposedSession, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	session, err := datasource.UserProvider.AuthenticatePassword(args.Name, args.Password)
+	session, err := userService.AuthenticatePassword(args.Name, args.Password)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -203,7 +204,7 @@ func GetUsers(ctx context.Context, args PageArgs) (*UsersPage, error) {
 	var pagination provider.Pagination[model.User]
 	dto.Map(&args, &pagination)
 
-	users, err := datasource.UserProvider.GetUsersPaged(&pagination)
+	users, err := userService.GetPaged(&pagination)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -224,7 +225,7 @@ func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.GetUser(args.Id)
+	user, err := userService.Get(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -244,7 +245,7 @@ func DeleteUser(ctx context.Context, args DeleteUserDto) (*User, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.DeleteUser(args.Id)
+	user, err := userService.Delete(args.Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err
@@ -260,7 +261,7 @@ func GetLocalUser(ctx context.Context) (*User, error) {
 	if ctx.Value("user").(*model.User) == nil {
 		return nil, nil
 	}
-	user, err := datasource.UserProvider.GetUser(ctx.Value("user").(*model.User).Id)
+	user, err := userService.Get(ctx.Value("user").(*model.User).Id)
 	if err != nil {
 		application.Logger.Debug(err)
 		return nil, err

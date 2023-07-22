@@ -347,20 +347,6 @@ func Test_GetUser(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_CreateAuthentication_MissingUser(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	userId := uuid.New()
-
-	_, err := datasource.UserProvider.CreatePasswordAuthentication(userId, "password")
-	if err == nil {
-		t.Error("Expected error (missing user)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
 func Test_GetUserBySession(t *testing.T) {
 	teardownSuite := setupSuite()
 
@@ -504,107 +490,6 @@ func Test_GetSession_Expired(t *testing.T) {
 		return
 	}
 	assert.Equal(t, 0, len(sessions))
-	teardownSuite()
-}
-
-func Test_Authenticate(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	createdUser, err := datasource.UserProvider.CreateUser(
-		"Max",
-		"Max@test.de",
-		"Max",
-		"Test",
-		"Test",
-		true,
-	)
-
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	password := "1234!Test*_:"
-	_, err = datasource.UserProvider.CreatePasswordAuthentication(createdUser.Id, password)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	session, err := datasource.UserProvider.AuthenticatePassword("Max", password)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, createdUser.Id, session.UserId)
-	teardownSuite()
-}
-
-func Test_Authenticate_Invalid(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	createdUser, err := datasource.UserProvider.CreateUser(
-		"Max",
-		"Max@test.de",
-		"Max",
-		"Test",
-		"Test",
-		true,
-	)
-
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	password := "1234!Test*_:"
-	_, err = datasource.UserProvider.CreatePasswordAuthentication(createdUser.Id, password)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	_, err = datasource.UserProvider.AuthenticatePassword("Max", "123123123")
-	if err == nil {
-		t.Error("Expected error (invalid password)")
-		teardownSuite()
-		return
-	}
-	teardownSuite()
-}
-
-func Test_Authenticate_InvalidUser(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	createdUser, err := datasource.UserProvider.CreateUser(
-		"Max",
-		"Max@test.de",
-		"Max",
-		"Test",
-		"Test",
-		true,
-	)
-
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	password := "1234!Test*_:"
-	_, err = datasource.UserProvider.CreatePasswordAuthentication(createdUser.Id, password)
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-	_, err = datasource.UserProvider.AuthenticatePassword("Alex", password)
-	if err == nil {
-		t.Error("Expected error (invalid password)")
-		teardownSuite()
-		return
-	}
 	teardownSuite()
 }
 

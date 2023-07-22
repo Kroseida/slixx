@@ -2,6 +2,7 @@ package provider
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
 	"github.com/samsarahq/thunder/graphql"
 	"golang.org/x/crypto/bcrypt"
@@ -291,19 +292,7 @@ func (provider UserProvider) GetUserBySession(token string) (uuid.UUID, error) {
 	return session.UserId, nil
 }
 
-func (provider UserProvider) AuthenticatePassword(name string, password string) (*model.Session, error) {
-	configuration, err := json.Marshal(authenticator.PasswordRequestContainer{
-		Name:     name,
-		Password: password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return provider.Authenticate(authenticator.PASSWORD, string(configuration))
-}
-
-func (provider UserProvider) Authenticate(kindName string, configuration string) (*model.Session, error) {
+func (provider UserProvider) GetUserByAuthentication(kindName string, configuration string) (*model.User, error) {
 	kind := authenticator.GetKind(kindName)
 	if kind == nil {
 		return nil, graphql.NewSafeError("invalid authentication kind")
@@ -346,39 +335,7 @@ func (provider UserProvider) Authenticate(kindName string, configuration string)
 		return nil, graphql.NewSafeError("authentication failed")
 	}
 
-	return provider.CreateSession(targetAuthentication.UserId, time.Now().Add(time.Hour*time.Duration(application.CurrentSettings.Authentication.SessionDuration)))
-}
-
-func (provider UserProvider) CreatePasswordAuthentication(userId uuid.UUID, password string) (*model.Authentication, error) {
-	user, err := provider.GetUser(userId)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, graphql.NewSafeError("user not found")
-	}
-	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
-
-	configuration, err := kind.GenerateConfigurationFromRequestContainer(&authenticator.PasswordRequestContainer{
-		Name:     user.Name,
-		Password: password,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	configurationJson, err := json.Marshal(configuration)
-	if err != nil {
-		return nil, err
-	}
-
-	var authentication *model.Authentication
-	result := provider.Database.Delete(&authentication, "kind = ? AND user_id = ?", authenticator.PASSWORD, userId)
-	if isSqlError(result.Error) {
-		return nil, result.Error
-	}
-
-	return provider.CreateAuthentication(userId, authenticator.PASSWORD, string(configurationJson))
+	return provider.GetUser(targetAuthentication.UserId)
 }
 
 func (provider UserProvider) CreateAuthentication(userId uuid.UUID, kind string, configuration string) (*model.Authentication, error) {
@@ -415,6 +372,18 @@ func (provider UserProvider) CreateAuthentication(userId uuid.UUID, kind string,
 	return authentication, nil
 }
 
+func (provider UserProvider) DeleteAuthenticationOfKind(kind string, id uuid.UUID) error {
+	var authentication *model.Authentication
+	result := provider.Database.Delete(&authentication, "id = ? AND kind = ?", id, kind)
+	if isSqlError(result.Error) {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errors.New("authentication not found")
+	}
+	return nil
+}
+
 func (provider UserProvider) Init() error {
 	// Create default user if migration did not create one
 	err := provider.defaultUserMigration()
@@ -426,6 +395,7 @@ func (provider UserProvider) Init() error {
 }
 
 func (provider UserProvider) defaultUserMigration() error {
+	// Check if migration already ran
 	var migration *model.Migration
 	result := provider.Database.First(&migration, "name = ?", "default_user")
 	if isSqlError(result.Error) {
@@ -435,10 +405,20 @@ func (provider UserProvider) defaultUserMigration() error {
 		return nil
 	}
 
-	user, err := provider.CreateUser("admin", "", "", "", "default admin user", true)
+	// Create default user
+	user, err := provider.CreateUser(
+		"admin",
+		"",
+		"",
+		"",
+		"default admin user",
+		true,
+	)
 	if err != nil {
 		return err
 	}
+
+	// Add all permissions to user
 	permissions := make([]string, 0)
 
 	for permission := range Permissions {
@@ -450,11 +430,28 @@ func (provider UserProvider) defaultUserMigration() error {
 		return err
 	}
 
-	_, err = provider.CreatePasswordAuthentication(user.Id, "admin")
+	// Create default password
+	kind := authenticator.GetKind(authenticator.PASSWORD).(authenticator.Password)
+
+	configuration, err := kind.GenerateConfigurationFromRequestContainer(&authenticator.PasswordRequestContainer{
+		Name:     user.Name,
+		Password: "admin!",
+	})
 	if err != nil {
 		return err
 	}
 
+	configurationJson, err := json.Marshal(configuration)
+	if err != nil {
+		return err
+	}
+
+	_, err = provider.CreateAuthentication(user.Id, authenticator.PASSWORD, string(configurationJson))
+	if err != nil {
+		return err
+	}
+
+	// Create migration
 	err = provider.Database.Create(&model.Migration{
 		Id:   uuid.New(),
 		Name: "default_user",
