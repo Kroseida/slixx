@@ -2,7 +2,6 @@ package strategy
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/google/uuid"
 	"kroseida.org/slixx/pkg/storage"
 	"kroseida.org/slixx/pkg/strategy/statustype"
@@ -211,21 +210,13 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination sto
 		StatusType: statustype.Info,
 	})
 
-	// Create .slixx directory and ignore errors
-	err := destination.CreateDirectory(fileutils.FixedPathName(SlixxDirectory))
-	if err != nil {
-		callback(BackupStatusUpdate{
-			Id:         &id,
-			Percentage: 0,
-			Message:    err.Error(),
-			StatusType: statustype.Error,
-		})
-		fmt.Println("223: ", err)
-		return nil, err
-	}
+	handleCreateSlixxDirectories(destination)
 
-	// Create backup directory and ignore errors
-	err = destination.CreateDirectory(fileutils.FixedPathName(BackupInfoDirectory))
+	rawBackupInfo := RawBackupInfo{
+		Id:        &id,
+		CreatedAt: time.Now(),
+	}
+	rawBackupInfoBytes, err := json.Marshal(rawBackupInfo)
 	if err != nil {
 		callback(BackupStatusUpdate{
 			Id:         &id,
@@ -237,7 +228,11 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination sto
 	}
 
 	// Store backup info file in destination so that we have some information about the backup
-	err = destination.Store(fileutils.FixedPathName(BackupInfoDirectory+"/"+id.String()), []byte{1}, 0)
+	err = destination.Store(
+		fileutils.FixedPathName(BackupInfoDirectory+"/"+id.String()),
+		rawBackupInfoBytes,
+		0,
+	)
 	if err != nil {
 		callback(BackupStatusUpdate{
 			Id:         &id,
@@ -245,18 +240,6 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination sto
 			Message:    err.Error(),
 			StatusType: statustype.Error,
 		})
-		fmt.Println("249: ", err)
-		return nil, err
-	}
-	fileInfo, err := destination.FileInfo(fileutils.FixedPathName(BackupInfoDirectory + id.String()))
-	if err != nil {
-		callback(BackupStatusUpdate{
-			Id:         &id,
-			Percentage: 0,
-			Message:    err.Error(),
-			StatusType: statustype.Error,
-		})
-		fmt.Println("260: ", err)
 		return nil, err
 	}
 
@@ -267,10 +250,13 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination sto
 		StatusType: statustype.Finished,
 	})
 
-	return &RawBackupInfo{
-		Id:        &id,
-		CreatedAt: time.Unix(fileInfo.CreatedAt, 0),
-	}, nil
+	return &rawBackupInfo, nil
+}
+
+func handleCreateSlixxDirectories(destination storage.Kind) {
+	// Create .slixx directory and ignore errors
+	destination.CreateDirectory(fileutils.FixedPathName(SlixxDirectory))
+	destination.CreateDirectory(fileutils.FixedPathName(BackupInfoDirectory))
 }
 
 func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID) error {
@@ -293,6 +279,8 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 }
 
 func (strategy *CopyStrategy) ListBackups(destination storage.Kind) ([]*RawBackupInfo, error) {
+	handleCreateSlixxDirectories(destination)
+
 	files, err := destination.ListFiles(BackupInfoDirectory)
 	if err != nil {
 		return nil, err
@@ -323,7 +311,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 	if err != nil {
 		return err
 	}
-	
+
 	iterations := int(size) / strategy.Configuration.BlockSize
 	lastBlockSize := int(size) % strategy.Configuration.BlockSize
 
