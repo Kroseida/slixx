@@ -40,7 +40,7 @@ var Permissions = map[string]string{
 	"satellite.delete":       "Delete Satellite",
 }
 
-func (provider UserProvider) CreateUser(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {
+func (provider UserProvider) Create(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
@@ -51,7 +51,7 @@ func (provider UserProvider) CreateUser(name string, email string, firstName str
 		return nil, graphql.NewSafeError("name can not contain spaces")
 	}
 
-	existingUser, err := provider.GetUserByName(name)
+	existingUser, err := provider.GetByName(name)
 	if err != nil {
 		return nil, err
 	}
@@ -78,8 +78,8 @@ func (provider UserProvider) CreateUser(name string, email string, firstName str
 	return user, nil
 }
 
-func (provider UserProvider) DeleteUser(id uuid.UUID) (*model.User, error) {
-	user, err := provider.GetUser(id)
+func (provider UserProvider) Delete(id uuid.UUID) (*model.User, error) {
+	user, err := provider.Get(id)
 	if user == nil {
 		return nil, graphql.NewSafeError("user not found")
 	}
@@ -95,8 +95,16 @@ func (provider UserProvider) DeleteUser(id uuid.UUID) (*model.User, error) {
 	return user, nil
 }
 
-func (provider UserProvider) UpdateUser(id uuid.UUID, name *string, firstName *string, lastName *string, active *bool, description *string, email *string) (*model.User, error) {
-	user, err := provider.GetUser(id)
+func (provider UserProvider) Update(
+	id uuid.UUID,
+	name *string,
+	firstName *string,
+	lastName *string,
+	active *bool,
+	description *string,
+	email *string,
+) (*model.User, error) {
+	user, err := provider.Get(id)
 	if user == nil {
 		return nil, graphql.NewSafeError("user not found")
 	}
@@ -108,7 +116,7 @@ func (provider UserProvider) UpdateUser(id uuid.UUID, name *string, firstName *s
 		if strings.Contains(*name, " ") {
 			return nil, graphql.NewSafeError("name can not contain spaces")
 		}
-		existingUser, err := provider.GetUserByName(*name)
+		existingUser, err := provider.GetByName(*name)
 		if existingUser != nil {
 			return nil, graphql.NewSafeError("name already in use")
 		}
@@ -144,8 +152,8 @@ func (provider UserProvider) UpdateUser(id uuid.UUID, name *string, firstName *s
 	return user, nil
 }
 
-func (provider UserProvider) AddUserPermission(userId uuid.UUID, permissions []string) (*model.User, error) {
-	user, err := provider.GetUser(userId)
+func (provider UserProvider) AddPermission(userId uuid.UUID, permissions []string) (*model.User, error) {
+	user, err := provider.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -163,8 +171,8 @@ func (provider UserProvider) AddUserPermission(userId uuid.UUID, permissions []s
 	return user, nil
 }
 
-func (provider UserProvider) RemoveUserPermission(userId uuid.UUID, permissions []string) (*model.User, error) {
-	user, err := provider.GetUser(userId)
+func (provider UserProvider) RemovePermission(userId uuid.UUID, permissions []string) (*model.User, error) {
+	user, err := provider.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +190,7 @@ func (provider UserProvider) RemoveUserPermission(userId uuid.UUID, permissions 
 	return user, nil
 }
 
-func (provider UserProvider) GetUsers() ([]*model.User, error) {
+func (provider UserProvider) List() ([]*model.User, error) {
 	var users []*model.User
 	result := provider.Database.Find(&users)
 
@@ -193,7 +201,7 @@ func (provider UserProvider) GetUsers() ([]*model.User, error) {
 	return users, nil
 }
 
-func (provider UserProvider) GetUsersPaged(pagination *Pagination[model.User]) (*Pagination[model.User], error) {
+func (provider UserProvider) ListPaged(pagination *Pagination[model.User]) (*Pagination[model.User], error) {
 	context := paginate(model.User{}, "name", pagination, provider.Database)
 
 	var users []model.User
@@ -207,7 +215,7 @@ func (provider UserProvider) GetUsersPaged(pagination *Pagination[model.User]) (
 	return pagination, nil
 }
 
-func (provider UserProvider) GetUser(id uuid.UUID) (*model.User, error) {
+func (provider UserProvider) Get(id uuid.UUID) (*model.User, error) {
 	var user *model.User
 	result := provider.Database.First(&user, "id = ?", id)
 
@@ -221,7 +229,7 @@ func (provider UserProvider) GetUser(id uuid.UUID) (*model.User, error) {
 	return user, nil
 }
 
-func (provider UserProvider) GetUserByName(name string) (*model.User, error) {
+func (provider UserProvider) GetByName(name string) (*model.User, error) {
 	var user *model.User
 	result := provider.Database.First(&user, "name = ?", name)
 
@@ -236,7 +244,7 @@ func (provider UserProvider) GetUserByName(name string) (*model.User, error) {
 }
 
 func (provider UserProvider) CreateSession(userId uuid.UUID, expiresAt time.Time) (*model.Session, error) {
-	user, err := provider.GetUser(userId)
+	user, err := provider.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -259,8 +267,8 @@ func (provider UserProvider) CreateSession(userId uuid.UUID, expiresAt time.Time
 	return session, nil
 }
 
-func (provider UserProvider) GetSessions(userId uuid.UUID) ([]*model.Session, error) {
-	user, err := provider.GetUser(userId)
+func (provider UserProvider) ListSessions(userId uuid.UUID) ([]*model.Session, error) {
+	user, err := provider.Get(userId)
 	if err != nil {
 		return []*model.Session{}, err
 	}
@@ -278,7 +286,7 @@ func (provider UserProvider) GetSessions(userId uuid.UUID) ([]*model.Session, er
 	return sessions, nil
 }
 
-func (provider UserProvider) GetUserBySession(token string) (uuid.UUID, error) {
+func (provider UserProvider) GetBySession(token string) (uuid.UUID, error) {
 	var session *model.Session
 	result := provider.Database.First(&session, "token = ? AND expires_at > ?", token, time.Now())
 
@@ -292,7 +300,7 @@ func (provider UserProvider) GetUserBySession(token string) (uuid.UUID, error) {
 	return session.UserId, nil
 }
 
-func (provider UserProvider) GetUserByAuthentication(kindName string, configuration string) (*model.User, error) {
+func (provider UserProvider) ValidateByAuthentication(kindName string, configuration string) (*model.User, error) {
 	kind := authenticator.GetKind(kindName)
 	if kind == nil {
 		return nil, graphql.NewSafeError("invalid authentication kind")
@@ -335,11 +343,11 @@ func (provider UserProvider) GetUserByAuthentication(kindName string, configurat
 		return nil, graphql.NewSafeError("authentication failed")
 	}
 
-	return provider.GetUser(targetAuthentication.UserId)
+	return provider.Get(targetAuthentication.UserId)
 }
 
 func (provider UserProvider) CreateAuthentication(userId uuid.UUID, kind string, configuration string) (*model.Authentication, error) {
-	user, err := provider.GetUser(userId)
+	user, err := provider.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -406,7 +414,7 @@ func (provider UserProvider) defaultUserMigration() error {
 	}
 
 	// Create default user
-	user, err := provider.CreateUser(
+	user, err := provider.Create(
 		"admin",
 		"",
 		"",
@@ -415,6 +423,7 @@ func (provider UserProvider) defaultUserMigration() error {
 		true,
 	)
 	if err != nil {
+		panic(err)
 		return err
 	}
 
@@ -425,7 +434,7 @@ func (provider UserProvider) defaultUserMigration() error {
 		permissions = append(permissions, permission)
 	}
 
-	_, err = provider.AddUserPermission(user.Id, permissions)
+	_, err = provider.AddPermission(user.Id, permissions)
 	if err != nil {
 		return err
 	}

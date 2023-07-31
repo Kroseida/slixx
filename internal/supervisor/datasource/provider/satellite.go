@@ -13,8 +13,8 @@ type SatelliteProvider struct {
 	JobProvider *JobProvider
 }
 
-func (provider SatelliteProvider) DeleteSatellite(id uuid.UUID) (*model.Satellite, error) {
-	jobs, err := provider.JobProvider.GetJobByExecutorSatelliteId(id)
+func (provider SatelliteProvider) Delete(id uuid.UUID) (*model.Satellite, error) {
+	jobs, err := provider.JobProvider.GetByExecutorSatelliteId(id)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +22,7 @@ func (provider SatelliteProvider) DeleteSatellite(id uuid.UUID) (*model.Satellit
 		return nil, graphql.NewSafeError("satellite is in use")
 	}
 
-	satellite, err := provider.GetSatellite(id)
+	satellite, err := provider.Get(id)
 	if satellite == nil {
 		return nil, graphql.NewSafeError("satellite not found")
 	}
@@ -38,7 +38,7 @@ func (provider SatelliteProvider) DeleteSatellite(id uuid.UUID) (*model.Satellit
 	return satellite, nil
 }
 
-func (provider SatelliteProvider) CreateSatellite(name string, description string, address string, token string) (*model.Satellite, error) {
+func (provider SatelliteProvider) Create(name string, description string, address string, token string) (*model.Satellite, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
@@ -65,8 +65,8 @@ func (provider SatelliteProvider) CreateSatellite(name string, description strin
 	return &satellite, nil
 }
 
-func (provider SatelliteProvider) UpdateSatellite(id uuid.UUID, name *string, description *string, address *string, token *string) (*model.Satellite, error) {
-	updateSatellite, err := provider.GetSatellite(id)
+func (provider SatelliteProvider) Update(id uuid.UUID, name *string, description *string, address *string, token *string) (*model.Satellite, error) {
+	updateSatellite, err := provider.Get(id)
 	if updateSatellite == nil {
 		return nil, graphql.NewSafeError("satellite not found")
 	}
@@ -99,7 +99,7 @@ func (provider SatelliteProvider) UpdateSatellite(id uuid.UUID, name *string, de
 	return updateSatellite, nil
 }
 
-func (provider SatelliteProvider) GetSatellites() ([]*model.Satellite, error) {
+func (provider SatelliteProvider) List() ([]*model.Satellite, error) {
 	var satellites []*model.Satellite
 	result := provider.Database.Find(&satellites)
 
@@ -110,7 +110,7 @@ func (provider SatelliteProvider) GetSatellites() ([]*model.Satellite, error) {
 	return satellites, nil
 }
 
-func (provider SatelliteProvider) GetSatellitesPaged(pagination *Pagination[model.Satellite]) (*Pagination[model.Satellite], error) {
+func (provider SatelliteProvider) ListPaged(pagination *Pagination[model.Satellite]) (*Pagination[model.Satellite], error) {
 	context := paginate(model.Satellite{}, "name", pagination, provider.Database)
 
 	var satellites []model.Satellite
@@ -124,7 +124,7 @@ func (provider SatelliteProvider) GetSatellitesPaged(pagination *Pagination[mode
 	return pagination, nil
 }
 
-func (provider SatelliteProvider) GetSatellite(id uuid.UUID) (*model.Satellite, error) {
+func (provider SatelliteProvider) Get(id uuid.UUID) (*model.Satellite, error) {
 	var satellite *model.Satellite
 	result := provider.Database.First(&satellite, "id = ?", id)
 
@@ -138,7 +138,7 @@ func (provider SatelliteProvider) GetSatellite(id uuid.UUID) (*model.Satellite, 
 	return satellite, nil
 }
 
-func (provider SatelliteProvider) CreateSatelliteLogs(logs []*model.SatelliteLogEntry) error {
+func (provider SatelliteProvider) ApplyLogs(logs []*model.SatelliteLogEntry) error {
 	result := provider.Database.Create(&logs)
 
 	if isSqlError(result.Error) {

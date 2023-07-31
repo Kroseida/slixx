@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
 	"testing"
 	"time"
@@ -13,7 +12,7 @@ import (
 func Test_CreateUser(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -28,7 +27,7 @@ func Test_CreateUser(t *testing.T) {
 		return
 	}
 
-	user, err := datasource.UserProvider.GetUserByName("Test")
+	user, err := datasource.UserProvider.GetByName("Test")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -42,7 +41,7 @@ func Test_CreateUser(t *testing.T) {
 func Test_CreateUser_EmptyName(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"",
 		"Test@test.de",
 		"Test",
@@ -61,7 +60,7 @@ func Test_CreateUser_EmptyName(t *testing.T) {
 func Test_CreateUser_SpacedName(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Test User",
 		"Test@test.de",
 		"Test",
@@ -80,7 +79,7 @@ func Test_CreateUser_SpacedName(t *testing.T) {
 func Test_CreateUser_NameUsed(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -94,7 +93,7 @@ func Test_CreateUser_NameUsed(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.UserProvider.CreateUser(
+	_, err = datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -114,7 +113,7 @@ func Test_UpdateUser_Email(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	newEmail := "test"
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -127,17 +126,17 @@ func Test_UpdateUser_Email(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	_, err = datasource.UserProvider.UpdateUser(user.Id, nil, nil, nil, nil, nil, &newEmail)
+	_, err = datasource.UserProvider.Update(user.Id, nil, nil, nil, nil, nil, &newEmail)
 	assert.NotNil(t, err)
 
 	newEmail = "test@test.de"
-	_, err = datasource.UserProvider.UpdateUser(user.Id, nil, nil, nil, nil, nil, &newEmail)
+	_, err = datasource.UserProvider.Update(user.Id, nil, nil, nil, nil, nil, &newEmail)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	updatedUser, err := datasource.UserProvider.GetUser(user.Id)
+	updatedUser, err := datasource.UserProvider.Get(user.Id)
 
 	assert.Equal(t, newEmail, updatedUser.Email)
 
@@ -148,7 +147,7 @@ func Test_UpdateUser_Name(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	newName := "Test2"
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -162,13 +161,13 @@ func Test_UpdateUser_Name(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.UserProvider.UpdateUser(user.Id, &newName, nil, nil, nil, nil, nil)
+	_, err = datasource.UserProvider.Update(user.Id, &newName, nil, nil, nil, nil, nil)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	updatedUser, err := datasource.UserProvider.GetUser(user.Id)
+	updatedUser, err := datasource.UserProvider.Get(user.Id)
 
 	assert.Equal(t, newName, updatedUser.Name)
 
@@ -178,7 +177,7 @@ func Test_UpdateUser_Name(t *testing.T) {
 func Test_DeleteUser(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -192,7 +191,7 @@ func Test_DeleteUser(t *testing.T) {
 		return
 	}
 
-	users, err := datasource.UserProvider.GetUsers()
+	users, err := datasource.UserProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -201,14 +200,14 @@ func Test_DeleteUser(t *testing.T) {
 
 	assert.Equal(t, 2, len(users))
 
-	_, err = datasource.UserProvider.DeleteUser(user.Id)
+	_, err = datasource.UserProvider.Delete(user.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	users, err = datasource.UserProvider.GetUsers()
+	users, err = datasource.UserProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -223,7 +222,7 @@ func Test_DeleteUser(t *testing.T) {
 func Test_GetUsersPaged(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -231,7 +230,7 @@ func Test_GetUsersPaged(t *testing.T) {
 		"Test",
 		true,
 	)
-	_, err = datasource.UserProvider.CreateUser(
+	_, err = datasource.UserProvider.Create(
 		"Test2",
 		"Test2@test.de",
 		"Test2",
@@ -245,7 +244,7 @@ func Test_GetUsersPaged(t *testing.T) {
 		return
 	}
 
-	users, err := datasource.UserProvider.GetUsersPaged(&provider.Pagination[model.User]{
+	users, err := datasource.UserProvider.ListPaged(&Pagination[model.User]{
 		Page:  1,
 		Limit: 2,
 	})
@@ -257,7 +256,7 @@ func Test_GetUsersPaged(t *testing.T) {
 func Test_GetUsers(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -271,7 +270,7 @@ func Test_GetUsers(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.UserProvider.CreateUser(
+	_, err = datasource.UserProvider.Create(
 		"Test2",
 		"Test@test.de",
 		"Test",
@@ -285,7 +284,7 @@ func Test_GetUsers(t *testing.T) {
 		return
 	}
 
-	users, err := datasource.UserProvider.GetUsers()
+	users, err := datasource.UserProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -308,7 +307,7 @@ func Test_GetUsers(t *testing.T) {
 func Test_GetUser(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.UserProvider.CreateUser(
+	_, err := datasource.UserProvider.Create(
 		"Maxi",
 		"Maxi@test.de",
 		"Maxi",
@@ -322,7 +321,7 @@ func Test_GetUser(t *testing.T) {
 		return
 	}
 
-	createdUser, err := datasource.UserProvider.CreateUser(
+	createdUser, err := datasource.UserProvider.Create(
 		"Max",
 		"Max@test.de",
 		"Max",
@@ -336,7 +335,7 @@ func Test_GetUser(t *testing.T) {
 		return
 	}
 
-	user, err := datasource.UserProvider.GetUser(createdUser.Id)
+	user, err := datasource.UserProvider.Get(createdUser.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -350,7 +349,7 @@ func Test_GetUser(t *testing.T) {
 func Test_GetUserBySession(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	createdUser, err := datasource.UserProvider.CreateUser(
+	createdUser, err := datasource.UserProvider.Create(
 		"Max",
 		"Max@test.de",
 		"Max",
@@ -370,7 +369,7 @@ func Test_GetUserBySession(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	userId, err := datasource.UserProvider.GetUserBySession(session.Token)
+	userId, err := datasource.UserProvider.GetBySession(session.Token)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -383,7 +382,7 @@ func Test_GetUserBySession(t *testing.T) {
 func Test_GetUserBySession_Invalid(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	createdUser, err := datasource.UserProvider.CreateUser(
+	createdUser, err := datasource.UserProvider.Create(
 		"Max",
 		"Max@test.de",
 		"Max",
@@ -403,7 +402,7 @@ func Test_GetUserBySession_Invalid(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	userId, err := datasource.UserProvider.GetUserBySession(session.Token + "_invalid")
+	userId, err := datasource.UserProvider.GetBySession(session.Token + "_invalid")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -416,7 +415,7 @@ func Test_GetUserBySession_Invalid(t *testing.T) {
 func Test_CreateSession(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	createdUser, err := datasource.UserProvider.CreateUser(
+	createdUser, err := datasource.UserProvider.Create(
 		"Max",
 		"Max@test.de",
 		"Max",
@@ -436,7 +435,7 @@ func Test_CreateSession(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	sessions, err := datasource.UserProvider.GetSessions(createdUser.Id)
+	sessions, err := datasource.UserProvider.ListSessions(createdUser.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -463,7 +462,7 @@ func Test_CreateSession_MissingUser(t *testing.T) {
 func Test_GetSession_Expired(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	createdUser, err := datasource.UserProvider.CreateUser(
+	createdUser, err := datasource.UserProvider.Create(
 		"Max",
 		"Max@test.de",
 		"Max",
@@ -483,7 +482,7 @@ func Test_GetSession_Expired(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	sessions, err := datasource.UserProvider.GetSessions(createdUser.Id)
+	sessions, err := datasource.UserProvider.ListSessions(createdUser.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -496,7 +495,7 @@ func Test_GetSession_Expired(t *testing.T) {
 func Test_AddUserPermission(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -511,14 +510,14 @@ func Test_AddUserPermission(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.UserProvider.AddUserPermission(user.Id, []string{"test"})
+	_, err = datasource.UserProvider.AddPermission(user.Id, []string{"test"})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	resolvedUser, err := datasource.UserProvider.GetUser(user.Id)
+	resolvedUser, err := datasource.UserProvider.Get(user.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -532,7 +531,7 @@ func Test_AddUserPermission(t *testing.T) {
 func Test_RemoveUserPermission(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"Test",
 		"Test@test.de",
 		"Test",
@@ -546,21 +545,21 @@ func Test_RemoveUserPermission(t *testing.T) {
 		teardownSuite()
 		return
 	}
-	_, err = datasource.UserProvider.AddUserPermission(user.Id, []string{"test", "test2", "test3"})
+	_, err = datasource.UserProvider.AddPermission(user.Id, []string{"test", "test2", "test3"})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.UserProvider.RemoveUserPermission(user.Id, []string{"test2", "test3"})
+	_, err = datasource.UserProvider.RemovePermission(user.Id, []string{"test2", "test3"})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	resolvedUser, err := datasource.UserProvider.GetUser(user.Id)
+	resolvedUser, err := datasource.UserProvider.Get(user.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

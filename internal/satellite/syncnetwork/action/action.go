@@ -56,9 +56,9 @@ func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, date time.Time) {
 		}
 
 		connection.Send(&packet.RawBackupInfo{
-			Id:    id,
-			JobId: jobId,
-			Date:  date,
+			Id:        id,
+			JobId:     jobId,
+			CreatedAt: date,
 		})
 	}
 }

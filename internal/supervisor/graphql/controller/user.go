@@ -5,8 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
-	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	userService "kroseida.org/slixx/internal/supervisor/service/user"
 	"kroseida.org/slixx/pkg/dto"
@@ -75,9 +73,8 @@ func CreateUser(ctx context.Context, args CreateUserDto) (*User, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.CreateUser(args.Name, args.Email, args.FirstName, args.LastName, args.Description, args.Active)
+	user, err := userService.Create(args.Name, args.Email, args.FirstName, args.LastName, args.Description, args.Active)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var userDto User
@@ -101,9 +98,8 @@ func UpdateUser(ctx context.Context, args UpdateUserDto) (*User, error) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.UpdateUser(args.Id, args.Name, args.FirstName, args.LastName, args.Active, args.Description, args.Email)
+	user, err := userService.Update(args.Id, args.Name, args.FirstName, args.LastName, args.Active, args.Description, args.Email)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var userDto User
@@ -122,9 +118,8 @@ func AddUserPermission(ctx context.Context, args AddUserPermissionDto) (*User, e
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	user, err := datasource.UserProvider.AddUserPermission(args.Id, args.Permissions)
+	user, err := userService.AddPermission(args.Id, args.Permissions)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
@@ -146,7 +141,6 @@ func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*U
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	user, err := userService.RemovePermission(args.Id, args.Permissions)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
@@ -168,7 +162,6 @@ func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDt
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	authentication, err := userService.CreatePasswordAuthentication(args.Id, args.Password)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var authenticationDto Authentication
@@ -186,7 +179,6 @@ func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*Exposed
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	session, err := userService.AuthenticatePassword(args.Name, args.Password)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var sessionDto ExposedSession
@@ -206,7 +198,6 @@ func GetUsers(ctx context.Context, args PageArgs) (*UsersPage, error) {
 
 	users, err := userService.GetPaged(&pagination)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
@@ -227,7 +218,6 @@ func GetUser(ctx context.Context, args GetUserDto) (*User, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	user, err := userService.Get(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var userDto *User
@@ -247,7 +237,6 @@ func DeleteUser(ctx context.Context, args DeleteUserDto) (*User, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	user, err := userService.Delete(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var userDto User
@@ -263,7 +252,6 @@ func GetLocalUser(ctx context.Context) (*User, error) {
 	}
 	user, err := userService.Get(ctx.Value("user").(*model.User).Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var userDto User

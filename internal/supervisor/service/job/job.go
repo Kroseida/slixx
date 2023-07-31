@@ -9,11 +9,11 @@ import (
 )
 
 func Get(id uuid.UUID) (*model.Job, error) {
-	return datasource.JobProvider.GetJob(id)
+	return datasource.JobProvider.Get(id)
 }
 
 func GetPaged(pagination *provider.Pagination[model.Job]) (*provider.Pagination[model.Job], error) {
-	return datasource.JobProvider.GetJobsPaged(pagination)
+	return datasource.JobProvider.ListPaged(pagination)
 }
 
 func Create(
@@ -25,7 +25,7 @@ func Create(
 	destinationStorageId uuid.UUID,
 	executorSatelliteId uuid.UUID,
 ) (*model.Job, error) {
-	job, err := datasource.JobProvider.CreateJob(
+	job, err := datasource.JobProvider.Create(
 		name,
 		description,
 		strategyName,
@@ -53,7 +53,7 @@ func Update(
 	destinationStorageId *uuid.UUID,
 	executorSatelliteId *uuid.UUID,
 ) (*model.Job, error) {
-	job, err := datasource.JobProvider.UpdateJob(
+	job, err := datasource.JobProvider.Update(
 		id,
 		name,
 		description,
@@ -73,7 +73,7 @@ func Update(
 }
 
 func Delete(id uuid.UUID) (*model.Job, error) {
-	job, err := datasource.JobProvider.DeleteJob(id)
+	job, err := datasource.JobProvider.Delete(id)
 	if err != nil {
 		return nil, err
 	}

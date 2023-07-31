@@ -17,6 +17,7 @@ var migrationScripts = []Script{
 	V2Storage{},
 	V3Job{},
 	V4Satellite{},
+	V5Backup{},
 }
 
 func Migrate(database *gorm.DB) error {

@@ -8,7 +8,7 @@ import (
 	"github.com/samsarahq/thunder/graphql/introspection"
 	"github.com/samsarahq/thunder/graphql/schemabuilder"
 	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
+	userService "kroseida.org/slixx/internal/supervisor/service/user"
 	"net/http"
 	"time"
 )
@@ -61,12 +61,12 @@ func handler(schema *graphql.Schema) http.Handler {
 		context := func(ctx context.Context) context.Context {
 			// Not the best way, but websocket doesn't support headers .. so we use query params. :(
 			// Maybe we could try to use cookies? or just send it as a message? :/ .. idk
-			userId, err := datasource.UserProvider.GetUserBySession(r.URL.Query().Get("authorization"))
+			userId, err := userService.GetUserBySession(r.URL.Query().Get("authorization"))
 			if err != nil {
 				return context.WithValue(ctx, "user", nil)
 			}
 
-			user, err := datasource.UserProvider.GetUser(userId)
+			user, err := userService.Get(userId)
 			if err != nil {
 				return context.WithValue(ctx, "user", nil)
 			}

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/samsarahq/thunder/graphql"
-	"kroseida.org/slixx/internal/supervisor/datasource"
+	userService "kroseida.org/slixx/internal/supervisor/service/user"
 	"net/http"
 	"sync"
 
@@ -95,11 +95,11 @@ func (h *httpHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		ctx = batch.WithBatching(ctx)
 
 		if r.Header.Get("authorization") != "" {
-			userID, err := datasource.UserProvider.GetUserBySession(r.Header.Get("authorization"))
+			userID, err := userService.GetUserBySession(r.Header.Get("authorization"))
 			if err != nil {
 				ctx = context.WithValue(ctx, "user", nil)
 			}
-			user, err := datasource.UserProvider.GetUser(userID)
+			user, err := userService.Get(userID)
 			if err != nil {
 				ctx = context.WithValue(ctx, "user", nil)
 			}

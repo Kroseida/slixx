@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
-	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	jobService "kroseida.org/slixx/internal/supervisor/service/job"
 	"kroseida.org/slixx/pkg/dto"
@@ -44,7 +43,6 @@ func GetJob(ctx context.Context, args GetJobDto) (*Job, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	job, err := jobService.Get(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var jobDto *Job
@@ -64,14 +62,13 @@ func GetJobs(ctx context.Context, args PageArgs) (*JobsPage, error) {
 
 	pages, err := jobService.GetPaged(&pagination)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
-	var pageDtos JobsPage
-	dto.Map(&pages, &pageDtos)
+	var pageDto JobsPage
+	dto.Map(&pages, &pageDto)
 
-	return &pageDtos, nil
+	return &pageDto, nil
 }
 
 type CreateJobDto struct {
@@ -99,7 +96,6 @@ func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
 		args.ExecutorSatelliteId,
 	)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var jobsDto Job
@@ -135,7 +131,6 @@ func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
 		args.ExecutorSatelliteId,
 	)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var jobDto Job
@@ -155,7 +150,6 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	job, err := jobService.Delete(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var jobDto Job

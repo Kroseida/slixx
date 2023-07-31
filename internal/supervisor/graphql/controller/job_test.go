@@ -10,13 +10,13 @@ import (
 func Test_GetJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -66,13 +66,13 @@ func Test_GetJob(t *testing.T) {
 func Test_GetJobs(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -132,13 +132,13 @@ func Test_GetJobs(t *testing.T) {
 func Test_DeleteJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -185,13 +185,13 @@ func Test_DeleteJob(t *testing.T) {
 func Test_CreateJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -240,13 +240,13 @@ func Test_CreateJob(t *testing.T) {
 func Test_UpdateJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",

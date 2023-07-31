@@ -16,8 +16,8 @@ type JobProvider struct {
 	SatelliteProvider *SatelliteProvider
 }
 
-func (provider JobProvider) DeleteJob(id uuid.UUID) (*model.Job, error) {
-	job, err := provider.GetJob(id)
+func (provider JobProvider) Delete(id uuid.UUID) (*model.Job, error) {
+	job, err := provider.Get(id)
 	if job == nil {
 		return nil, graphql.NewSafeError("job not found")
 	}
@@ -33,7 +33,7 @@ func (provider JobProvider) DeleteJob(id uuid.UUID) (*model.Job, error) {
 	return job, nil
 }
 
-func (provider JobProvider) CreateJob(
+func (provider JobProvider) Create(
 	name string,
 	description string,
 	strategyName string,
@@ -60,7 +60,7 @@ func (provider JobProvider) CreateJob(
 	}
 
 	// Check if origin storages exist
-	originStorage, err := provider.StorageProvider.GetStorage(originStorageId)
+	originStorage, err := provider.StorageProvider.Get(originStorageId)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (provider JobProvider) CreateJob(
 	}
 
 	// Check if destination storages exist
-	destinationStorage, err := provider.StorageProvider.GetStorage(destinationStorageId)
+	destinationStorage, err := provider.StorageProvider.Get(destinationStorageId)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (provider JobProvider) CreateJob(
 	}
 
 	// Check if executor satellite exists
-	executorSatellite, err := provider.SatelliteProvider.GetSatellite(executorSatelliteId)
+	executorSatellite, err := provider.SatelliteProvider.Get(executorSatelliteId)
 	if executorSatellite == nil {
 		return nil, graphql.NewSafeError("executor satellite not found")
 	}
@@ -104,7 +104,7 @@ func (provider JobProvider) CreateJob(
 	return &job, nil
 }
 
-func (provider JobProvider) UpdateJob(
+func (provider JobProvider) Update(
 	id uuid.UUID,
 	name *string,
 	description *string,
@@ -114,7 +114,7 @@ func (provider JobProvider) UpdateJob(
 	destinationStorageId *uuid.UUID,
 	executorSatelliteId *uuid.UUID,
 ) (*model.Job, error) {
-	updateJob, err := provider.GetJob(id)
+	updateJob, err := provider.Get(id)
 	if updateJob == nil {
 		return nil, graphql.NewSafeError("job not found")
 	}
@@ -155,7 +155,7 @@ func (provider JobProvider) UpdateJob(
 	}
 	if originStorageId != nil {
 		// Check if origin storages exist
-		originStorage, err := provider.StorageProvider.GetStorage(*originStorageId)
+		originStorage, err := provider.StorageProvider.Get(*originStorageId)
 		if err != nil {
 			return nil, err
 		}
@@ -166,7 +166,7 @@ func (provider JobProvider) UpdateJob(
 	}
 	if destinationStorageId != nil {
 		// Check if destination storages exist
-		destinationStorage, err := provider.StorageProvider.GetStorage(*destinationStorageId)
+		destinationStorage, err := provider.StorageProvider.Get(*destinationStorageId)
 		if err != nil {
 			return nil, err
 		}
@@ -177,7 +177,7 @@ func (provider JobProvider) UpdateJob(
 	}
 	if executorSatelliteId != nil {
 		// Check if executor satellite exist
-		executorSatellite, err := provider.SatelliteProvider.GetSatellite(*executorSatelliteId)
+		executorSatellite, err := provider.SatelliteProvider.Get(*executorSatelliteId)
 		if err != nil {
 			return nil, err
 		}
@@ -195,7 +195,7 @@ func (provider JobProvider) UpdateJob(
 	return updateJob, nil
 }
 
-func (provider JobProvider) GetJobs() ([]*model.Job, error) {
+func (provider JobProvider) List() ([]*model.Job, error) {
 	var jobs []*model.Job
 	result := provider.Database.Find(&jobs)
 
@@ -206,7 +206,7 @@ func (provider JobProvider) GetJobs() ([]*model.Job, error) {
 	return jobs, nil
 }
 
-func (provider JobProvider) GetJobsPaged(pagination *Pagination[model.Job]) (*Pagination[model.Job], error) {
+func (provider JobProvider) ListPaged(pagination *Pagination[model.Job]) (*Pagination[model.Job], error) {
 	context := paginate(model.Job{}, "name", pagination, provider.Database)
 
 	var jobs []model.Job
@@ -220,7 +220,7 @@ func (provider JobProvider) GetJobsPaged(pagination *Pagination[model.Job]) (*Pa
 	return pagination, nil
 }
 
-func (provider JobProvider) GetJob(id uuid.UUID) (*model.Job, error) {
+func (provider JobProvider) Get(id uuid.UUID) (*model.Job, error) {
 	var job *model.Job
 	result := provider.Database.First(&job, "id = ?", id)
 
@@ -234,7 +234,7 @@ func (provider JobProvider) GetJob(id uuid.UUID) (*model.Job, error) {
 	return job, nil
 }
 
-func (provider JobProvider) GetJobByStorageId(id uuid.UUID) ([]*model.Job, error) {
+func (provider JobProvider) GetByStorageId(id uuid.UUID) ([]*model.Job, error) {
 	var job []*model.Job
 	result := provider.Database.Find(&job, "origin_storage_id = ? OR destination_storage_id = ?", id, id)
 	if isSqlError(result.Error) {
@@ -247,7 +247,7 @@ func (provider JobProvider) GetJobByStorageId(id uuid.UUID) ([]*model.Job, error
 	return job, nil
 }
 
-func (provider JobProvider) GetJobByExecutorSatelliteId(id uuid.UUID) ([]*model.Job, error) {
+func (provider JobProvider) GetByExecutorSatelliteId(id uuid.UUID) ([]*model.Job, error) {
 	var job []*model.Job
 	result := provider.Database.Find(&job, "executor_satellite_id = ?", id)
 	if isSqlError(result.Error) {

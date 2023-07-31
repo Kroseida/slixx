@@ -12,13 +12,13 @@ import (
 func Test_CreateJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -30,14 +30,14 @@ func Test_CreateJob(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.JobProvider.CreateJob("Test", "Test", "COPY", "{}", storage.Id, storage.Id, executor.Id)
+	_, err = datasource.JobProvider.Create("Test", "Test", "COPY", "{}", storage.Id, storage.Id, executor.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	jobs, err := datasource.JobProvider.GetJobs()
+	jobs, err := datasource.JobProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -54,7 +54,7 @@ func Test_CreateJob(t *testing.T) {
 func Test_CreateJob_MissingStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.JobProvider.CreateJob("Test", "Test", "COPY", "{}", uuid.New(), uuid.New(), uuid.New())
+	_, err := datasource.JobProvider.Create("Test", "Test", "COPY", "{}", uuid.New(), uuid.New(), uuid.New())
 	if err == nil {
 		t.Error("Expected error")
 		teardownSuite()
@@ -68,13 +68,13 @@ func Test_CreateJob_MissingStorage(t *testing.T) {
 func Test_CreateJob_EmptyName(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	originStorage, err := datasource.StorageProvider.CreateStorage("Origin Storage", "", "FTP", "{}")
+	originStorage, err := datasource.StorageProvider.Create("Origin Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -86,7 +86,7 @@ func Test_CreateJob_EmptyName(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.JobProvider.CreateJob(
+	_, err = datasource.JobProvider.Create(
 		"",
 		"Test",
 		"COPY",
@@ -109,13 +109,13 @@ func Test_CreateJob_EmptyName(t *testing.T) {
 func Test_UpdateJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -127,7 +127,7 @@ func Test_UpdateJob(t *testing.T) {
 		return
 	}
 
-	job, err := datasource.JobProvider.CreateJob(
+	job, err := datasource.JobProvider.Create(
 		"Test",
 		"Test",
 		"COPY",
@@ -145,9 +145,9 @@ func Test_UpdateJob(t *testing.T) {
 	updatedName := "Updated Name"
 	updatedConfiguration := "{}"
 	updatedStrategy := "COPY"
-	datasource.JobProvider.UpdateJob(job.Id, &updatedName, nil, &updatedStrategy, &updatedConfiguration, nil, nil, nil)
+	datasource.JobProvider.Update(job.Id, &updatedName, nil, &updatedStrategy, &updatedConfiguration, nil, nil, nil)
 
-	jobs, err := datasource.JobProvider.GetJobs()
+	jobs, err := datasource.JobProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -163,7 +163,7 @@ func Test_UpdateJob(t *testing.T) {
 func Test_UpdateJob_MissingJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.JobProvider.UpdateJob(
+	_, err := datasource.JobProvider.Update(
 		uuid.New(),
 		nil,
 		nil,
@@ -186,13 +186,13 @@ func Test_UpdateJob_MissingJob(t *testing.T) {
 func Test_DeleteJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -204,7 +204,7 @@ func Test_DeleteJob(t *testing.T) {
 		return
 	}
 
-	job, err := datasource.JobProvider.CreateJob(
+	job, err := datasource.JobProvider.Create(
 		"Test",
 		"Test",
 		"COPY",
@@ -219,9 +219,9 @@ func Test_DeleteJob(t *testing.T) {
 		return
 	}
 
-	datasource.JobProvider.DeleteJob(job.Id)
+	datasource.JobProvider.Delete(job.Id)
 
-	jobs, err := datasource.JobProvider.GetJobs()
+	jobs, err := datasource.JobProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -235,7 +235,7 @@ func Test_DeleteJob(t *testing.T) {
 func Test_DeleteJob_MissingJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.JobProvider.DeleteJob(uuid.New())
+	_, err := datasource.JobProvider.Delete(uuid.New())
 	if err == nil {
 		t.Error("Expected error")
 		teardownSuite()
@@ -249,13 +249,13 @@ func Test_DeleteJob_MissingJob(t *testing.T) {
 func Test_GetJob(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -267,7 +267,7 @@ func Test_GetJob(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.JobProvider.CreateJob(
+	_, err = datasource.JobProvider.Create(
 		"Test_Invalid",
 		"Test",
 		"COPY",
@@ -282,7 +282,7 @@ func Test_GetJob(t *testing.T) {
 		return
 	}
 
-	job, err := datasource.JobProvider.CreateJob(
+	job, err := datasource.JobProvider.Create(
 		"Test",
 		"Test",
 		"COPY",
@@ -297,7 +297,7 @@ func Test_GetJob(t *testing.T) {
 		return
 	}
 
-	job, err = datasource.JobProvider.GetJob(job.Id)
+	job, err = datasource.JobProvider.Get(job.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -311,13 +311,13 @@ func Test_GetJob(t *testing.T) {
 func Test_GetJobsPaged(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	storage, err := datasource.StorageProvider.CreateStorage("Storage", "", "FTP", "{}")
+	storage, err := datasource.StorageProvider.Create("Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
-	executor, err := datasource.SatelliteProvider.CreateSatellite(
+	executor, err := datasource.SatelliteProvider.Create(
 		"Executor",
 		"description",
 		"address",
@@ -329,7 +329,7 @@ func Test_GetJobsPaged(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.JobProvider.CreateJob(
+	_, err = datasource.JobProvider.Create(
 		"Test",
 		"Test",
 		"COPY",
@@ -344,7 +344,7 @@ func Test_GetJobsPaged(t *testing.T) {
 		return
 	}
 
-	jobs, err := datasource.JobProvider.GetJobsPaged(&provider.Pagination[model.Job]{})
+	jobs, err := datasource.JobProvider.ListPaged(&provider.Pagination[model.Job]{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -358,7 +358,7 @@ func Test_GetJobsPaged(t *testing.T) {
 func Test_GetJobsPaged_Empty(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	jobs, err := datasource.JobProvider.GetJobsPaged(&provider.Pagination[model.Job]{})
+	jobs, err := datasource.JobProvider.ListPaged(&provider.Pagination[model.Job]{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

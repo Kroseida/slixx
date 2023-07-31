@@ -15,8 +15,8 @@ type StorageProvider struct {
 	JobProvider *JobProvider
 }
 
-func (provider StorageProvider) DeleteStorage(id uuid.UUID) (*model.Storage, error) {
-	jobs, err := provider.JobProvider.GetJobByStorageId(id)
+func (provider StorageProvider) Delete(id uuid.UUID) (*model.Storage, error) {
+	jobs, err := provider.JobProvider.GetByStorageId(id)
 
 	if err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (provider StorageProvider) DeleteStorage(id uuid.UUID) (*model.Storage, err
 		return nil, graphql.NewSafeError("storage is in use")
 	}
 
-	storage, err := provider.GetStorage(id)
+	storage, err := provider.Get(id)
 	if storage == nil {
 		return nil, graphql.NewSafeError("storage not found")
 	}
@@ -41,7 +41,7 @@ func (provider StorageProvider) DeleteStorage(id uuid.UUID) (*model.Storage, err
 	return storage, nil
 }
 
-func (provider StorageProvider) CreateStorage(name string, description string, kindName string, configuration string) (*model.Storage, error) {
+func (provider StorageProvider) Create(name string, description string, kindName string, configuration string) (*model.Storage, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
@@ -78,8 +78,8 @@ func (provider StorageProvider) CreateStorage(name string, description string, k
 	return &storage, nil
 }
 
-func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, description *string, kindName *string, configuration *string) (*model.Storage, error) {
-	updateStorage, err := provider.GetStorage(id)
+func (provider StorageProvider) Update(id uuid.UUID, name *string, description *string, kindName *string, configuration *string) (*model.Storage, error) {
+	updateStorage, err := provider.Get(id)
 	if updateStorage == nil {
 		return nil, graphql.NewSafeError("storage not found")
 	}
@@ -127,7 +127,7 @@ func (provider StorageProvider) UpdateStorage(id uuid.UUID, name *string, descri
 	return updateStorage, nil
 }
 
-func (provider StorageProvider) GetStorages() ([]*model.Storage, error) {
+func (provider StorageProvider) List() ([]*model.Storage, error) {
 	var storages []*model.Storage
 	result := provider.Database.Find(&storages)
 
@@ -138,7 +138,7 @@ func (provider StorageProvider) GetStorages() ([]*model.Storage, error) {
 	return storages, nil
 }
 
-func (provider StorageProvider) GetStoragesPaged(pagination *Pagination[model.Storage]) (*Pagination[model.Storage], error) {
+func (provider StorageProvider) ListPaged(pagination *Pagination[model.Storage]) (*Pagination[model.Storage], error) {
 	context := paginate(model.Storage{}, "name", pagination, provider.Database)
 
 	var storages []model.Storage
@@ -152,7 +152,7 @@ func (provider StorageProvider) GetStoragesPaged(pagination *Pagination[model.St
 	return pagination, nil
 }
 
-func (provider StorageProvider) GetStorage(id uuid.UUID) (*model.Storage, error) {
+func (provider StorageProvider) Get(id uuid.UUID) (*model.Storage, error) {
 	var storage *model.Storage
 	result := provider.Database.First(&storage, "id = ?", id)
 

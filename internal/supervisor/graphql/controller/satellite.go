@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
-	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
 	"kroseida.org/slixx/pkg/dto"
@@ -47,7 +46,6 @@ func GetSatellite(ctx context.Context, args GetSatelliteDto) (*Satellite, error)
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	satellite, err := satelliteService.Get(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var satelliteDto *Satellite
@@ -67,14 +65,13 @@ func GetSatellites(ctx context.Context, args PageArgs) (*SatellitesPage, error) 
 
 	pages, err := satelliteService.GetPaged(&pagination)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
-	var pageDtos SatellitesPage
-	dto.Map(&pages, &pageDtos)
+	var pageDto SatellitesPage
+	dto.Map(&pages, &pageDto)
 
-	return &pageDtos, nil
+	return &pageDto, nil
 }
 
 type CreateSatelliteDto struct {
@@ -93,7 +90,6 @@ func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*Satellite, 
 	satellite, err := satelliteService.Create(args.Name, args.Description, args.Address, args.Token)
 
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var satellitesDto Satellite
@@ -123,7 +119,6 @@ func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, 
 		args.Token,
 	)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var satelliteDto Satellite
@@ -143,7 +138,6 @@ func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, 
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	satellite, err := satelliteService.Delete(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var satelliteDto Satellite

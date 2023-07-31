@@ -133,7 +133,7 @@ func Test_DeleteStorage(t *testing.T) {
 		return
 	}
 
-	storageInDatabase, err := datasource.UserProvider.GetUser(created.Id)
+	storageInDatabase, err := datasource.UserProvider.Get(created.Id)
 
 	if err != nil {
 		t.Error(err)

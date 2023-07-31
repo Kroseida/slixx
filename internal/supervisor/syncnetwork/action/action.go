@@ -4,19 +4,19 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork/manager"
+	syncnetworkClients "kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
 )
 
 func SyncStorages() {
-	storages, err := datasource.StorageProvider.GetStorages()
+	storages, err := datasource.StorageProvider.List()
 
 	if err != nil {
 		application.Logger.Error("Failed to load storages from database for sync: ", err)
 		return
 	}
 
-	for _, client := range manager.Clients {
+	for _, client := range syncnetworkClients.List {
 		client.Client.Send(&supervisorPacket.SyncStorage{
 			Storages: storages,
 		})
@@ -24,14 +24,14 @@ func SyncStorages() {
 }
 
 func SyncJobs() {
-	jobs, err := datasource.JobProvider.GetJobs()
+	jobs, err := datasource.JobProvider.List()
 
 	if err != nil {
 		application.Logger.Error("Failed to load jobs from database for sync: ", err)
 		return
 	}
 
-	for _, client := range manager.Clients {
+	for _, client := range syncnetworkClients.List {
 		err := client.Client.Send(&supervisorPacket.SyncJob{
 			Jobs: jobs,
 		})
@@ -43,7 +43,7 @@ func SyncJobs() {
 
 func SendExecuteBackup(jobId uuid.UUID) uuid.UUID {
 	id := uuid.New()
-	for _, client := range manager.Clients {
+	for _, client := range syncnetworkClients.List {
 		client.Client.Send(&supervisorPacket.ExecuteBackup{
 			Id:    &id,
 			JobId: jobId,

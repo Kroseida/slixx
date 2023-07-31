@@ -12,12 +12,16 @@ import (
 	"time"
 )
 
+func AddPermission(userId uuid.UUID, permissions []string) (*model.User, error) {
+	return datasource.UserProvider.AddPermission(userId, permissions)
+}
+
 func RemovePermission(userId uuid.UUID, permissions []string) (*model.User, error) {
-	return datasource.UserProvider.RemoveUserPermission(userId, permissions)
+	return datasource.UserProvider.RemovePermission(userId, permissions)
 }
 
 func CreatePasswordAuthentication(userId uuid.UUID, password string) (*model.Authentication, error) {
-	user, err := datasource.UserProvider.GetUser(userId)
+	user, err := datasource.UserProvider.Get(userId)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +51,7 @@ func CreatePasswordAuthentication(userId uuid.UUID, password string) (*model.Aut
 }
 
 func Authenticate(kindName string, configuration string) (*model.Session, error) {
-	user, err := datasource.UserProvider.GetUserByAuthentication(kindName, configuration)
+	user, err := datasource.UserProvider.ValidateByAuthentication(kindName, configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +75,40 @@ func AuthenticatePassword(name string, password string) (*model.Session, error) 
 }
 
 func GetPaged(pagination *provider.Pagination[model.User]) (*provider.Pagination[model.User], error) {
-	return datasource.UserProvider.GetUsersPaged(pagination)
+	return datasource.UserProvider.ListPaged(pagination)
 }
 
 func Get(id uuid.UUID) (*model.User, error) {
-	return datasource.UserProvider.GetUser(id)
+	return datasource.UserProvider.Get(id)
+}
+
+func Create(
+	name string,
+	email string,
+	firstName string,
+	lastName string,
+	description string,
+	active bool,
+) (*model.User, error) {
+	return datasource.UserProvider.Create(name, email, firstName, lastName, description, active)
+}
+
+func Update(
+	id uuid.UUID,
+	name *string,
+	firstName *string,
+	lastName *string,
+	active *bool,
+	description *string,
+	email *string,
+) (*model.User, error) {
+	return datasource.UserProvider.Update(id, name, firstName, lastName, active, description, email)
+}
+
+func GetUserBySession(token string) (uuid.UUID, error) {
+	return datasource.UserProvider.GetBySession(token)
 }
 
 func Delete(id uuid.UUID) (*model.User, error) {
-	return datasource.UserProvider.DeleteUser(id)
+	return datasource.UserProvider.Delete(id)
 }

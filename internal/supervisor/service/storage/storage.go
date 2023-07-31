@@ -9,15 +9,15 @@ import (
 )
 
 func Get(id uuid.UUID) (*model.Storage, error) {
-	return datasource.StorageProvider.GetStorage(id)
+	return datasource.StorageProvider.Get(id)
 }
 
 func GetPaged(pagination *provider.Pagination[model.Storage]) (*provider.Pagination[model.Storage], error) {
-	return datasource.StorageProvider.GetStoragesPaged(pagination)
+	return datasource.StorageProvider.ListPaged(pagination)
 }
 
 func Create(name string, description string, kindName string, configuration string) (*model.Storage, error) {
-	storage, err := datasource.StorageProvider.CreateStorage(name, description, kindName, configuration)
+	storage, err := datasource.StorageProvider.Create(name, description, kindName, configuration)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +28,7 @@ func Create(name string, description string, kindName string, configuration stri
 }
 
 func Update(id uuid.UUID, name *string, description *string, kindName *string, configuration *string) (*model.Storage, error) {
-	storage, err := datasource.StorageProvider.UpdateStorage(
+	storage, err := datasource.StorageProvider.Update(
 		id,
 		name,
 		description,
@@ -46,7 +46,7 @@ func Update(id uuid.UUID, name *string, description *string, kindName *string, c
 }
 
 func Delete(id uuid.UUID) (*model.Storage, error) {
-	storage, err := datasource.StorageProvider.DeleteStorage(id)
+	storage, err := datasource.StorageProvider.Delete(id)
 	if err != nil {
 		return nil, err
 	}

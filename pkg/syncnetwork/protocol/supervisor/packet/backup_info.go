@@ -8,9 +8,10 @@ import (
 )
 
 type RawBackupInfo struct {
-	Id    *uuid.UUID `json:"id"`
-	JobId *uuid.UUID `json:"job_id"`
-	Date  time.Time  `json:"date"`
+	Id          *uuid.UUID `json:"id"`
+	JobId       *uuid.UUID `json:"job_id"`
+	ExecutionId *uuid.UUID `json:"execution_id"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 func (packet *RawBackupInfo) PacketId() int64 {
@@ -24,7 +25,8 @@ func (packet *RawBackupInfo) Protocol() []string {
 func (packet *RawBackupInfo) Serialize(buffer *bytebuf.ByteBuffer) error {
 	buffer.WriteString(packet.Id.String())
 	buffer.WriteString(packet.JobId.String())
-	buffer.WriteString(packet.Date.Format(time.RFC3339))
+	buffer.WriteString(packet.ExecutionId.String())
+	buffer.WriteString(packet.CreatedAt.Format(time.RFC3339))
 	return nil
 }
 
@@ -41,11 +43,17 @@ func (packet *RawBackupInfo) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	}
 	packet.JobId = &jobId
 
+	executionId, err := uuid.Parse(buffer.ReadString())
+	if err != nil {
+		return err
+	}
+	packet.ExecutionId = &executionId
+
 	date, err := time.Parse(time.RFC3339, buffer.ReadString())
 	if err != nil {
 		return err
 	}
-	packet.Date = date
+	packet.CreatedAt = date
 
 	return nil
 }

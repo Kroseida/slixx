@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/samsarahq/thunder/graphql"
 	"github.com/samsarahq/thunder/reactive"
-	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	storageService "kroseida.org/slixx/internal/supervisor/service/storage"
 	"kroseida.org/slixx/pkg/dto"
@@ -52,7 +51,6 @@ func GetStorage(ctx context.Context, args GetStorageDto) (*Storage, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	storage, err := storageService.Get(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var storageDto *Storage
@@ -72,14 +70,13 @@ func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
 
 	pages, err := storageService.GetPaged(&pagination)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 
-	var pageDtos StoragesPage
-	dto.Map(&pages, &pageDtos)
+	var pageDto StoragesPage
+	dto.Map(&pages, &pageDto)
 
-	return &pageDtos, nil
+	return &pageDto, nil
 }
 
 type CreateStorageDto struct {
@@ -96,7 +93,6 @@ func CreateStorage(ctx context.Context, args CreateStorageDto) (*Storage, error)
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	storage, err := storageService.Create(args.Name, args.Description, args.Kind, args.Configuration)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var storageDto Storage
@@ -127,7 +123,6 @@ func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error)
 	)
 
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var storageDto Storage
@@ -146,7 +141,6 @@ func DeleteStorage(ctx context.Context, args DeleteStorageDto) (*Storage, error)
 	}
 	storage, err := storageService.Delete(args.Id)
 	if err != nil {
-		application.Logger.Debug(err)
 		return nil, err
 	}
 	var storageDto Storage

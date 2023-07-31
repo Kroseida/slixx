@@ -19,4 +19,5 @@ func registerQuery(schema *schemabuilder.Schema) {
 	obj.FieldFunc("getPermissions", controller.GetPermissions)
 	obj.FieldFunc("getSatellite", controller.GetSatellite)
 	obj.FieldFunc("getSatellites", controller.GetSatellites)
+	obj.FieldFunc("getBackups", controller.GetBackups)
 }

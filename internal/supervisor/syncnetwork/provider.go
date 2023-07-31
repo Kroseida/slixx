@@ -4,9 +4,8 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/common"
 	"kroseida.org/slixx/internal/supervisor/application"
-	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork/manager"
+	"kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	supervisorProtocol "kroseida.org/slixx/internal/supervisor/syncnetwork/protocol"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/protocol/satellite"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/protocol/supervisor"
@@ -18,45 +17,17 @@ import (
 	"time"
 )
 
-func Watchdog() {
-	for {
-		satellites, err := datasource.SatelliteProvider.GetSatellites()
-		if err != nil {
-			return
-		}
-
-		// Create clients for database entries that are not provided yet
-		for _, satellite := range satellites {
-			ProvideClient(*satellite)
-		}
-
-		// Remove clients that are not in the database anymore
-		satellitesMap := make(map[uuid.UUID]*model.Satellite)
-		for _, satellite := range satellites {
-			satellitesMap[satellite.Id] = satellite
-		}
-		for _, client := range manager.Clients {
-			delete(satellitesMap, client.Model.Id)
-		}
-		for id := range satellitesMap {
-			RemoveClient(id)
-		}
-
-		time.Sleep(5 * time.Minute) // Wait 5 minutes before checking again for new satellites
-	}
-}
-
 func RemoveClient(id uuid.UUID) {
-	client := manager.Clients[id]
+	client := clients.List[id]
 	if client == nil {
 		return
 	}
 	client.Client.Close()
-	delete(manager.Clients, id)
+	delete(clients.List, id)
 }
 
 func GetClient(id uuid.UUID) *supervisorProtocol.WrappedClient {
-	return manager.Clients[id]
+	return clients.List[id]
 }
 
 func ProvideClient(configuration model.Satellite) {
@@ -87,14 +58,14 @@ func ProvideClient(configuration model.Satellite) {
 	// TODO: make timeout configurable in the database or in the configuration file - not sure yet
 	go client.Dial(5*time.Second, 5*time.Second)
 
-	manager.Clients[configuration.Id] = &supervisorProtocol.WrappedClient{
+	clients.List[configuration.Id] = &supervisorProtocol.WrappedClient{
 		Model:  configuration,
 		Client: &client,
 	}
 }
 
 func ApplyUpdates(configuration model.Satellite) {
-	client := manager.Clients[configuration.Id]
+	client := clients.List[configuration.Id]
 	if client == nil {
 		return
 	}
@@ -109,6 +80,6 @@ func ApplyUpdates(configuration model.Satellite) {
 }
 
 func IsProvided(id uuid.UUID) bool {
-	_, bool := manager.Clients[id]
+	_, bool := clients.List[id]
 	return bool
 }

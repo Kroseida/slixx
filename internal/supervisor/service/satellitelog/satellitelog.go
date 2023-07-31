@@ -6,5 +6,5 @@ import (
 )
 
 func Create(logs []*model.SatelliteLogEntry) error {
-	return datasource.SatelliteProvider.CreateSatelliteLogs(logs)
+	return datasource.SatelliteProvider.ApplyLogs(logs)
 }

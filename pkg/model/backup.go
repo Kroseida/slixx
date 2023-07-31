@@ -10,7 +10,7 @@ type Backup struct {
 	Name        string
 	Description string
 	JobId       uuid.UUID
-	ExecutionId uuid.UUID
+	ExecutionId *uuid.UUID
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }

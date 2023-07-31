@@ -1,8 +1,8 @@
-package manager
+package clients
 
 import (
 	"github.com/google/uuid"
 	supervisorProtocol "kroseida.org/slixx/internal/supervisor/syncnetwork/protocol"
 )
 
-var Clients = make(map[uuid.UUID]*supervisorProtocol.WrappedClient)
+var List = make(map[uuid.UUID]*supervisorProtocol.WrappedClient)

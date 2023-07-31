@@ -1,7 +1,7 @@
 package supervisor
 
 import (
-	"fmt"
+	backupService "kroseida.org/slixx/internal/supervisor/service/backup"
 	satellitelogService "kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
@@ -25,6 +25,11 @@ func (h *Handler) HandleSyncLogs(_ protocol.WrappedClient, logs *supervisorPacke
 }
 
 func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisorPacket.RawBackupInfo) error {
-	fmt.Println("Got RawBackupInfo", info)
-	return nil
+	_, err := backupService.ApplyBackupToIndex(
+		*info.Id,
+		*info.JobId,
+		*info.ExecutionId,
+		info.CreatedAt,
+	)
+	return err
 }

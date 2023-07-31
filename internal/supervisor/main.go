@@ -5,7 +5,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/graphql"
-	"kroseida.org/slixx/internal/supervisor/syncnetwork"
+	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
 	"kroseida.org/slixx/pkg/utils"
 	"os"
 )
@@ -23,13 +23,13 @@ func main() {
 	application.Logger.Info("Initializing database connection")
 	err = datasource.Connect()
 	if err != nil {
-		application.Logger.Error("Failed to initialize database connection", err)
+		application.Logger.Error("Failed to initialize database connection: ", err)
 		os.Exit(1)
 		return
 	}
 
 	// We check for new satellites every ... minutes
-	go syncnetwork.Watchdog()
+	go satelliteService.StartWatchdog()
 
 	application.Logger.Info("Initializing GraphQL API Server on " + application.CurrentSettings.Http.BindAddress)
 	err = graphql.Start()

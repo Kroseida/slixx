@@ -3,7 +3,6 @@ package provider_test
 import (
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
 	"testing"
 )
@@ -11,21 +10,21 @@ import (
 func Test_DeleteStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	createdStorage, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.DeleteStorage(createdStorage.Id)
+	_, err = datasource.StorageProvider.Delete(createdStorage.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	storages, err := datasource.StorageProvider.GetStorages()
+	storages, err := datasource.StorageProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -39,7 +38,7 @@ func Test_DeleteStorage(t *testing.T) {
 func Test_CreateStorage_EmptyName(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("", "", "FTP", "{}")
+	_, err := datasource.StorageProvider.Create("", "", "FTP", "{}")
 	if err == nil {
 		t.Error("Expected error")
 		teardownSuite()
@@ -53,7 +52,7 @@ func Test_CreateStorage_EmptyName(t *testing.T) {
 func Test_CreateStorage_InvalidKind(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "INVALID", "{}")
+	_, err := datasource.StorageProvider.Create("Test Storage", "", "INVALID", "{}")
 	if err == nil {
 		t.Error("Expected error")
 		teardownSuite()
@@ -67,14 +66,14 @@ func Test_CreateStorage_InvalidKind(t *testing.T) {
 func Test_CreateStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	storages, err := datasource.StorageProvider.GetStorages()
+	storages, err := datasource.StorageProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -92,14 +91,14 @@ func Test_UpdateStorage_InvalidKind(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	newKind := "Invalid"
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	createdStorage, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.UpdateStorage(createdStorage.Id, nil, nil, &newKind, nil)
+	_, err = datasource.StorageProvider.Update(createdStorage.Id, nil, nil, &newKind, nil)
 	if err == nil {
 		t.Error("Expected error")
 		teardownSuite()
@@ -113,21 +112,21 @@ func Test_UpdateStorage(t *testing.T) {
 
 	newName := "Updated Storage"
 	newConfiguration := "{}"
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	createdStorage, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.UpdateStorage(createdStorage.Id, &newName, nil, nil, &newConfiguration)
+	_, err = datasource.StorageProvider.Update(createdStorage.Id, &newName, nil, nil, &newConfiguration)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	updatedStorage, err := datasource.StorageProvider.GetStorage(createdStorage.Id)
+	updatedStorage, err := datasource.StorageProvider.Get(createdStorage.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -143,14 +142,14 @@ func Test_UpdateStorage_EmptyName(t *testing.T) {
 	teardownSuite := setupSuite()
 
 	newName := ""
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	createdStorage, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.UpdateStorage(createdStorage.Id, &newName, nil, nil, nil)
+	_, err = datasource.StorageProvider.Update(createdStorage.Id, &newName, nil, nil, nil)
 	assert.NotNil(t, err)
 	teardownSuite()
 }
@@ -158,21 +157,21 @@ func Test_UpdateStorage_EmptyName(t *testing.T) {
 func Test_GetStorages(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.CreateStorage("Test Storage 2", "", "FTP", "{}")
+	_, err = datasource.StorageProvider.Create("Test Storage 2", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	storages, err := datasource.StorageProvider.GetStorages()
+	storages, err := datasource.StorageProvider.List()
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -192,21 +191,21 @@ func Test_GetStorages(t *testing.T) {
 func Test_GetStoragesPaged(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	_, err = datasource.StorageProvider.CreateStorage("Test Storage 2", "", "FTP", "{}")
+	_, err = datasource.StorageProvider.Create("Test Storage 2", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	storages, err := datasource.StorageProvider.GetStoragesPaged(&provider.Pagination[model.Storage]{
+	storages, err := datasource.StorageProvider.ListPaged(&Pagination[model.Storage]{
 		Page:  1,
 		Limit: 1,
 	})
@@ -223,21 +222,21 @@ func Test_GetStoragesPaged(t *testing.T) {
 func Test_GetStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	_, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	createdStorage, err := datasource.StorageProvider.CreateStorage("Test Storage", "", "FTP", "{}")
+	createdStorage, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
 		return
 	}
 
-	storage, err := datasource.StorageProvider.GetStorage(createdStorage.Id)
+	storage, err := datasource.StorageProvider.Get(createdStorage.Id)
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

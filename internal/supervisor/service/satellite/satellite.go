@@ -5,19 +5,53 @@ import (
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork"
+	syncnetworkClients "kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	"kroseida.org/slixx/pkg/model"
+	"time"
 )
 
+func StartWatchdog() {
+	for {
+		satellites, err := List()
+		if err != nil {
+			return
+		}
+
+		// Create clients for database entries that are not provided yet
+		for _, satellite := range satellites {
+			syncnetwork.ProvideClient(*satellite)
+		}
+
+		// Remove clients that are not in the database anymore
+		satellitesMap := make(map[uuid.UUID]*model.Satellite)
+		for _, satellite := range satellites {
+			satellitesMap[satellite.Id] = satellite
+		}
+		for _, client := range syncnetworkClients.List {
+			delete(satellitesMap, client.Model.Id)
+		}
+		for id := range satellitesMap {
+			syncnetwork.RemoveClient(id)
+		}
+
+		time.Sleep(5 * time.Minute) // Wait 5 minutes before checking again for new satellites
+	}
+}
+
+func List() ([]*model.Satellite, error) {
+	return datasource.SatelliteProvider.List()
+}
+
 func Get(id uuid.UUID) (*model.Satellite, error) {
-	return datasource.SatelliteProvider.GetSatellite(id)
+	return datasource.SatelliteProvider.Get(id)
 }
 
 func GetPaged(pagination *provider.Pagination[model.Satellite]) (*provider.Pagination[model.Satellite], error) {
-	return datasource.SatelliteProvider.GetSatellitesPaged(pagination)
+	return datasource.SatelliteProvider.ListPaged(pagination)
 }
 
 func Create(name string, description string, address string, token string) (*model.Satellite, error) {
-	satellite, err := datasource.SatelliteProvider.CreateSatellite(name, description, address, token)
+	satellite, err := datasource.SatelliteProvider.Create(name, description, address, token)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +63,7 @@ func Create(name string, description string, address string, token string) (*mod
 }
 
 func Update(id uuid.UUID, name *string, description *string, address *string, token *string) (*model.Satellite, error) {
-	satellite, err := datasource.SatelliteProvider.UpdateSatellite(id, name, description, address, token)
+	satellite, err := datasource.SatelliteProvider.Update(id, name, description, address, token)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +80,7 @@ func Update(id uuid.UUID, name *string, description *string, address *string, to
 }
 
 func Delete(id uuid.UUID) (*model.Satellite, error) {
-	satellite, err := datasource.SatelliteProvider.DeleteSatellite(id)
+	satellite, err := datasource.SatelliteProvider.Delete(id)
 	if err != nil {
 		return nil, err
 	}

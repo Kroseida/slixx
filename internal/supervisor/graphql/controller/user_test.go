@@ -37,7 +37,7 @@ func Test_CreateUser(t *testing.T) {
 		return
 	}
 
-	actualUser, err := datasource.UserProvider.GetUserByName("Testaaaaaa")
+	actualUser, err := datasource.UserProvider.GetByName("Testaaaaaa")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -111,7 +111,7 @@ func Test_DeleteUser_MissingPermission(t *testing.T) {
 
 func Test_DeleteUser(t *testing.T) {
 	teardownSuite := setupSuite()
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"oldName",
 		"Test@test.de",
 		"Test",
@@ -125,7 +125,7 @@ func Test_DeleteUser(t *testing.T) {
 		return
 	}
 
-	userInDatabase, err := datasource.UserProvider.GetUser(user.Id)
+	userInDatabase, err := datasource.UserProvider.Get(user.Id)
 	assert.NotNil(t, userInDatabase)
 
 	_, err = controller.DeleteUser(withPermissions([]string{"user.delete"}), controller.DeleteUserDto{
@@ -137,7 +137,7 @@ func Test_DeleteUser(t *testing.T) {
 		return
 	}
 
-	userInDatabase, err = datasource.UserProvider.GetUser(user.Id)
+	userInDatabase, err = datasource.UserProvider.Get(user.Id)
 	assert.Nil(t, userInDatabase)
 
 	teardownSuite()
@@ -160,7 +160,7 @@ func Test_AddUserPermission_MissingPermission(t *testing.T) {
 func Test_AddUserPermission(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"user",
 		"Test@test.de",
 		"Test",
@@ -184,7 +184,7 @@ func Test_AddUserPermission(t *testing.T) {
 		return
 	}
 
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
+	actualUser, err := datasource.UserProvider.GetByName("user")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -212,7 +212,7 @@ func Test_RemoveUserPermission_MissingPermission(t *testing.T) {
 func Test_RemoveUserPermission(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"user",
 		"Test@test.de",
 		"Test",
@@ -226,7 +226,7 @@ func Test_RemoveUserPermission(t *testing.T) {
 		return
 	}
 
-	_, err = datasource.UserProvider.AddUserPermission(user.Id, []string{"user.update"})
+	_, err = datasource.UserProvider.AddPermission(user.Id, []string{"user.update"})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -243,7 +243,7 @@ func Test_RemoveUserPermission(t *testing.T) {
 		return
 	}
 
-	actualUser, err := datasource.UserProvider.GetUserByName("user")
+	actualUser, err := datasource.UserProvider.GetByName("user")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -271,7 +271,7 @@ func Test_CreatePasswordAuthentication_MissingPermission(t *testing.T) {
 func Test_CreatePasswordAuthentication(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	user, err := datasource.UserProvider.CreateUser(
+	user, err := datasource.UserProvider.Create(
 		"user",
 		"Test@test.de",
 		"Test",
@@ -342,7 +342,7 @@ func Test_GetUser_MissingPermission(t *testing.T) {
 func Test_GetUser(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	userByName, err := datasource.UserProvider.GetUserByName("admin")
+	userByName, err := datasource.UserProvider.GetByName("admin")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -365,7 +365,7 @@ func Test_GetUser(t *testing.T) {
 func Test_GetLocalUser(t *testing.T) {
 	teardownSuite := setupSuite()
 
-	userByName, err := datasource.UserProvider.GetUserByName("admin")
+	userByName, err := datasource.UserProvider.GetByName("admin")
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
