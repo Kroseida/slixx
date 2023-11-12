@@ -1,7 +1,7 @@
 <template>
   <q-table
     style="height: 100%"
-    title="User List"
+    title="Backup List"
     :rows="rows"
     v-model:pagination="pagination"
     :loading="loading"
@@ -21,4 +21,4 @@
     </template>
   </q-table>
 </template>
-<script src="./UserListComponent.js"/>
+<script src="./BackupListComponent.js"/>

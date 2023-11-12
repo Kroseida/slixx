@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
 	"testing"
 	"time"
@@ -244,7 +245,7 @@ func Test_GetUsersPaged(t *testing.T) {
 		return
 	}
 
-	users, err := datasource.UserProvider.ListPaged(&Pagination[model.User]{
+	users, err := datasource.UserProvider.ListPaged(&provider.Pagination[model.User]{
 		Page:  1,
 		Limit: 2,
 	})

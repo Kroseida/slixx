@@ -2,6 +2,7 @@ package supervisor
 
 import (
 	"github.com/google/uuid"
+	"kroseida.org/slixx/internal/satellite/application"
 	"kroseida.org/slixx/internal/satellite/backup"
 	"kroseida.org/slixx/internal/satellite/syncdata"
 	"kroseida.org/slixx/internal/satellite/syncnetwork/action"
@@ -29,6 +30,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, packet protocol.Packet) 
 	}
 	if packet.PacketId() == (&supervisorPacket.ExecuteBackup{}).PacketId() {
 		return h.HandleExecuteBackup(client, packet.(*supervisorPacket.ExecuteBackup))
+	}
+	if packet.PacketId() == (&supervisorPacket.RequestBackupSync{}).PacketId() {
+		return h.HandleRequestBackupSync(client, packet.(*supervisorPacket.RequestBackupSync))
 	}
 	return nil
 }
@@ -75,7 +79,6 @@ func (h *Handler) HandleSyncJob(client protocol.WrappedClient, job *supervisorPa
 			newJobIds = append(newJobIds, jobId)
 		}
 	}
-	backup.SendBackupInfos(newJobIds)
 
 	return nil
 }
@@ -90,6 +93,7 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 	go func() {
 		err := backup.Execute(execute.Id, execute.JobId)
 		if err != nil {
+			application.Logger.Error("Error while executing backup", err)
 			action.SendBackupStatusUpdate(execute.Id, strategyRegistry.BackupStatusUpdate{
 				JobId:      &execute.JobId,
 				Percentage: 0,
@@ -98,5 +102,12 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 			})
 		}
 	}()
+	return nil
+}
+
+func (h *Handler) HandleRequestBackupSync(client protocol.WrappedClient, _ *supervisorPacket.RequestBackupSync) error {
+	c := client.(*syncnetworkBase.ConnectedClient)
+	c.Server.Logger.Info("Received request for backup sync from supervisor")
+	backup.SendBackupInfos()
 	return nil
 }

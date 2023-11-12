@@ -35,7 +35,7 @@ func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {
 	return nil
 }
 
-func (strategy *CopyStrategy) Execute(origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error) {
+func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error) {
 	rawFiles, id, err := strategy.handleInitialize(origin, destination, callback)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func (strategy *CopyStrategy) Execute(origin storage.Kind, destination storage.K
 			files := parallels[atomicIndex]
 
 			originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
-			err = originCopy.Initialize(destination.GetConfiguration())
+			err = originCopy.Initialize(origin.GetConfiguration())
 			if err != nil {
 				parallelError <- err
 				return
@@ -93,7 +93,7 @@ func (strategy *CopyStrategy) Execute(origin storage.Kind, destination storage.K
 		return nil, err
 	}
 
-	return strategy.handleIndexingBackup(id, destination, callback)
+	return strategy.handleIndexingBackup(id, jobId, origin, destination, callback)
 }
 
 func tryCopy(strategy *CopyStrategy, originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
@@ -200,7 +200,7 @@ func (strategy *CopyStrategy) handleBackupWatchdog(parallelStatus []float64, par
 	return nil
 }
 
-func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination storage.Kind,
+func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID, origin storage.Kind, destination storage.Kind,
 	callback func(BackupStatusUpdate)) (*RawBackupInfo, error) {
 
 	callback(BackupStatusUpdate{
@@ -212,9 +212,15 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, destination sto
 
 	handleCreateSlixxDirectories(destination)
 
+	// This is the raw backup info that we will store in the destination storage, so that we can restore it later e.g
+	// after supervisor get corrupted data or something like that we can restore this backup info and continue
 	rawBackupInfo := RawBackupInfo{
-		Id:        &id,
-		CreatedAt: time.Now(),
+		Id:              &id,
+		CreatedAt:       time.Now(),
+		JobId:           &jobId,
+		OriginKind:      origin.GetName(),      // Store origin kind so that we can restore it later
+		DestinationKind: destination.GetName(), // Store destination kind so that we can restore it later
+		Strategy:        strategy.GetName(),    // Store strategy so that we can restore it later
 	}
 	rawBackupInfoBytes, err := json.Marshal(rawBackupInfo)
 	if err != nil {

@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"math"
 	"regexp"
@@ -70,5 +71,22 @@ func paginate[T any](value T, searchField string, pagination *Pagination[T], db 
 	pagination.TotalRows = totalRows
 	pagination.TotalPages = int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
 
-	return db.Offset(pagination.GetOffset()).Limit(pagination.GetLimit()).Where(searchField+" like ?", "%"+pagination.Search+"%").Or("id like ?", "%"+pagination.Search+"%").Order(pagination.GetSort())
+	return db.Offset(pagination.GetOffset()).
+		Limit(pagination.GetLimit()).
+		Where(searchField+" like ?", "%"+pagination.Search+"%").
+		Or("id like ?", "%"+pagination.Search+"%").
+		Order(pagination.GetSort())
+}
+
+func paginateWithFilter[T any](value T, searchField string, pagination *Pagination[T], db *gorm.DB, extraWhere string, uuid uuid.UUID) *gorm.DB {
+	var totalRows int64
+	db.Model(value).Where(searchField+" like ?", "%"+pagination.Search+"%").Or("id like ?", "%"+pagination.Search+"%").Count(&totalRows)
+	pagination.TotalRows = totalRows
+	pagination.TotalPages = int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
+
+	return db.Offset(pagination.GetOffset()).
+		Limit(pagination.GetLimit()).
+		Where(searchField+" like ? and "+extraWhere, "%"+pagination.Search+"%", uuid).
+		Or("id like ? and "+extraWhere, "%"+pagination.Search+"%", uuid).
+		Order(pagination.GetSort())
 }

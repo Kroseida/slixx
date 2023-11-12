@@ -72,6 +72,25 @@ export default (client) => ({
       (data) => error(data.message)
     );
   },
+  resyncSatellite(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "resyncSatellite",
+      args,
+      fields: [
+        "id",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  },
   updateSatellite(args, callback, error) {
     let fullQuery = client.graphql.buildQuery({
       method: "updateSatellite",

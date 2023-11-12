@@ -10,7 +10,8 @@ import (
 type Strategy interface {
 	GetName() string
 	Initialize(configuration any) error
-	Execute(origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error)
+	// Execute We need the job id to store the backup in the local index
+	Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error)
 	Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID) error
 	Parse(configurationJson string) (interface{}, error)
 	DefaultConfiguration() interface{}
@@ -27,8 +28,12 @@ type BackupStatusUpdate struct {
 }
 
 type RawBackupInfo struct {
-	Id        *uuid.UUID `json:"id"`
-	CreatedAt time.Time  `json:"createdAt"`
+	Id              *uuid.UUID `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	JobId           *uuid.UUID `json:"jobId"`
+	OriginKind      string     `json:"originKind"`
+	DestinationKind string     `json:"destinationKind"`
+	Strategy        string     `json:"strategy"`
 }
 
 var COPY = &CopyStrategy{}

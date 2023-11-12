@@ -28,8 +28,11 @@ func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisor
 	_, err := backupService.ApplyBackupToIndex(
 		*info.Id,
 		*info.JobId,
-		*info.ExecutionId,
+		info.ExecutionId,
 		info.CreatedAt,
+		info.OriginKind,
+		info.DestinationKind,
+		info.Strategy,
 	)
 	return err
 }

@@ -17,4 +17,5 @@ var PACKETS = map[int64]protocol.Packet{
 	(&supervisorPacket.ExecuteBackup{}).PacketId():      &supervisorPacket.ExecuteBackup{},
 	(&supervisorPacket.BackupStatusUpdate{}).PacketId(): &supervisorPacket.BackupStatusUpdate{},
 	(&supervisorPacket.RawBackupInfo{}).PacketId():      &supervisorPacket.RawBackupInfo{},
+	(&supervisorPacket.RequestBackupSync{}).PacketId():  &supervisorPacket.RequestBackupSync{},
 }

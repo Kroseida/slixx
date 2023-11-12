@@ -50,8 +50,8 @@ func ProvideClient(configuration model.Satellite) {
 			client.Send(&packet.ApplySupervisor{
 				Id: configuration.Id,
 			})
-			action.SyncStorages()
-			action.SyncJobs()
+			action.SyncStorages(&configuration.Id)
+			action.SyncJobs(&configuration.Id)
 		},
 		Version: common.CurrentVersion,
 	}

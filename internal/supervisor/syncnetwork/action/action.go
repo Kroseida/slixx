@@ -8,7 +8,7 @@ import (
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
 )
 
-func SyncStorages() {
+func SyncStorages(id *uuid.UUID) {
 	storages, err := datasource.StorageProvider.List()
 
 	if err != nil {
@@ -16,14 +16,17 @@ func SyncStorages() {
 		return
 	}
 
-	for _, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.List {
+		if id != nil && clientId != *id {
+			continue
+		}
 		client.Client.Send(&supervisorPacket.SyncStorage{
 			Storages: storages,
 		})
 	}
 }
 
-func SyncJobs() {
+func SyncJobs(id *uuid.UUID) {
 	jobs, err := datasource.JobProvider.List()
 
 	if err != nil {
@@ -31,7 +34,10 @@ func SyncJobs() {
 		return
 	}
 
-	for _, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.List {
+		if id != nil && clientId != *id {
+			continue
+		}
 		err := client.Client.Send(&supervisorPacket.SyncJob{
 			Jobs: jobs,
 		})
@@ -41,13 +47,28 @@ func SyncJobs() {
 	}
 }
 
-func SendExecuteBackup(jobId uuid.UUID) uuid.UUID {
+func SendExecuteBackup(jobId uuid.UUID) (*uuid.UUID, error) {
 	id := uuid.New()
 	for _, client := range syncnetworkClients.List {
-		client.Client.Send(&supervisorPacket.ExecuteBackup{
+		err := client.Client.Send(&supervisorPacket.ExecuteBackup{
 			Id:    &id,
 			JobId: jobId,
 		})
+		if err != nil {
+			return nil, err
+		}
 	}
-	return id
+	return &id, nil
+}
+
+func SendRequestBackupSync(satelliteId uuid.UUID) error {
+	for _, client := range syncnetworkClients.List {
+		err := client.Client.Send(&supervisorPacket.RequestBackupSync{
+			SatelliteId: satelliteId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

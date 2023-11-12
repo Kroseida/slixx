@@ -185,6 +185,12 @@ func (kind *FtpKind) Parse(configurationJson string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Add trailing slash to file to prevent issues
+	if !strings.HasSuffix(configuration.File, "/") {
+		configuration.File = configuration.File + "/"
+	}
+
 	return &configuration, nil
 }
 

@@ -6,13 +6,15 @@ import SlixxButton from "components/SlixxButton/SlixxButton.vue";
 import ButtonGroup from "components/ButtonGroup/ButtonGroup.vue";
 import moment from "moment/moment";
 import KindInputComponent from "components/KindedInputComponent/KindInputComponent.vue";
+import BackupListComponent from "components/BackupListComponent/BackupListComponent.vue";
 
 export default defineComponent({
   name: 'JobListPage',
   components: {
     SlixxButton,
     ButtonGroup,
-    KindInputComponent
+    KindInputComponent,
+    BackupListComponent
   },
   data() {
     const constantsStore = useConstantsStore();

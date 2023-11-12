@@ -48,7 +48,8 @@ func SendBackupStatusUpdate(id *uuid.UUID, status strategy.BackupStatusUpdate) {
 	}
 }
 
-func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, date time.Time) {
+func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, executionId *uuid.UUID, date time.Time,
+	originKind string, destinationKind string, strategy string) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {
 		if connection.Protocol != protocol.Supervisor {
@@ -56,9 +57,13 @@ func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, date time.Time) {
 		}
 
 		connection.Send(&packet.RawBackupInfo{
-			Id:        id,
-			JobId:     jobId,
-			CreatedAt: date,
+			Id:              id,
+			JobId:           jobId,
+			ExecutionId:     executionId,
+			CreatedAt:       date,
+			OriginKind:      originKind,
+			DestinationKind: destinationKind,
+			Strategy:        strategy,
 		})
 	}
 }

@@ -13,7 +13,7 @@
       @request="subscribe"
     >
       <template v-slot:top-right v-if="enableFilter">
-        <q-input dense debounce="300" v-model="filter" placeholder="Search" style="width: 350px">
+        <q-input dense debounce="300" v-model="filter" placeholder="Search" style="min-width: 350px">
           <template v-slot:append>
             <q-icon name="search"/>
           </template>

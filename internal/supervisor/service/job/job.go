@@ -38,7 +38,7 @@ func Create(
 		return nil, err
 	}
 
-	action.SyncJobs()
+	action.SyncJobs(nil)
 
 	return job, err
 }
@@ -67,7 +67,7 @@ func Update(
 		return nil, err
 	}
 
-	action.SyncJobs()
+	action.SyncJobs(nil)
 
 	return job, err
 }
@@ -78,7 +78,7 @@ func Delete(id uuid.UUID) (*model.Job, error) {
 		return nil, err
 	}
 
-	action.SyncJobs()
+	action.SyncJobs(nil)
 
 	return job, err
 }

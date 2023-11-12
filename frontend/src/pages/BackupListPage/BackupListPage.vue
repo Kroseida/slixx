@@ -1,21 +1,22 @@
 <template>
   <div class="q-pa-md" style="height: 100%">
-    <user-list @row-click="openUser">
+    <backup-list @row-click="openBackup">
       <template v-slot:action>
         <div class="action-header">
           <q-btn
             color="primary"
-            label="Create User"
+            label="Create Backup"
             class="action"
-            @click="createUser"
-            :disable="!globalStore.isPermitted('user.create')"
+            style="width: 158px;"
+            @click="createBackup"
+            :disable="!globalStore.isPermitted('backup.create')"
           />
         </div>
       </template>
-    </user-list>
+    </backup-list>
   </div>
 </template>
 <style lang="scss">
-@import "./UserListPage.scss";
+@import "BackupListPage";
 </style>
-<script src="./UserListPage.js"/>
+<script src="./BackupListPage.js"/>

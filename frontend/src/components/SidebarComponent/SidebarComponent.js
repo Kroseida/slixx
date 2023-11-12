@@ -35,6 +35,12 @@ export default {
           permission: 'job.view'
         },
         {
+          title: 'Backups',
+          icon: 'fas fa-save',
+          link: '/#/backup',
+          permission: 'backup.view'
+        },
+        {
           title: 'Users',
           icon: 'fas fa-users',
           link: '/#/user',

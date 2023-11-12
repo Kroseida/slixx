@@ -11,15 +11,10 @@ import (
 	"kroseida.org/slixx/pkg/storage"
 	storageRegistry "kroseida.org/slixx/pkg/storage"
 	strategyRegistry "kroseida.org/slixx/pkg/strategy"
-	"kroseida.org/slixx/pkg/utils"
 )
 
-func SendBackupInfos(ids []uuid.UUID) {
+func SendBackupInfos() {
 	for _, job := range syncdata.Container.Jobs {
-		if !utils.ContainsUUID(ids, job.Id) {
-			continue
-		}
-
 		strategy := strategyRegistry.ValueOf(job.Strategy)
 		if strategy == nil {
 			application.Logger.Error("Unknown strategy of job", job.Id, "(", job.Strategy, ")")
@@ -53,7 +48,15 @@ func SendBackupInfos(ids []uuid.UUID) {
 
 		// Send backup infos so supervisor can update its database
 		for _, backupInfo := range backupInfos {
-			action.SendRawBackupInfo(backupInfo.Id, &job.Id, backupInfo.CreatedAt)
+			action.SendRawBackupInfo(
+				backupInfo.Id,
+				&job.Id,
+				&uuid.UUID{},
+				backupInfo.CreatedAt,
+				backupInfo.OriginKind,
+				backupInfo.DestinationKind,
+				backupInfo.Strategy,
+			)
 		}
 
 		// Close everything
@@ -124,7 +127,7 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 	}
 
 	// Execute strategy
-	backupInfo, err := strategy.Execute(originStorage, destinationStorage, func(status strategyRegistry.BackupStatusUpdate) {
+	backupInfo, err := strategy.Execute(jobId, originStorage, destinationStorage, func(status strategyRegistry.BackupStatusUpdate) {
 		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
 		status.JobId = &job.Id
 		action.SendBackupStatusUpdate(id, status)
@@ -133,7 +136,15 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 		return err
 	}
 
-	action.SendRawBackupInfo(backupInfo.Id, &job.Id, backupInfo.CreatedAt)
+	action.SendRawBackupInfo(
+		backupInfo.Id,
+		backupInfo.JobId,
+		id,
+		backupInfo.CreatedAt,
+		backupInfo.OriginKind,
+		backupInfo.DestinationKind,
+		backupInfo.Strategy,
+	)
 
 	// Close everything
 	originStorage.Close()

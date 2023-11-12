@@ -80,6 +80,27 @@ export default defineComponent({
         done();
       });
     },
+    resync(done) {
+      const satelliteId = this.router.currentRoute.value.params.id;
+      if (satelliteId === 'new') {
+        return done();
+      }
+      this.$controller.satellite.resyncSatellite({id: satelliteId}, () => {
+        this.$q.notify({
+          type: 'positive',
+          message: 'Resync was triggered successfully',
+          position: 'top',
+        })
+        done();
+      }, (data) => {
+        this.$q.notify({
+          type: 'negative',
+          message: data,
+          position: 'top',
+        })
+        done();
+      });
+    },
     save(done) {
       const satelliteId = this.router.currentRoute.value.params.id;
       if (satelliteId === 'new') {

@@ -22,7 +22,7 @@ func Create(name string, description string, kindName string, configuration stri
 		return nil, err
 	}
 
-	go action.SyncStorages()
+	go action.SyncStorages(nil)
 
 	return storage, nil
 }
@@ -40,7 +40,7 @@ func Update(id uuid.UUID, name *string, description *string, kindName *string, c
 		return nil, err
 	}
 
-	go action.SyncStorages()
+	go action.SyncStorages(nil)
 
 	return storage, nil
 }
@@ -51,7 +51,7 @@ func Delete(id uuid.UUID) (*model.Storage, error) {
 		return nil, err
 	}
 
-	go action.SyncStorages()
+	go action.SyncStorages(nil)
 
 	return storage, nil
 }

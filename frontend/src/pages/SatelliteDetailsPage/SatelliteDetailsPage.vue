@@ -9,6 +9,12 @@
           <div class="col"/>
           <button-group>
             <slixx-button
+              color="secondary"
+              label="Resync"
+              class="action"
+              @s-click="resync"
+            />
+            <slixx-button
               color="primary"
               label="Save"
               class="action"

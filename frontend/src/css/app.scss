@@ -1,4 +1,4 @@
-// app global css in SCSS form
+// app global css in SCSS format
 .slixx-pad-5 {
   padding: 5px;
 }
@@ -71,4 +71,26 @@
   overflow-y: scroll;
   scrollbar-width: thin !important;
   margin-right: 15px;
+}
+
+@media (max-width: 640px) {
+  .q-table__control {
+    display: block;
+  }
+  .q-table__control .q-field {
+    margin-top: 10px;
+    width: 100%;
+  }
+  .q-table__card .q-table__top, .q-table__card .q-table__bottom {
+    display: block;
+  }
+  .q-table__control .action-header {
+    display: block;
+    margin-top: 10px;
+    width: 100%;
+  }
+  .q-table__control .action-header button {
+    float: right;
+    margin-right: 15px;
+  }
 }

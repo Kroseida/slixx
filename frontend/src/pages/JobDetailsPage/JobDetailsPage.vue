@@ -37,6 +37,7 @@
       >
         <q-tab name="details" label="Details"/>
         <q-tab name="configuration" label="Configuration"/>
+        <q-tab name="backups" label="Backups" v-if="!isNewJob()"/>
       </q-tabs>
       <q-separator/>
       <q-tab-panels v-model="tab" animated>
@@ -139,11 +140,19 @@
             </div>
           </div>
         </q-tab-panel>
+        <q-tab-panel name="backups" class="no-padding">
+          <backup-list-component :job-id="job.id"/>
+        </q-tab-panel>
       </q-tab-panels>
     </q-card>
   </div>
 </template>
 <style lang="scss">
 @import "./JobDetailsPage.scss";
+
+.no-padding {
+  padding: 0;
+}
+
 </style>
 <script src="./JobDetailsPage.js"/>
