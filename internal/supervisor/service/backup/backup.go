@@ -20,7 +20,7 @@ func Execute(jobId uuid.UUID) (*uuid.UUID, error) {
 func ResyncSatellite(satelliteId uuid.UUID) error {
 	action.SyncStorages(&satelliteId)
 	action.SyncJobs(&satelliteId)
-	return action.SendRequestBackupSync(satelliteId)
+	return action.SendRequestBackupSync(&satelliteId)
 }
 
 func ApplyBackupToIndex(

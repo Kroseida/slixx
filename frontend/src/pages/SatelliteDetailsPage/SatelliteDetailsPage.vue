@@ -9,7 +9,7 @@
           <div class="col"/>
           <button-group>
             <slixx-button
-              color="secondary"
+              color="info"
               label="Resync"
               class="action"
               @s-click="resync"

@@ -8,14 +8,22 @@ import (
 )
 
 type Strategy interface {
+	// GetName Get the name of the strategy (used to identify it)
 	GetName() string
+	// Initialize Initialize the strategy with the configuration, this is called before any other method
 	Initialize(configuration any) error
-	// Execute We need the job id to store the backup in the local index
+	// Execute The main method of the strategy execute a backup from the origin to the destination storage (this is called when a backup is requested)
 	Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error)
+	// Restore Restore a backup from the destination to the origin storage (this is called when a restore is requested)
 	Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID) error
+	// Parse Parse the configuration of the strategy from a json string to a struct
 	Parse(configurationJson string) (interface{}, error)
+	// DefaultConfiguration Get the DefaultConfiguration Get the default configuration of the strategy
 	DefaultConfiguration() interface{}
+	// ListBackups List the backups stored in the destination storage, this is not always the source of truth
+	// We can later on make it so that the supervisor is the source of truth and the satellite just sends the backups infos
 	ListBackups(destination storage.Kind) ([]*RawBackupInfo, error)
+	// Close Close the strategy and all its resources
 	Close() error
 }
 

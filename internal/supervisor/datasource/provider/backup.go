@@ -26,25 +26,27 @@ func (provider BackupProvider) ApplyBackupToIndex(
 	jobName := jobId.String()
 
 	existingBackup, err := provider.Get(id)
+
 	if err != nil {
 		return nil, err
 	}
-	if existingBackup != nil {
+
+	if existingBackup != nil && existingBackup.Id == id {
 		application.Logger.Warn("backup ", id, " is already indexed! skipping...")
 		return existingBackup, nil
 	}
 
 	backup := model.Backup{
-		Id:                       id,
-		Name:                     jobName + " at " + createdAt.Format("2006-01-02 15:04:05"),
-		Description:              "",
-		ExecutionId:              executionId,
-		JobId:                    jobId,
-		OriginKind:               originKind,
-		DestinationKind:          destinationKind,
-		Strategy:                 strategy,
-		CreatedAt:                createdAt,
-		UpdatedAt:                createdAt,
+		Id:              id,
+		Name:            jobName + " at " + createdAt.Format("2006-01-02 15:04:05"),
+		Description:     "",
+		ExecutionId:     executionId,
+		JobId:           jobId,
+		OriginKind:      originKind,
+		DestinationKind: destinationKind,
+		Strategy:        strategy,
+		CreatedAt:       createdAt,
+		UpdatedAt:       createdAt,
 	}
 
 	result := provider.Database.Create(&backup)
@@ -55,14 +57,14 @@ func (provider BackupProvider) ApplyBackupToIndex(
 }
 
 func (provider BackupProvider) Get(id uuid.UUID) (*model.Backup, error) {
-	var backup model.Backup
+	var backup *model.Backup
 	result := provider.Database.First(&backup, id)
 
 	if isSqlError(result.Error) {
 		return nil, result.Error
 	}
 
-	return &backup, nil
+	return backup, nil
 }
 
 func (provider BackupProvider) List() ([]*model.Backup, error) {

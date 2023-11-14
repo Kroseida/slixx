@@ -9,6 +9,13 @@
           <div class="col"/>
           <button-group>
             <slixx-button
+              color="positive"
+              label="Execute"
+              class="action"
+              @s-click="save"
+              :disable="hasChanges() || (!globalStore.isPermitted('job.execute'))"
+            />
+            <slixx-button
               color="primary"
               label="Save"
               class="action"

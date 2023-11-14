@@ -26,21 +26,25 @@ var Permissions = map[string]string{
 	"user.update":            "Update User Account",
 	"user.delete":            "Delete User",
 	"user.permission.update": "Update User Permissions",
-	"storage.view":           "View Storage",
-	"storage.create":         "Create Storage",
-	"storage.update":         "Update Storage",
-	"storage.delete":         "Delete Storage",
-	"job.view":               "View Job",
-	"job.create":             "Create Job",
-	"job.update":             "Update Job",
-	"job.delete":             "Delete Job",
-	"satellite.view":         "View Satellite",
-	"satellite.create":       "Register Satellite",
-	"satellite.update":       "Update Satellite",
-	"satellite.delete":       "Delete Satellite",
-	"satellite.resync":       "Request Satellite Resync",
-	"backup.view":            "View Backup",
-	"backup.execute":         "Execute Backup",
+
+	"storage.view":   "View Storage",
+	"storage.create": "Create Storage",
+	"storage.update": "Update Storage",
+	"storage.delete": "Delete Storage",
+
+	"job.view":    "View Job",
+	"job.create":  "Create Job",
+	"job.update":  "Update Job",
+	"job.delete":  "Delete Job",
+	"job.execute": "Execute Job / Create Backup",
+
+	"satellite.view":   "View Satellite",
+	"satellite.create": "Register Satellite",
+	"satellite.update": "Update Satellite",
+	"satellite.delete": "Delete Satellite",
+	"satellite.resync": "Request Satellite Resync",
+
+	"backup.view": "View Backup",
 }
 
 func (provider UserProvider) Create(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {

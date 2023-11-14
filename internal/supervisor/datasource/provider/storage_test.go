@@ -3,6 +3,7 @@ package provider_test
 import (
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
+	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
 	"testing"
 )
@@ -205,7 +206,7 @@ func Test_GetStoragesPaged(t *testing.T) {
 		return
 	}
 
-	storages, err := datasource.StorageProvider.ListPaged(&Pagination[model.Storage]{
+	storages, err := datasource.StorageProvider.ListPaged(&provider.Pagination[model.Storage]{
 		Page:  1,
 		Limit: 1,
 	})
