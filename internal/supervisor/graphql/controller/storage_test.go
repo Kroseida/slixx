@@ -34,7 +34,7 @@ func Test_GetStorage(t *testing.T) {
 	assert.Equal(t, "Testaaaaaa", storage.Name)
 	assert.Equal(t, "description", storage.Description)
 	assert.Equal(t, "FTP", storage.Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", storage.Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storage.Configuration)
 
 	teardownSuite()
 }
