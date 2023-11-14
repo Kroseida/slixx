@@ -132,6 +132,26 @@ export default defineComponent({
         });
       }
     },
+    executeBackup(done) {
+      const job = {
+        jobId: this.job.id,
+      }
+      this.$controller.job.executeBackup(job, () => {
+        this.$q.notify({
+          type: 'positive',
+          message: 'Backup was triggered successfully',
+          position: 'top',
+        })
+        done();
+      }, (err) => {
+        this.$q.notify({
+          type: 'negative',
+          message: err,
+          position: 'top',
+        })
+        done();
+      });
+    },
     create(done) {
       let job = {
         name: this.job.name,

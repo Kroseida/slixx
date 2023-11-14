@@ -68,6 +68,26 @@ export default (client) => ({
       (data) => error(data.message)
     );
   },
+  executeBackup(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "executeBackup",
+      args,
+      fields: [
+        "id",
+        "jobId",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  },
   updateJob(args, callback, error) {
     let fullQuery = client.graphql.buildQuery({
       method: "updateJob",

@@ -12,7 +12,7 @@
               color="positive"
               label="Execute"
               class="action"
-              @s-click="save"
+              @s-click="executeBackup"
               :disable="hasChanges() || (!globalStore.isPermitted('job.execute'))"
             />
             <slixx-button

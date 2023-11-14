@@ -84,7 +84,7 @@ func Test_CreateStorage(t *testing.T) {
 	assert.Equal(t, 1, len(storages))
 	assert.Equal(t, "Test Storage", storages[0].Name)
 	assert.Equal(t, "FTP", storages[0].Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", storages[0].Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storages[0].Configuration)
 	teardownSuite()
 }
 
@@ -135,7 +135,7 @@ func Test_UpdateStorage(t *testing.T) {
 	}
 
 	assert.Equal(t, "Updated Storage", updatedStorage.Name)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", updatedStorage.Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", updatedStorage.Configuration)
 	teardownSuite()
 }
 
