@@ -182,10 +182,10 @@ func Test_GetStorages(t *testing.T) {
 	assert.Equal(t, 2, len(storages))
 	assert.Equal(t, "Test Storage", storages[0].Name)
 	assert.Equal(t, "FTP", storages[0].Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", storages[0].Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storages[0].Configuration)
 	assert.Equal(t, "Test Storage 2", storages[1].Name)
 	assert.Equal(t, "FTP", storages[1].Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", storages[1].Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storages[1].Configuration)
 	teardownSuite()
 }
 
@@ -246,6 +246,6 @@ func Test_GetStorage(t *testing.T) {
 
 	assert.Equal(t, "Test Storage", storage.Name)
 	assert.Equal(t, "FTP", storage.Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"\",\"username\":\"\",\"password\":\"\"}", storage.Configuration)
+	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storage.Configuration)
 	teardownSuite()
 }
