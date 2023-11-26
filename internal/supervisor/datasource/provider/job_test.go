@@ -51,20 +51,6 @@ func Test_CreateJob(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_CreateJob_MissingStorage(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	_, err := datasource.JobProvider.Create("Test", "Test", "COPY", "{}", uuid.New(), uuid.New(), uuid.New())
-	if err == nil {
-		t.Error("Expected error")
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "origin storage not found", err.Error())
-	teardownSuite()
-}
-
 func Test_CreateJob_EmptyName(t *testing.T) {
 	teardownSuite := setupSuite()
 

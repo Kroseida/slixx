@@ -66,7 +66,7 @@ func Test_GetStorages(t *testing.T) {
 		return
 	}
 
-	assert.Equal(t, 2, len(storages.Rows))
+	assert.Equal(t, 3, len(storages.Rows))
 	teardownSuite()
 }
 

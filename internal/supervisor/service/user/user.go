@@ -9,6 +9,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
+	"strings"
 	"time"
 )
 
@@ -90,6 +91,24 @@ func Create(
 	description string,
 	active bool,
 ) (*model.User, error) {
+	if name == "" {
+		return nil, graphql.NewSafeError("name can not be empty")
+	}
+	if email != "" && !strings.Contains(email, "@") {
+		return nil, graphql.NewSafeError("invalid email")
+	}
+	if strings.Contains(name, " ") {
+		return nil, graphql.NewSafeError("name can not contain spaces")
+	}
+
+	existingUser, err := datasource.UserProvider.GetByName(name)
+	if err != nil {
+		return nil, err
+	}
+	if existingUser != nil {
+		return nil, graphql.NewSafeError("name already in use")
+	}
+
 	return datasource.UserProvider.Create(name, email, firstName, lastName, description, active)
 }
 

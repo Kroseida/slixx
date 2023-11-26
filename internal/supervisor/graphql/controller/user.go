@@ -150,12 +150,12 @@ func RemoveUserPermission(ctx context.Context, args RemoveUserPermissionDto) (*U
 	return &userDto, nil
 }
 
-type UpdateUserPasswordDto struct {
+type UpdateUserPassword struct {
 	Id       uuid.UUID `json:"id" graphql:"id"`
 	Password string    `json:"password" graphql:"password"`
 }
 
-func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDto) (*Authentication, error) {
+func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPassword) (*Authentication, error) {
 	if !IsPermitted(ctx, []string{"user.update"}) && !IsSameUser(ctx, args.Id) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -170,12 +170,12 @@ func CreatePasswordAuthentication(ctx context.Context, args UpdateUserPasswordDt
 	return &authenticationDto, nil
 }
 
-type PasswordAuthenticationDto struct {
+type PasswordAuthentication struct {
 	Name     string `json:"name" graphql:"name"`
 	Password string `json:"password" graphql:"password"`
 }
 
-func Authenticate(ctx context.Context, args PasswordAuthenticationDto) (*ExposedSession, error) {
+func Authenticate(ctx context.Context, args PasswordAuthentication) (*ExposedSession, error) {
 	reactive.InvalidateAfter(ctx, 5*time.Second)
 	session, err := userService.AuthenticatePassword(args.Name, args.Password)
 	if err != nil {

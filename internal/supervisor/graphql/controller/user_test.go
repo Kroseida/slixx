@@ -57,7 +57,7 @@ func Test_CreateUser(t *testing.T) {
 func Test_UpdateUser(t *testing.T) {
 	teardownSuite := setupSuite()
 	user, err := controller.CreateUser(withPermissions([]string{"user.create"}), controller.CreateUserDto{
-		Name:        "Testaaaaaa",
+		Name:        "MaxTest!",
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@test.de",
@@ -256,7 +256,7 @@ func Test_RemoveUserPermission(t *testing.T) {
 
 func Test_CreatePasswordAuthentication_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPasswordDto{
+	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPassword{
 		Id:       uuid.New(),
 		Password: "123123123",
 	})
@@ -285,7 +285,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPasswordDto{
+	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPassword{
 		Id:       user.Id,
 		Password: "123123123",
 	})
@@ -295,7 +295,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthenticationDto{
+	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthentication{
 		Name:     "user",
 		Password: "123123123",
 	})
