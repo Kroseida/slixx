@@ -7,15 +7,15 @@ import (
 )
 
 var PACKETS = map[int64]protocol.Packet{
-	(&handshakePacket.Handshake{}).PacketId():           &handshakePacket.Handshake{},
-	(&handshakePacket.ConnectionDenied{}).PacketId():    &handshakePacket.ConnectionDenied{},
-	(&handshakePacket.ConnectionAccepted{}).PacketId():  &handshakePacket.ConnectionAccepted{},
-	(&supervisorPacket.SyncStorage{}).PacketId():        &supervisorPacket.SyncStorage{},
-	(&supervisorPacket.SyncJob{}).PacketId():            &supervisorPacket.SyncJob{},
-	(&supervisorPacket.SyncLogs{}).PacketId():           &supervisorPacket.SyncLogs{},
-	(&supervisorPacket.ApplySupervisor{}).PacketId():    &supervisorPacket.ApplySupervisor{},
-	(&supervisorPacket.ExecuteBackup{}).PacketId():      &supervisorPacket.ExecuteBackup{},
-	(&supervisorPacket.BackupStatusUpdate{}).PacketId(): &supervisorPacket.BackupStatusUpdate{},
-	(&supervisorPacket.RawBackupInfo{}).PacketId():      &supervisorPacket.RawBackupInfo{},
-	(&supervisorPacket.RequestBackupSync{}).PacketId():  &supervisorPacket.RequestBackupSync{},
+	(&handshakePacket.Handshake{}).PacketId():              &handshakePacket.Handshake{},
+	(&handshakePacket.ConnectionDenied{}).PacketId():       &handshakePacket.ConnectionDenied{},
+	(&handshakePacket.ConnectionAccepted{}).PacketId():     &handshakePacket.ConnectionAccepted{},
+	(&supervisorPacket.SyncStorage{}).PacketId():           &supervisorPacket.SyncStorage{},
+	(&supervisorPacket.SyncJob{}).PacketId():               &supervisorPacket.SyncJob{},
+	(&supervisorPacket.SyncLogs{}).PacketId():              &supervisorPacket.SyncLogs{},
+	(&supervisorPacket.ApplySupervisor{}).PacketId():       &supervisorPacket.ApplySupervisor{},
+	(&supervisorPacket.ExecuteBackup{}).PacketId():         &supervisorPacket.ExecuteBackup{},
+	(&supervisorPacket.ExecutionStatusUpdate{}).PacketId(): &supervisorPacket.ExecutionStatusUpdate{},
+	(&supervisorPacket.RawBackupInfo{}).PacketId():         &supervisorPacket.RawBackupInfo{},
+	(&supervisorPacket.RequestResync{}).PacketId():         &supervisorPacket.RequestResync{},
 }

@@ -48,6 +48,9 @@ export default defineComponent({
   mounted() {
     this.subscribe()
   },
+  unmounted() {
+    this.$controller.unsubscribe(this.subscriptionId);
+  },
   methods: {
     remove(done) {
       this.$controller.user.deleteUser(this.user, () => {
@@ -150,7 +153,8 @@ export default defineComponent({
       if (userId === 'new') {
         return;
       }
-      this.subscriptionId = this.$controller.user.subscribeUser(this.subscriptionId, userId, (data) => {
+      this.subscriptionId = this.$controller.user.subscribeUser(this.subscriptionId, userId, (data, subscriptionId) => {
+        this.subscriptionId = subscriptionId;
         this.user = data;
         this.user.createdAt = moment(this.user.createdAt).format('YYYY-MM-DD HH:mm:ss');
         this.user.updatedAt = moment(this.user.updatedAt).format('YYYY-MM-DD HH:mm:ss');

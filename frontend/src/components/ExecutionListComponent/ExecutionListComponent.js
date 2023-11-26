@@ -1,17 +1,23 @@
 import {defineComponent} from 'vue'
 import {Notify} from "quasar";
 import moment from "moment";
+import ExecutionHistoryViewer from "components/ExecutionHistoryViewer/ExecutionHistoryViewer.vue";
 
 export default defineComponent({
-  name: 'BackupList',
+  name: 'ExecutionList',
   data() {
     return {
+      showExecutionHistory: false,
+      selectedExecution: null,
       filter: '',
       subscriptionId: -1,
       loading: true,
       pagination: {},
       rows: [],
     }
+  },
+  components: {
+    ExecutionHistoryViewer
   },
   mounted() {
     this.subscribe({
@@ -38,12 +44,20 @@ export default defineComponent({
       type: Array,
       default: () => [
         {
-          name: 'name',
+          name: 'createdAt',
           required: true,
-          label: 'Name',
+          label: 'Created At',
           align: 'left',
-          field: row => row.name,
-          format: val => `${val}`
+          field: row => row.createdAt,
+          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
+        },
+        {
+          name: 'finishedAt',
+          required: true,
+          label: 'Finished At',
+          align: 'left',
+          field: row => row.finishedAt,
+          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
         },
         {
           name: 'jobId',
@@ -54,20 +68,12 @@ export default defineComponent({
           format: val => `${val}`
         },
         {
-          name: 'createdAt',
+          name: 'status',
           required: true,
-          label: 'Created At',
+          label: 'Status',
           align: 'left',
-          field: row => row.createdAt,
-          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
-        },
-        {
-          name: 'updatedAt',
-          required: true,
-          label: 'Updated At',
-          align: 'left',
-          field: row => row.updatedAt,
-          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
+          field: row => row.status,
+          format: val => `${val}`
         },
       ]
     },
@@ -90,20 +96,20 @@ export default defineComponent({
       }
 
       this.loading = true;
-      this.subscriptionId = this.$controller.backup.subscribeBackups(
+      this.subscriptionId = this.$controller.execution.subscribeExecutions(
         this.subscriptionId,
         args,
-        this.afterBackupsReceived,
-        this.afterBackupsError
+        this.afterExecutionsReceived,
+        this.afterExecutionsError
       );
     },
-    afterBackupsReceived(data, subscriptionId) {
+    afterExecutionsReceived(data, subscriptionId) {
       this.subscriptionId = subscriptionId;
       this.loading = false;
       this.rows = data.rows;
       this.pagination.rowsNumber = data.page.totalRows;
     },
-    afterBackupsError(data, subscriptionId) {
+    afterExecutionsError(data, subscriptionId) {
       this.subscriptionId = subscriptionId;
       this.loading = false;
       Notify.create({
@@ -113,7 +119,20 @@ export default defineComponent({
       })
     },
     rowClick(evt, row, index) {
+      this.showExecutionHistory = true;
+      this.selectedExecution = row.id;
+
       this.$emit('rowClick', evt, row, index)
+    },
+    colorOfStatus(status) {
+      switch (status) {
+        case "FINISHED":
+          return "green";
+        case "ERROR":
+          return "red";
+        default:
+          return "amber-6";
+      }
     }
   }
 })

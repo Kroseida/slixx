@@ -31,8 +31,8 @@ func (h *Handler) Handle(client protocol.WrappedClient, packet protocol.Packet) 
 	if packet.PacketId() == (&supervisorPacket.ExecuteBackup{}).PacketId() {
 		return h.HandleExecuteBackup(client, packet.(*supervisorPacket.ExecuteBackup))
 	}
-	if packet.PacketId() == (&supervisorPacket.RequestBackupSync{}).PacketId() {
-		return h.HandleRequestBackupSync(client, packet.(*supervisorPacket.RequestBackupSync))
+	if packet.PacketId() == (&supervisorPacket.RequestResync{}).PacketId() {
+		return h.HandleRequestResync(client, packet.(*supervisorPacket.RequestResync))
 	}
 	return nil
 }
@@ -105,9 +105,9 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 	return nil
 }
 
-func (h *Handler) HandleRequestBackupSync(client protocol.WrappedClient, _ *supervisorPacket.RequestBackupSync) error {
+func (h *Handler) HandleRequestResync(client protocol.WrappedClient, _ *supervisorPacket.RequestResync) error {
 	c := client.(*syncnetworkBase.ConnectedClient)
-	c.Server.Logger.Info("Received request for backup sync from supervisor")
+	c.Server.Logger.Info("Received request for resync from supervisor")
 	backup.SendBackupInfos()
 	return nil
 }

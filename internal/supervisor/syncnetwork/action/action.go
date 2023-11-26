@@ -81,7 +81,7 @@ func SendRequestBackupSync(id *uuid.UUID) error {
 		if client.Client.Protocol != protocol.Supervisor {
 			continue
 		}
-		err := client.Client.Send(&supervisorPacket.RequestBackupSync{})
+		err := client.Client.Send(&supervisorPacket.RequestResync{})
 		if err != nil {
 			return err
 		}

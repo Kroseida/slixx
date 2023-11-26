@@ -34,11 +34,20 @@ func (l *SyncedLogger) Warn(args ...interface{}) {
 }
 
 func (l *SyncedLogger) appendLine(level string, args ...interface{}) {
+	if !CurrentSettings.Logger.SyncToSupervisor {
+		return
+	}
+	var line string
+	for _, arg := range args {
+		line += fmt.Sprint(arg) + " "
+	}
+
 	l.CachedLines = append(l.CachedLines, &model.SatelliteLogEntry{
 		Id:          uuid.New(),
+		Sender:      "satellite",
 		SatelliteId: uuid.UUID{},
 		Level:       level,
-		Message:     fmt.Sprint(args...),
+		Message:     line,
 		LoggedAt:    time.Now(),
 	})
 }

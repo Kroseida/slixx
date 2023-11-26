@@ -19,6 +19,11 @@
       </q-input>
       <slot name="action"/>
     </template>
+    <template v-slot:body-cell-kind="props">
+      <q-td style="width: 0">
+        <q-chip :label="props.row.kind" outline color="primary"/>
+      </q-td>
+    </template>
   </q-table>
 </template>
 <script src="./StorageListComponent.js"/>

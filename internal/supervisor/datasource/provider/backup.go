@@ -3,19 +3,19 @@ package provider
 import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/pkg/model"
 	"time"
 )
 
 // BackupProvider Backup Provider
 type BackupProvider struct {
-	Database    *gorm.DB
-	JobProvider *JobProvider
+	Database *gorm.DB
 }
 
-func (provider BackupProvider) ApplyBackupToIndex(
+func (provider BackupProvider) Create(
 	id uuid.UUID,
+	name string,
+	description string,
 	jobId uuid.UUID,
 	executionId *uuid.UUID,
 	createdAt time.Time,
@@ -23,23 +23,10 @@ func (provider BackupProvider) ApplyBackupToIndex(
 	destinationKind string,
 	strategy string,
 ) (*model.Backup, error) {
-	jobName := jobId.String()
-
-	existingBackup, err := provider.Get(id)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if existingBackup != nil && existingBackup.Id == id {
-		application.Logger.Warn("backup ", id, " is already indexed! skipping...")
-		return existingBackup, nil
-	}
-
 	backup := model.Backup{
 		Id:              id,
-		Name:            jobName + " at " + createdAt.Format("2006-01-02 15:04:05"),
-		Description:     "",
+		Name:            name,
+		Description:     description,
 		ExecutionId:     executionId,
 		JobId:           jobId,
 		OriginKind:      originKind,

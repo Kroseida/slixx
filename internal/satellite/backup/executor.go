@@ -129,6 +129,7 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 	// Execute strategy
 	backupInfo, err := strategy.Execute(jobId, originStorage, destinationStorage, func(status strategyRegistry.BackupStatusUpdate) {
 		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
+		status.Id = id
 		status.JobId = &job.Id
 		action.SendBackupStatusUpdate(id, status)
 	})

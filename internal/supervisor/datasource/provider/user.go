@@ -44,7 +44,8 @@ var Permissions = map[string]string{
 	"satellite.delete": "Delete Satellite",
 	"satellite.resync": "Request Satellite Resync",
 
-	"backup.view": "View Backup",
+	"backup.view":    "View Backup",
+	"execution.view": "View Execution",
 }
 
 func (provider UserProvider) Create(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {

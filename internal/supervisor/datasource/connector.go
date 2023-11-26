@@ -13,6 +13,7 @@ var StorageProvider provider.StorageProvider
 var UserProvider provider.UserProvider
 var SatelliteProvider provider.SatelliteProvider
 var JobProvider provider.JobProvider
+var ExecutionProvider provider.ExecutionProvider
 var BackupProvider provider.BackupProvider
 var localDatabase *gorm.DB
 
@@ -31,23 +32,23 @@ func Connect() error {
 	}
 
 	StorageProvider = provider.StorageProvider{
-		Database:    localDatabase,
-		JobProvider: &JobProvider,
+		Database: localDatabase,
 	}
-	UserProvider = provider.UserProvider{Database: localDatabase}
+	UserProvider = provider.UserProvider{
+		Database: localDatabase,
+	}
 	JobProvider = provider.JobProvider{
-		Database:          localDatabase,
-		StorageProvider:   &StorageProvider,
-		SatelliteProvider: &SatelliteProvider,
+		Database: localDatabase,
 	}
 
 	SatelliteProvider = provider.SatelliteProvider{
-		Database:    localDatabase,
-		JobProvider: &JobProvider,
+		Database: localDatabase,
 	}
 	BackupProvider = provider.BackupProvider{
-		Database:    localDatabase,
-		JobProvider: &JobProvider,
+		Database: localDatabase,
+	}
+	ExecutionProvider = provider.ExecutionProvider{
+		Database: localDatabase,
 	}
 
 	err = UserProvider.Init()

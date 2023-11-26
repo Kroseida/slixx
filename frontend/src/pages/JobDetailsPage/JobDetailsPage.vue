@@ -9,10 +9,11 @@
           <div class="col"/>
           <button-group>
             <slixx-button
-              color="positive"
+              color="primary"
               label="Execute"
               class="action"
               @s-click="executeBackup"
+              v-if="!isNewJob()"
               :disable="hasChanges() || (!globalStore.isPermitted('job.execute'))"
             />
             <slixx-button
@@ -44,7 +45,8 @@
       >
         <q-tab name="details" label="Details"/>
         <q-tab name="configuration" label="Configuration"/>
-        <q-tab name="backups" label="Backups" v-if="!isNewJob()"/>
+        <q-tab name="backups" label="Backups" v-if="!isNewJob() && globalStore.isPermitted('backup.view')" />
+        <q-tab name="executions" label="Executions" v-if="!isNewJob() && globalStore.isPermitted('execution.view')" />
       </q-tabs>
       <q-separator/>
       <q-tab-panels v-model="tab" animated>
@@ -148,7 +150,10 @@
           </div>
         </q-tab-panel>
         <q-tab-panel name="backups" class="no-padding">
-          <backup-list-component :job-id="job.id"/>
+          <backup-list-component :job-id="job.id" :columns="backupColumns"/>
+        </q-tab-panel>
+        <q-tab-panel name="executions" class="no-padding">
+          <execution-list-component :job-id="job.id" :columns="executionColumns"/>
         </q-tab-panel>
       </q-tab-panels>
     </q-card>

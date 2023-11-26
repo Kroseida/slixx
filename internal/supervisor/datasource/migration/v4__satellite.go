@@ -28,6 +28,7 @@ func (V4Satellite) Migrate(database *gorm.DB) error {
 
 	err = database.Exec(`CREATE TABLE satellite_log_entries (id char(36) NOT NULL,
 														  satellite_id char(36) NOT NULL,
+														  sender text NOT NULL,
 														  message text NOT NULL,
 														  level char(36) NOT NULL,
 														  logged_at DATETIME,									  

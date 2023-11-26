@@ -20,6 +20,11 @@
         </q-input>
         <slot name="action"/>
       </template>
+      <template v-slot:body-cell-strategy="props">
+        <q-td style="width: 0">
+          <q-chip :label="props.row.strategy" outline color="primary"/>
+        </q-td>
+      </template>
     </q-table>
   </div>
 </template>

@@ -7,6 +7,7 @@ import (
 	"kroseida.org/slixx/pkg/strategy/statustype"
 	"kroseida.org/slixx/pkg/utils/fileutils"
 	"reflect"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -47,6 +48,13 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 	var parallelProceededBytes = make([]uint64, strategy.Configuration.Parallel)
 
 	parallels, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
+
+	callback(BackupStatusUpdate{
+		Id:         &id,
+		Percentage: 0,
+		Message:    "Opening " + strconv.Itoa(len(parallels)) + " parallels",
+		StatusType: statustype.Info,
+	})
 
 	for index, _ := range parallels {
 		atomicIndex := index
@@ -120,8 +128,8 @@ func (strategy *CopyStrategy) handleInitialize(origin storage.Kind, destination 
 	callback(BackupStatusUpdate{
 		Id:         &id,
 		Percentage: 0,
-		Message:    "Initializing",
-		StatusType: "INFO",
+		Message:    "Initializing strategy",
+		StatusType: statustype.Info,
 	})
 	rawFiles, err := origin.ListFiles("")
 	for _, file := range rawFiles {
@@ -138,6 +146,13 @@ func (strategy *CopyStrategy) handleInitialize(origin storage.Kind, destination 
 			}
 		}
 	}
+
+	callback(BackupStatusUpdate{
+		Id:         &id,
+		Percentage: 0,
+		Message:    "Detected " + strconv.Itoa(len(rawFiles)) + " files",
+		StatusType: statustype.Info,
+	})
 
 	if err != nil {
 		callback(BackupStatusUpdate{
@@ -174,7 +189,7 @@ func (strategy *CopyStrategy) handleBackupWatchdog(parallelStatus []float64, par
 		callback(BackupStatusUpdate{
 			Id:         &id,
 			Percentage: percentage * 100,
-			Message:    "COPYING",
+			Message:    "Copying files from origin to destination",
 			StatusType: statustype.Info,
 		})
 
@@ -206,7 +221,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 	callback(BackupStatusUpdate{
 		Id:         &id,
 		Percentage: 100,
-		Message:    "INDEXING",
+		Message:    "Creating backup info file on destination",
 		StatusType: statustype.Info,
 	})
 

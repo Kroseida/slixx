@@ -1,17 +1,18 @@
 export default (client) => ({
-  subscribeBackups(subscriptionIdBefore, args, callback, error) {
+  subscribeExecutions(subscriptionIdBefore, args, callback, error) {
     let search = args.search.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
 
     client.graphql.unsubscribe(subscriptionIdBefore);
     if (args.jobId) {
       return client.graphql.subscribeTrackedObject(`query {
-        data: getBackups(limit: ${args.limit}, search: "${search}", page: ${args.page}, jobId: "${args.jobId}") {
+        data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}, jobId: "${args.jobId}") {
           rows  {
             id
-            name
-            createdAt
-            updatedAt
             jobId
+            createdAt
+            finishedAt
+            updatedAt
+            status
           }
           page {
             totalRows
@@ -22,13 +23,13 @@ export default (client) => ({
     }
 
     return client.graphql.subscribeTrackedObject(`query {
-      data: getBackups(limit: ${args.limit}, search: "${search}", page: ${args.page}) {
+      data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}) {
         rows  {
           id
-          name
+          jobId
           createdAt
           updatedAt
-          jobId
+          status
         }
         page {
           totalRows
@@ -37,4 +38,16 @@ export default (client) => ({
       }
     }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
+  subscribeExecutionHistory(subscriptionIdBefore, args, callback, error) {
+    client.graphql.unsubscribe(subscriptionIdBefore);
+    return client.graphql.subscribeTrackedObject(`query {
+      data: getExecutionHistory(executionId: "${args.executionId}") {
+        id
+        message
+        statusType
+        percentage
+        createdAt
+      }
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
+  }
 });

@@ -20,6 +20,12 @@
         </q-input>
         <slot name="action"/>
       </template>
+      <template v-slot:body-cell-connected="props">
+        <q-td :props="props" class="text-center" style="text-align: center; width: 80px">
+          <q-icon name="favorite" v-if="props.value === 'true'" color="green" style="font-size: 20px;"/>
+          <q-icon name="favorite_border" v-else color="red" style="font-size: 22px;"/>
+        </q-td>
+      </template>
     </q-table>
   </div>
 </template>

@@ -17,7 +17,6 @@ const routes = [
       { path: 'job/:id', component: () => import('pages/JobDetailsPage/JobDetailsPage.vue') },
       { path: 'satellite', component: () => import('pages/SatelliteListPage/SatelliteListPage.vue') },
       { path: 'satellite/:id', component: () => import('pages/SatelliteDetailsPage/SatelliteDetailsPage.vue') },
-      { path: 'backup', component: () => import('pages/BackupListPage/BackupListPage.vue') },
     ]
   },
 
