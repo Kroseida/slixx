@@ -11,9 +11,7 @@ import (
 
 // JobProvider Job Provider
 type JobProvider struct {
-	Database          *gorm.DB
-	StorageProvider   *StorageProvider
-	SatelliteProvider *SatelliteProvider
+	Database *gorm.DB
 }
 
 func (provider JobProvider) Delete(id uuid.UUID) (*model.Job, error) {
@@ -57,30 +55,6 @@ func (provider JobProvider) Create(
 	rawConfiguration, err := json.Marshal(parsedConfiguration)
 	if err != nil {
 		return nil, err
-	}
-
-	// Check if origin storages exist
-	originStorage, err := provider.StorageProvider.Get(originStorageId)
-	if err != nil {
-		return nil, err
-	}
-	if originStorage == nil {
-		return nil, graphql.NewSafeError("origin storage not found")
-	}
-
-	// Check if destination storages exist
-	destinationStorage, err := provider.StorageProvider.Get(destinationStorageId)
-	if err != nil {
-		return nil, err
-	}
-	if destinationStorage == nil {
-		return nil, graphql.NewSafeError("destination storage not found")
-	}
-
-	// Check if executor satellite exists
-	executorSatellite, err := provider.SatelliteProvider.Get(executorSatelliteId)
-	if executorSatellite == nil {
-		return nil, graphql.NewSafeError("executor satellite not found")
 	}
 
 	configuration = string(rawConfiguration)
@@ -154,36 +128,12 @@ func (provider JobProvider) Update(
 		updateJob.Description = *description
 	}
 	if originStorageId != nil {
-		// Check if origin storages exist
-		originStorage, err := provider.StorageProvider.Get(*originStorageId)
-		if err != nil {
-			return nil, err
-		}
-		if originStorage == nil {
-			return nil, graphql.NewSafeError("origin storage not found")
-		}
 		updateJob.OriginStorageId = *originStorageId
 	}
 	if destinationStorageId != nil {
-		// Check if destination storages exist
-		destinationStorage, err := provider.StorageProvider.Get(*destinationStorageId)
-		if err != nil {
-			return nil, err
-		}
-		if destinationStorage == nil {
-			return nil, graphql.NewSafeError("destination storage not found")
-		}
 		updateJob.DestinationStorageId = *destinationStorageId
 	}
 	if executorSatelliteId != nil {
-		// Check if executor satellite exist
-		executorSatellite, err := provider.SatelliteProvider.Get(*executorSatelliteId)
-		if err != nil {
-			return nil, err
-		}
-		if executorSatellite == nil {
-			return nil, graphql.NewSafeError("executor satellite not found")
-		}
 		updateJob.ExecutorSatelliteId = *executorSatelliteId
 	}
 

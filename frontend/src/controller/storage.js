@@ -17,7 +17,7 @@ export default (client) => ({
           totalPages
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   subscribeStorage(subscriptionIdBefore, id, callback, error) {
     client.graphql.unsubscribe(subscriptionIdBefore);
@@ -31,7 +31,7 @@ export default (client) => ({
         updatedAt
         description
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   subscribeStorageKinds(subscriptionIdBefore, callback, error) {
     client.graphql.unsubscribe(subscriptionIdBefore);
@@ -44,7 +44,7 @@ export default (client) => ({
           default
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   createStorage(args, callback, error) {
     let fullQuery = client.graphql.buildQuery({

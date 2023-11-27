@@ -96,29 +96,13 @@ export default {
         let subscribeId = this.subscribe(message, (data) => {
           if (data.message instanceof Array) {
             this.subscriptions[subscribeId].trackedObject = data.message[0].data;
-            callback(this.subscriptions[subscribeId].trackedObject);
+            callback(this.subscriptions[subscribeId].trackedObject, subscribeId);
           } else {
             this.unsubscribe(subscribeId)
             this.subscribeTrackedObject(message, callback, error, subscribeId)
           }
         }, error);
         this.subscriptions[subscribeId].trackedObject = {};
-        return subscribeId;
-      },
-      subscribeTrackedArray(message, callback, error) {
-        let subscribeId = this.subscribe(message, (data) => {
-          if (data.message instanceof Array) {
-            data.message[0].data.forEach((element) => {
-              this.subscriptions[subscribeId].trackedObject.push(element);
-            });
-          } else {
-            this.unsubscribe(subscribeId)
-            this.subscribeTrackedObject(message, callback, error, subscribeId)
-          }
-          callback(this.subscriptions[subscribeId].trackedObject);
-        }, error);
-        this.subscriptions[subscribeId].trackedObject = [];
-
         return subscribeId;
       },
       unsubscribe(id) {

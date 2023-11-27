@@ -114,7 +114,7 @@ func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error)
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	storage, err := storageService.Update(
+	storageModel, err := storageService.Update(
 		args.Id,
 		args.Name,
 		args.Description,
@@ -126,7 +126,7 @@ func UpdateStorage(ctx context.Context, args UpdateStorageDto) (*Storage, error)
 		return nil, err
 	}
 	var storageDto Storage
-	dto.Map(&storage, &storageDto)
+	dto.Map(&storageModel, &storageDto)
 
 	return &storageDto, nil
 }

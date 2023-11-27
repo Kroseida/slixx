@@ -20,4 +20,8 @@ func registerQuery(schema *schemabuilder.Schema) {
 	obj.FieldFunc("getSatellite", controller.GetSatellite)
 	obj.FieldFunc("getSatellites", controller.GetSatellites)
 	obj.FieldFunc("getBackups", controller.GetBackups)
+	obj.FieldFunc("getSatelliteLogs", controller.GetSatelliteLogs)
+	obj.FieldFunc("getExecutions", controller.GetExecutions)
+	obj.FieldFunc("getExecution", controller.GetExecution)
+	obj.FieldFunc("getExecutionHistory", controller.GetExecutionHistory)
 }

@@ -32,11 +32,11 @@ func (packet *ExecuteBackup) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	}
 	packet.Id = &id
 
-	id, err = uuid.Parse(buffer.ReadString())
+	jobId, err := uuid.Parse(buffer.ReadString())
 	if err != nil {
 		return err
 	}
-	packet.JobId = id
+	packet.JobId = jobId
 
 	return nil
 }

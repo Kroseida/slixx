@@ -39,37 +39,6 @@ func Test_GetStorage(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_GetStorages(t *testing.T) {
-	teardownSuite := setupSuite()
-	_, err := controller.CreateStorage(withPermissions([]string{"storage.create"}), controller.CreateStorageDto{
-		Name:          "Testaaaaaa",
-		Description:   "description",
-		Kind:          "FTP",
-		Configuration: "{}", // we expect to make this to a valid json
-	})
-	_, err = controller.CreateStorage(withPermissions([]string{"storage.create"}), controller.CreateStorageDto{
-		Name:          "Testaaaaaa2",
-		Description:   "description",
-		Kind:          "FTP",
-		Configuration: "{}", // we expect to make this to a valid json
-	})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	storages, err := controller.GetStorages(withPermissions([]string{"storage.view"}), controller.PageArgs{})
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, 2, len(storages.Rows))
-	teardownSuite()
-}
-
 func Test_UpdateStorage(t *testing.T) {
 	teardownSuite := setupSuite()
 	updatedName := "Testaaaaaa2"

@@ -38,14 +38,6 @@ export default defineComponent({
       type: Array,
       default: () => [
         {
-          name: 'id',
-          required: true,
-          label: 'Id',
-          align: 'left',
-          field: row => row.id,
-          format: val => `${val}`
-        },
-        {
           name: 'name',
           required: true,
           label: 'Name',
@@ -67,7 +59,7 @@ export default defineComponent({
           label: 'Created At',
           align: 'left',
           field: row => row.createdAt,
-          format: val => `${moment(val).format("YYYY-MM-DD")}`
+          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
         },
         {
           name: 'updatedAt',
@@ -75,10 +67,13 @@ export default defineComponent({
           label: 'Updated At',
           align: 'left',
           field: row => row.updatedAt,
-          format: val => `${moment(val).format("YYYY-MM-DD")}`
+          format: val => `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
         },
       ]
     },
+  },
+  unmounted() {
+    this.$controller.unsubscribe(this.subscriptionId)
   },
   methods: {
     subscribe(request) {
@@ -95,19 +90,21 @@ export default defineComponent({
       }
 
       this.loading = true;
-      this.$controller.backup.subscribeBackups(
+      this.subscriptionId = this.$controller.backup.subscribeBackups(
         this.subscriptionId,
         args,
         this.afterBackupsReceived,
         this.afterBackupsError
       );
     },
-    afterBackupsReceived(data) {
+    afterBackupsReceived(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       this.rows = data.rows;
       this.pagination.rowsNumber = data.page.totalRows;
     },
-    afterBackupsError(data) {
+    afterBackupsError(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       Notify.create({
         message: data,

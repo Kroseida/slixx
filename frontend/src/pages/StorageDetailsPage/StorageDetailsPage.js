@@ -43,6 +43,9 @@ export default defineComponent({
       });
     })
   },
+  unmounted() {
+    this.$controller.unsubscribe(this.subscriptionId);
+  },
   computed: {
     storageKindOptions() {
       return this.constantsStore.storageKinds.map((storageKind) => {
@@ -60,7 +63,8 @@ export default defineComponent({
         }, 10);
         return callback();
       }
-      this.subscriptionId = this.$controller.storage.subscribeStorage(this.subscriptionId, storageId, (data) => {
+      this.subscriptionId = this.$controller.storage.subscribeStorage(this.subscriptionId, storageId, (data, subscriptionId) => {
+        this.subscriptionId = subscriptionId;
         this.storage = data;
         this.storage.createdAt = moment(this.storage.createdAt).format('YYYY-MM-DD HH:mm:ss');
         this.storage.updatedAt = moment(this.storage.updatedAt).format('YYYY-MM-DD HH:mm:ss');
@@ -157,27 +161,27 @@ export default defineComponent({
               .replaceAll('"', '\\"');
           }
         }
-
-        updates.id = this.storage.id;
-
-        this.$controller.storage.updateStorage(updates, () => {
-          this.$q.notify({
-            type: 'positive',
-            message: 'Storage was saved successfully',
-            position: 'top',
-          })
-          this.subscribe(() => {
-          });
-          done();
-        }, (data) => {
-          this.$q.notify({
-            type: 'negative',
-            message: data,
-            position: 'top',
-          })
-          done();
-        });
       }
+      updates.id = this.storage.id;
+
+      this.$controller.storage.updateStorage(updates, () => {
+        this.$q.notify({
+          type: 'positive',
+          message: 'Storage was saved successfully',
+          position: 'top',
+        })
+        this.subscribe(() => {
+        });
+        done();
+      }, (data) => {
+        this.$q.notify({
+          type: 'negative',
+          message: data,
+          position: 'top',
+        })
+        done();
+      });
+
     },
     hasChanges() {
       return this.storageCopy !== JSON.stringify(this.storage);

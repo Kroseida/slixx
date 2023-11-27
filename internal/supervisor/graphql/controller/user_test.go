@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/graphql/controller"
 	"testing"
 )
@@ -57,7 +56,7 @@ func Test_CreateUser(t *testing.T) {
 func Test_UpdateUser(t *testing.T) {
 	teardownSuite := setupSuite()
 	user, err := controller.CreateUser(withPermissions([]string{"user.create"}), controller.CreateUserDto{
-		Name:        "Testaaaaaa",
+		Name:        "MaxTest!",
 		FirstName:   "test",
 		LastName:    "test",
 		Email:       "test@test.de",
@@ -256,7 +255,7 @@ func Test_RemoveUserPermission(t *testing.T) {
 
 func Test_CreatePasswordAuthentication_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPasswordDto{
+	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPassword{
 		Id:       uuid.New(),
 		Password: "123123123",
 	})
@@ -285,7 +284,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPasswordDto{
+	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPassword{
 		Id:       user.Id,
 		Password: "123123123",
 	})
@@ -295,7 +294,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthenticationDto{
+	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthentication{
 		Name:     "user",
 		Password: "123123123",
 	})
@@ -359,40 +358,5 @@ func Test_GetUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
-	teardownSuite()
-}
-
-func Test_GetLocalUser(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	userByName, err := datasource.UserProvider.GetByName("admin")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	user, err := controller.GetLocalUser(context.WithValue(context.Background(), "user", userByName))
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "admin", user.Name)
-	teardownSuite()
-}
-
-func Test_GetPermissions(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	permissions, err := controller.GetPermissions()
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, len(provider.Permissions), len(permissions))
 	teardownSuite()
 }

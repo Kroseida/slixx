@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/google/uuid"
+	"github.com/samsarahq/thunder/graphql"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
@@ -46,6 +47,15 @@ func Update(id uuid.UUID, name *string, description *string, kindName *string, c
 }
 
 func Delete(id uuid.UUID) (*model.Storage, error) {
+	jobs, err := datasource.JobProvider.GetByStorageId(id)
+
+	if err != nil {
+		return nil, err
+	}
+	if len(jobs) > 0 {
+		return nil, graphql.NewSafeError("storage is in use")
+	}
+
 	storage, err := datasource.StorageProvider.Delete(id)
 	if err != nil {
 		return nil, err

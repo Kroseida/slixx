@@ -2,6 +2,7 @@ package backup
 
 import (
 	"github.com/google/uuid"
+	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
@@ -31,9 +32,28 @@ func ApplyBackupToIndex(
 	originKind string,
 	destinationKind string,
 	strategy string,
-) (*model.Backup, error) {
-	backup, err := datasource.BackupProvider.ApplyBackupToIndex(
+) error {
+	job, _ := datasource.JobProvider.Get(jobId)
+
+	jobName := jobId.String()
+	if job != nil {
+		jobName = job.Name
+	}
+
+	existingBackup, err := datasource.BackupProvider.Get(id)
+
+	if err != nil {
+		return err
+	}
+	if existingBackup != nil && existingBackup.Id == id {
+		application.Logger.Warn("backup ", id, " is already indexed! skipping...")
+		return nil
+	}
+
+	_, err = datasource.BackupProvider.Create(
 		id,
+		jobName+" at "+createdAt.Format("2006-01-02 15:04:05"),
+		"",
 		jobId,
 		executionId,
 		createdAt,
@@ -42,9 +62,9 @@ func ApplyBackupToIndex(
 		strategy,
 	)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return backup, nil
+	return nil
 }
 
 func GetPaged(pagination *provider.Pagination[model.Backup], jobId *uuid.UUID) (*provider.Pagination[model.Backup], error) {

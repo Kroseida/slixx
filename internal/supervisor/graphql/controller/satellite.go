@@ -19,6 +19,7 @@ type Satellite struct {
 	Address     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	Connected   bool
 }
 
 type SatellitePrototype struct {
@@ -28,6 +29,7 @@ type SatellitePrototype struct {
 	Address     string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	Connected   bool
 }
 
 type GetSatelliteDto struct {
@@ -144,4 +146,46 @@ func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, 
 	dto.Map(satellite, &satelliteDto)
 
 	return &satelliteDto, err
+}
+
+type LogEntry struct {
+	Id          uuid.UUID
+	Sender      string
+	SatelliteId uuid.UUID
+	Level       string
+	Message     string
+	LoggedAt    time.Time
+}
+
+type GetLogsRequest struct {
+	SatelliteId uuid.UUID `json:"satelliteId" graphql:"satelliteId"`
+	Limit       *int64    `json:"limit,omitempty;query:limit"`
+	Page        *int64    `json:"page,omitempty;query:page"`
+	Sort        *string   `json:"sort,omitempty;query:sort"`
+	Search      *string   `json:"search"`
+}
+
+type LogsPage struct {
+	Rows []LogEntry `json:"rows" graphql:"rows"`
+	Page
+}
+
+func GetSatelliteLogs(ctx context.Context, args GetLogsRequest) (*LogsPage, error) {
+	if !IsPermitted(ctx, []string{"satellite.view"}) {
+		//return nil, graphql.NewSafeError("missing permission")
+	}
+	reactive.InvalidateAfter(ctx, 3*time.Second)
+
+	var pagination provider.Pagination[model.SatelliteLogEntry]
+	dto.Map(&args, &pagination)
+
+	pages, err := satelliteService.GetLogs(args.SatelliteId, &pagination)
+	if err != nil {
+		return nil, err
+	}
+
+	var pageDto LogsPage
+	dto.Map(&pages, &pageDto)
+
+	return &pageDto, nil
 }

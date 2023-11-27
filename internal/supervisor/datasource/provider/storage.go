@@ -11,20 +11,10 @@ import (
 
 // StorageProvider Storage Provider
 type StorageProvider struct {
-	Database    *gorm.DB
-	JobProvider *JobProvider
+	Database *gorm.DB
 }
 
 func (provider StorageProvider) Delete(id uuid.UUID) (*model.Storage, error) {
-	jobs, err := provider.JobProvider.GetByStorageId(id)
-
-	if err != nil {
-		return nil, err
-	}
-	if len(jobs) > 0 {
-		return nil, graphql.NewSafeError("storage is in use")
-	}
-
 	storage, err := provider.Get(id)
 	if storage == nil {
 		return nil, graphql.NewSafeError("storage not found")

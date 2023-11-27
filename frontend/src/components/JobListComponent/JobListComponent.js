@@ -34,11 +34,11 @@ export default defineComponent({
       type: Array,
       default: () => [
         {
-          name: 'id',
+          name: 'strategy',
           required: true,
-          label: 'Id',
-          align: 'left',
-          field: row => row.id,
+          label: '',
+          align: 'middle',
+          field: row => row.strategy,
           format: val => `${val}`
         },
         {
@@ -47,14 +47,6 @@ export default defineComponent({
           label: 'Name',
           align: 'left',
           field: row => row.name,
-          format: val => `${val}`
-        },
-        {
-          name: 'strategy',
-          required: true,
-          label: 'Strategy',
-          align: 'left',
-          field: row => row.strategy,
           format: val => `${val}`
         },
         {
@@ -76,13 +68,16 @@ export default defineComponent({
       ]
     },
   },
+  unmounted() {
+    this.$controller.unsubscribe(this.subscriptionId);
+  },
   methods: {
     subscribe(request) {
       this.pagination = request.pagination;
       this.filter = request.filter;
 
       this.loading = true;
-      this.$controller.job.subscribeJobs(
+      this.subscriptionId = this.$controller.job.subscribeJobs(
         this.subscriptionId,
         {
           limit: this.pagination.rowsPerPage,
@@ -93,12 +88,14 @@ export default defineComponent({
         this.afterJobsError
       );
     },
-    afterJobsReceived(data) {
+    afterJobsReceived(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       this.rows = data.rows;
       this.pagination.rowsNumber = data.page.totalRows;
     },
-    afterJobsError(data) {
+    afterJobsError(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       Notify.create({
         message: data,

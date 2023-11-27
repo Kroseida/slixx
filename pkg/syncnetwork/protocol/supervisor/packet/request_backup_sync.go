@@ -5,21 +5,21 @@ import (
 	"kroseida.org/slixx/pkg/utils/bytebuf"
 )
 
-type RequestBackupSync struct {
+type RequestResync struct {
 }
 
-func (packet *RequestBackupSync) PacketId() int64 {
+func (packet *RequestResync) PacketId() int64 {
 	return 10
 }
 
-func (packet *RequestBackupSync) Protocol() []string {
+func (packet *RequestResync) Protocol() []string {
 	return []string{protocol.Supervisor}
 }
 
-func (packet *RequestBackupSync) Serialize(buffer *bytebuf.ByteBuffer) error {
+func (packet *RequestResync) Serialize(buffer *bytebuf.ByteBuffer) error {
 	return nil
 }
 
-func (packet *RequestBackupSync) Deserialize(buffer *bytebuf.ByteBuffer) error {
+func (packet *RequestResync) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	return nil
 }

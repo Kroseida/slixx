@@ -2,6 +2,7 @@ package supervisor
 
 import (
 	backupService "kroseida.org/slixx/internal/supervisor/service/backup"
+	executionService "kroseida.org/slixx/internal/supervisor/service/execution"
 	satellitelogService "kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
@@ -17,6 +18,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, p protocol.Packet) error
 	if p.PacketId() == (&supervisorPacket.RawBackupInfo{}).PacketId() {
 		return h.HandleRawBackupInfo(client, p.(*supervisorPacket.RawBackupInfo))
 	}
+	if p.PacketId() == (&supervisorPacket.ExecutionStatusUpdate{}).PacketId() {
+		return h.HandleExecutionStatusUpdate(client, p.(*supervisorPacket.ExecutionStatusUpdate))
+	}
 	return nil
 }
 
@@ -25,7 +29,7 @@ func (h *Handler) HandleSyncLogs(_ protocol.WrappedClient, logs *supervisorPacke
 }
 
 func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisorPacket.RawBackupInfo) error {
-	_, err := backupService.ApplyBackupToIndex(
+	return backupService.ApplyBackupToIndex(
 		*info.Id,
 		*info.JobId,
 		info.ExecutionId,
@@ -34,5 +38,14 @@ func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisor
 		info.DestinationKind,
 		info.Strategy,
 	)
-	return err
+}
+
+func (h *Handler) HandleExecutionStatusUpdate(_ protocol.WrappedClient, update *supervisorPacket.ExecutionStatusUpdate) error {
+	return executionService.ApplyExecutionToIndex(
+		update.Id,
+		update.JobId,
+		update.Percentage,
+		update.StatusType,
+		update.Message,
+	)
 }

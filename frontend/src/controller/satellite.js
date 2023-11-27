@@ -11,13 +11,37 @@ export default (client) => ({
           address
           createdAt
           updatedAt
+          connected
         }
         page {
           totalRows
           totalPages
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
+  },
+  subscribeSatelliteLogs(subscriptionIdBefore, args, callback, error) {
+    let search = args.search.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+
+    client.graphql.unsubscribe(subscriptionIdBefore);
+    return client.graphql.subscribeTrackedObject(`query {
+      data: getSatelliteLogs(satelliteId: "${args.id}", limit: ${args.limit}, search: "${search}", page: ${args.page}) {
+        rows {
+          id
+          sender
+          message
+          level
+          loggedAt
+        }
+        page {
+          totalRows
+          totalPages
+        }
+      }
+    }`, (data, subscribeId) => {
+      data.rows = data.rows.sort().reverse();
+      callback(data, subscribeId);
+    }, (data) => error(data.message));
   },
   subscribeSatellite(subscriptionIdBefore, id, callback, error) {
     client.graphql.unsubscribe(subscriptionIdBefore);
@@ -29,8 +53,9 @@ export default (client) => ({
         createdAt
         updatedAt
         description
+        connected
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   deleteSatellite(args, callback, error) {
     let fullQuery = client.graphql.buildQuery({

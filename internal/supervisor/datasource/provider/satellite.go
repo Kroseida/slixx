@@ -5,23 +5,15 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"gorm.io/gorm"
 	"kroseida.org/slixx/pkg/model"
+	"math"
 )
 
 // SatelliteProvider Satellite Provider
 type SatelliteProvider struct {
-	Database    *gorm.DB
-	JobProvider *JobProvider
+	Database *gorm.DB
 }
 
 func (provider SatelliteProvider) Delete(id uuid.UUID) (*model.Satellite, error) {
-	jobs, err := provider.JobProvider.GetByExecutorSatelliteId(id)
-	if err != nil {
-		return nil, err
-	}
-	if len(jobs) > 0 {
-		return nil, graphql.NewSafeError("satellite is in use")
-	}
-
 	satellite, err := provider.Get(id)
 	if satellite == nil {
 		return nil, graphql.NewSafeError("satellite not found")
@@ -146,4 +138,41 @@ func (provider SatelliteProvider) ApplyLogs(logs []*model.SatelliteLogEntry) err
 	}
 
 	return nil
+}
+
+func (provider SatelliteProvider) GetLogs(satelliteId uuid.UUID, pagination *Pagination[model.SatelliteLogEntry]) (*Pagination[model.SatelliteLogEntry], error) {
+	var totalRows int64
+	provider.Database.Model(model.SatelliteLogEntry{}).
+		Where("satellite_id = ?", satelliteId).
+		Order("logged_at DESC").
+		Where("message like ?", "%"+pagination.Search+"%").
+		Or("id like ?", "%"+pagination.Search+"%").
+		Count(&totalRows)
+
+	pagination.TotalRows = totalRows
+	if pagination.GetLimit() > 0 {
+		pagination.TotalPages = int(math.Ceil(float64(totalRows) / float64(pagination.GetLimit())))
+	} else {
+		pagination.TotalPages = 1
+	}
+
+	context := provider.Database.Offset(pagination.GetOffset()).
+		Where("satellite_id = ?", satelliteId).
+		Order("logged_at DESC")
+
+	if pagination.GetLimit() > 0 {
+		context = context.Limit(pagination.GetLimit())
+	}
+	context.Where("message like ?", "%"+pagination.Search+"%").
+		Or("id like ?", "%"+pagination.Search+"%")
+
+	var logs []model.SatelliteLogEntry
+	result := context.Find(&logs)
+
+	if isSqlError(result.Error) {
+		return nil, result.Error
+	}
+
+	pagination.Rows = logs
+	return pagination, nil
 }

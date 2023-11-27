@@ -14,7 +14,7 @@ export default (client) => ({
         updatedAt
         description
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   subscribeJobs(subscriptionIdBefore, args, callback, error) {
     let search = args.search.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
@@ -34,7 +34,7 @@ export default (client) => ({
           totalPages
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   subscribeJobStrategies(subscriptionIdBefore, callback, error) {
     client.graphql.unsubscribe(subscriptionIdBefore);
@@ -47,7 +47,7 @@ export default (client) => ({
           default
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
   createJob(args, callback, error) {
     let fullQuery = client.graphql.buildQuery({

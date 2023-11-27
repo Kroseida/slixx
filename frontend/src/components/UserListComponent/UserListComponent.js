@@ -35,19 +35,19 @@ export default defineComponent({
       type: Array,
       default: () => [
         {
-          name: 'id',
-          required: true,
-          label: 'Id',
-          align: 'left',
-          field: row => row.id,
-          format: val => `${val}`
-        },
-        {
           name: 'name',
           required: true,
           label: 'Name',
           align: 'left',
           field: row => row.name,
+          format: val => `${val}`
+        },
+        {
+          name: 'email',
+          required: true,
+          label: 'Email',
+          align: 'left',
+          field: row => row.email,
           format: val => `${val}`
         },
         {
@@ -64,14 +64,6 @@ export default defineComponent({
           label: 'Last Name',
           align: 'left',
           field: row => row.lastName,
-          format: val => `${val}`
-        },
-        {
-          name: 'email',
-          required: true,
-          label: 'Email',
-          align: 'left',
-          field: row => row.email,
           format: val => `${val}`
         },
         {
@@ -93,13 +85,16 @@ export default defineComponent({
       ]
     },
   },
+  unmounted() {
+    this.$controller.unsubscribe(this.subscriptionId);
+  },
   methods: {
     subscribe(request) {
       this.pagination = request.pagination;
       this.filter = request.filter;
 
       this.loading = true;
-      this.$controller.user.subscribeUsers(
+      this.subscriptionId = this.$controller.user.subscribeUsers(
         this.subscriptionId,
         {
           limit: this.pagination.rowsPerPage,
@@ -110,12 +105,14 @@ export default defineComponent({
         this.afterUsersError
       );
     },
-    afterUsersReceived(data) {
+    afterUsersReceived(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       this.rows = data.rows;
       this.pagination.rowsNumber = data.page.totalRows;
     },
-    afterUsersError(data) {
+    afterUsersError(data, subscriptionId) {
+      this.subscriptionId = subscriptionId;
       this.loading = false;
       Notify.create({
         message: data,

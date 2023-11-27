@@ -18,7 +18,7 @@ export default (client) => ({
             totalPages
           }
         }
-      }`, (data) => callback(data), (data) => error(data.message));
+      }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
     }
 
     return client.graphql.subscribeTrackedObject(`query {
@@ -35,6 +35,6 @@ export default (client) => ({
           totalPages
         }
       }
-    }`, (data) => callback(data), (data) => error(data.message));
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
 });

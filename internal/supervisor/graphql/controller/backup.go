@@ -18,7 +18,7 @@ type ExecuteBackupResponseDto struct {
 }
 
 type Backup struct {
-	Id          uuid.UUID  `sql:"default:uuid_generate_v4()"`
+	Id          uuid.UUID  `json:"id" graphql:"id"`
 	Name        string     `json:"name" graphql:"name"`
 	Description string     `json:"description" graphql:"description"`
 	JobId       uuid.UUID  `json:"jobId" graphql:"jobId"`
@@ -69,7 +69,7 @@ type BackupPage struct {
 	Page
 }
 
-type GetBackupsDto struct {
+type GetBackupsRequest struct {
 	JobId  *uuid.UUID `json:"jobId" graphql:"jobId"`
 	Limit  *int64     `json:"limit,omitempty;query:limit"`
 	Page   *int64     `json:"page,omitempty;query:page"`
@@ -77,7 +77,7 @@ type GetBackupsDto struct {
 	Search *string    `json:"search"`
 }
 
-func GetBackups(ctx context.Context, args GetBackupsDto) (*BackupPage, error) {
+func GetBackups(ctx context.Context, args GetBackupsRequest) (*BackupPage, error) {
 	if !IsPermitted(ctx, []string{"backup.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}

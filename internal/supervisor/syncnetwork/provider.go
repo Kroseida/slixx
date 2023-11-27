@@ -1,9 +1,10 @@
 package syncnetwork
 
 import (
+	"fmt"
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/common"
-	"kroseida.org/slixx/internal/supervisor/application"
+	satellitelogService "kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	supervisorProtocol "kroseida.org/slixx/internal/supervisor/syncnetwork/protocol"
@@ -39,7 +40,6 @@ func ProvideClient(configuration model.Satellite) {
 		Address:  configuration.Address,
 		Token:    configuration.Token,
 		Closed:   false,
-		Logger:   application.Logger,
 		Protocol: protocol.Supervisor,
 		Handler: map[string]protocol.Handler{
 			protocol.Handshake:  &handshake.ClientHandler{},
@@ -54,6 +54,22 @@ func ProvideClient(configuration model.Satellite) {
 			action.SyncJobs(&configuration.Id)
 		},
 		Version: common.CurrentVersion,
+		LogListener: func(level string, args ...interface{}) {
+			var line string
+			for _, arg := range args {
+				line += fmt.Sprint(arg) + " "
+			}
+			_ = satellitelogService.Create([]*model.SatelliteLogEntry{
+				{
+					Id:          uuid.New(),
+					Sender:      "supervisor",
+					SatelliteId: configuration.Id,
+					Level:       level,
+					Message:     line,
+					LoggedAt:    time.Now(),
+				},
+			})
+		},
 	}
 	// TODO: make timeout configurable in the database or in the configuration file - not sure yet
 	go client.Dial(5*time.Second, 5*time.Second)

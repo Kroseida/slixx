@@ -33,7 +33,7 @@ func (handler *ClientHandler) HandleConnectionAccepted(client protocol.WrappedCl
 
 func (handler *ClientHandler) HandleConnectionDenied(client protocol.WrappedClient) error {
 	c := client.(*syncnetwork.Client)
-	c.Logger.Error("Connection denied to remote (" + c.Connection.RemoteAddr().String() + ")")
+	c.LogListener("error", "Connection denied to remote ("+c.Connection.RemoteAddr().String()+")")
 	c.Connection.Close() // Force to reconnect
 	return nil
 }

@@ -44,28 +44,11 @@ var Permissions = map[string]string{
 	"satellite.delete": "Delete Satellite",
 	"satellite.resync": "Request Satellite Resync",
 
-	"backup.view": "View Backup",
+	"backup.view":    "View Backup",
+	"execution.view": "View Execution",
 }
 
 func (provider UserProvider) Create(name string, email string, firstName string, lastName string, description string, active bool) (*model.User, error) {
-	if name == "" {
-		return nil, graphql.NewSafeError("name can not be empty")
-	}
-	if email != "" && !strings.Contains(email, "@") {
-		return nil, graphql.NewSafeError("invalid email")
-	}
-	if strings.Contains(name, " ") {
-		return nil, graphql.NewSafeError("name can not contain spaces")
-	}
-
-	existingUser, err := provider.GetByName(name)
-	if err != nil {
-		return nil, err
-	}
-	if existingUser != nil {
-		return nil, graphql.NewSafeError("name already in use")
-	}
-
 	user := &model.User{
 		Id:          uuid.New(),
 		Name:        name,
