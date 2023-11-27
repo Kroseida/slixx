@@ -157,6 +157,8 @@ func Test_UpdateStorage_EmptyName(t *testing.T) {
 
 func Test_GetStorages(t *testing.T) {
 	teardownSuite := setupSuite()
+	teardownSuite()
+	teardownSuite = setupSuite()
 
 	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
 	if err != nil {
