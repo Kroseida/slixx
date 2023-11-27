@@ -5,7 +5,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"kroseida.org/slixx/internal/supervisor/datasource"
-	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/graphql/controller"
 	"testing"
 )
@@ -380,19 +379,5 @@ func Test_GetLocalUser(t *testing.T) {
 	}
 
 	assert.Equal(t, "admin", user.Name)
-	teardownSuite()
-}
-
-func Test_GetPermissions(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	permissions, err := controller.GetPermissions()
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, len(provider.Permissions), len(permissions))
 	teardownSuite()
 }

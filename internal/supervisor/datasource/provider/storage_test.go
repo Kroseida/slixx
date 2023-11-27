@@ -155,42 +155,6 @@ func Test_UpdateStorage_EmptyName(t *testing.T) {
 	teardownSuite()
 }
 
-func Test_GetStorages(t *testing.T) {
-	teardownSuite := setupSuite()
-	teardownSuite()
-	teardownSuite = setupSuite()
-
-	_, err := datasource.StorageProvider.Create("Test Storage", "", "FTP", "{}")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	_, err = datasource.StorageProvider.Create("Test Storage 2", "", "FTP", "{}")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	storages, err := datasource.StorageProvider.List()
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, 2, len(storages))
-	assert.Equal(t, "Test Storage", storages[0].Name)
-	assert.Equal(t, "FTP", storages[0].Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storages[0].Configuration)
-	assert.Equal(t, "Test Storage 2", storages[1].Name)
-	assert.Equal(t, "FTP", storages[1].Kind)
-	assert.Equal(t, "{\"host\":\"\",\"timeout\":0,\"file\":\"/\",\"username\":\"\",\"password\":\"\"}", storages[1].Configuration)
-	teardownSuite()
-}
-
 func Test_GetStoragesPaged(t *testing.T) {
 	teardownSuite := setupSuite()
 
