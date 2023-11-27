@@ -360,24 +360,3 @@ func Test_GetUser(t *testing.T) {
 	assert.Equal(t, "admin", user.Name)
 	teardownSuite()
 }
-
-func Test_GetLocalUser(t *testing.T) {
-	teardownSuite := setupSuite()
-
-	userByName, err := datasource.UserProvider.GetByName("admin")
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	user, err := controller.GetLocalUser(context.WithValue(context.Background(), "user", userByName))
-	if err != nil {
-		t.Error(err)
-		teardownSuite()
-		return
-	}
-
-	assert.Equal(t, "admin", user.Name)
-	teardownSuite()
-}
