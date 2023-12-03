@@ -89,7 +89,7 @@
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
               <div class="q-gutter-xl">
                 <job-selectable-component @input="onOriginStorageSelected"
-                                          :value="this.job.originStorageId"
+                                          :value="job.originStorageId"
                                           label="Origin Storage"
                                           :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"/>
               </div>
@@ -97,19 +97,17 @@
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
               <div class="q-gutter-xl">
                 <job-selectable-component @input="onDestinationStorageSelected"
-                                          :value="this.job.destinationStorageId"
+                                          :value="job.destinationStorageId"
                                           label="Destination Storage"
                                           :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"/>
               </div>
             </div>
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
               <div class="q-gutter-xl">
-                <q-input
-                  dense
-                  filled
-                  label="Executor Satellite"
-                  v-model="job.executorSatelliteId"
-                  :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"
+                <satellite-selectable-component @input="onExecutorSatelliteSelected"
+                                                :value="job.executorSatelliteId"
+                                                label="Executor Satellite"
+                                                :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"
                 />
               </div>
             </div>
