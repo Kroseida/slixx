@@ -1,7 +1,7 @@
 <template>
   <q-table
     style="height: 100%"
-    title="Storage List"
+    :title="title"
     :rows="rows"
     v-model:pagination="pagination"
     :loading="loading"

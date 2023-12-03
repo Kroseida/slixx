@@ -28,12 +28,14 @@ func (provider ExecutionProvider) Get(id uuid.UUID) (*model.Execution, error) {
 
 func (provider ExecutionProvider) Create(
 	id uuid.UUID,
+	kind string,
 	jobId uuid.UUID,
 	statusType string,
 	finishedAt *time.Time,
 ) (*model.Execution, error) {
 	execution := model.Execution{
 		Id:         id,
+		Kind:       kind,
 		JobId:      jobId,
 		Status:     statusType,
 		FinishedAt: finishedAt,

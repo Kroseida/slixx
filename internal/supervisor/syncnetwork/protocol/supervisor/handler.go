@@ -43,6 +43,7 @@ func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisor
 func (h *Handler) HandleExecutionStatusUpdate(_ protocol.WrappedClient, update *supervisorPacket.ExecutionStatusUpdate) error {
 	return executionService.ApplyExecutionToIndex(
 		update.Id,
+		update.Kind,
 		update.JobId,
 		update.Percentage,
 		update.StatusType,

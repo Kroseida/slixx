@@ -34,7 +34,7 @@ func (l *SyncedLogger) Warn(args ...interface{}) {
 }
 
 func (l *SyncedLogger) appendLine(level string, args ...interface{}) {
-	if !CurrentSettings.Logger.SyncToSupervisor {
+	if !CurrentSettings.LogSync.Active {
 		return
 	}
 	var line string

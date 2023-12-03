@@ -45,8 +45,8 @@
       >
         <q-tab name="details" label="Details"/>
         <q-tab name="configuration" label="Configuration"/>
-        <q-tab name="backups" label="Backups" v-if="!isNewJob() && globalStore.isPermitted('backup.view')" />
-        <q-tab name="executions" label="Executions" v-if="!isNewJob() && globalStore.isPermitted('execution.view')" />
+        <q-tab name="backups" label="Backups" v-if="!isNewJob() && globalStore.isPermitted('backup.view')"/>
+        <q-tab name="executions" label="Executions" v-if="!isNewJob() && globalStore.isPermitted('execution.view')"/>
       </q-tabs>
       <q-separator/>
       <q-tab-panels v-model="tab" animated>
@@ -88,24 +88,18 @@
             </div>
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
               <div class="q-gutter-xl">
-                <q-input
-                  dense
-                  filled
-                  label="Origin Storage"
-                  v-model="job.originStorageId"
-                  :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"
-                />
+                <job-selectable-component @input="onOriginStorageSelected"
+                                          :value="this.job.originStorageId"
+                                          label="Origin Storage"
+                                          :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"/>
               </div>
             </div>
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
               <div class="q-gutter-xl">
-                <q-input
-                  dense
-                  filled
-                  label="Destination Storage"
-                  v-model="job.destinationStorageId"
-                  :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"
-                />
+                <job-selectable-component @input="onDestinationStorageSelected"
+                                          :value="this.job.destinationStorageId"
+                                          label="Destination Storage"
+                                          :readonly="!globalStore.isPermitted('job.update') || (!globalStore.isPermitted('job.create') && isNewJob())"/>
               </div>
             </div>
             <div class="col-xs-12 col-sm-6 col-md-4 slixx-pad-5">
@@ -150,7 +144,7 @@
           </div>
         </q-tab-panel>
         <q-tab-panel name="backups" class="no-padding">
-          <backup-list-component :job-id="job.id" :columns="backupColumns"/>
+          <backup-list-component :job-id="job.id" :columns="backupColumns" @rowClick="openBackup"/>
         </q-tab-panel>
         <q-tab-panel name="executions" class="no-padding">
           <execution-list-component :job-id="job.id" :columns="executionColumns"/>

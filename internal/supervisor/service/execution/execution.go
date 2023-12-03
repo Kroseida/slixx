@@ -11,6 +11,7 @@ import (
 
 func ApplyExecutionToIndex(
 	id uuid.UUID,
+	kind string,
 	jobId uuid.UUID,
 	percentage float64,
 	statusType string,
@@ -23,6 +24,7 @@ func ApplyExecutionToIndex(
 	if execution == nil {
 		_, err := datasource.ExecutionProvider.Create(
 			id,
+			kind,
 			jobId,
 			statusType,
 			nil,

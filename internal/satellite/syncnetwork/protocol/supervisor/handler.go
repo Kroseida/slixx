@@ -94,7 +94,7 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 		err := backup.Execute(execute.Id, execute.JobId)
 		if err != nil {
 			application.Logger.Error("Error while executing backup", err)
-			action.SendBackupStatusUpdate(execute.Id, strategyRegistry.BackupStatusUpdate{
+			action.SendExecutionStatusUpdate(execute.Id, "BACKUO", strategyRegistry.BackupStatusUpdate{
 				JobId:      &execute.JobId,
 				Percentage: 0,
 				StatusType: "FAILED",

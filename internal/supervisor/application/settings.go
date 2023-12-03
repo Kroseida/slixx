@@ -5,6 +5,7 @@ type Settings struct {
 	Http           Http           `json:"http" graphql:"http"`
 	Database       Database       `json:"database" graphql:"database"`
 	Logger         Log            `json:"logger" graphql:"logger"`
+	LogSync        LogSync        `json:"logSync" graphql:"logSync"`
 }
 
 type Authentication struct {
@@ -28,6 +29,13 @@ type Log struct {
 	Mode string `json:"mode" graphql:"mode"`
 }
 
+type LogSync struct {
+	Active        bool `json:"active" graphql:"active"`
+	RunCleanUp    bool `json:"runCleanUp" graphql:"runCleanUp"`
+	LogRetention  int  `json:"logRetention" graphql:"logRetention"`
+	CheckInterval int  `json:"checkInterval" graphql:"checkInterval"`
+}
+
 var DefaultSettings = Settings{
 	Authentication: Authentication{
 		HashCost:        16,
@@ -47,6 +55,12 @@ var DefaultSettings = Settings{
 	},
 	Logger: Log{
 		Mode: "info",
+	},
+	LogSync: LogSync{
+		Active:        true,
+		RunCleanUp:    true,
+		LogRetention:  7 * 24,
+		CheckInterval: 6,
 	},
 }
 var CurrentSettings = DefaultSettings

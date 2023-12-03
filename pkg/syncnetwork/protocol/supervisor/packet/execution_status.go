@@ -8,6 +8,7 @@ import (
 
 type ExecutionStatusUpdate struct {
 	Id         uuid.UUID `json:"id"`
+	Kind       string    `json:"kind"`
 	JobId      uuid.UUID `json:"jobId"`
 	Percentage float64   `json:"percentage"`
 	StatusType string    `json:"statusType"`
@@ -24,6 +25,7 @@ func (packet *ExecutionStatusUpdate) Protocol() []string {
 
 func (packet *ExecutionStatusUpdate) Serialize(buffer *bytebuf.ByteBuffer) error {
 	buffer.WriteString(packet.Id.String())
+	buffer.WriteString(packet.Kind)
 	buffer.WriteString(packet.JobId.String())
 	buffer.WriteFloat64(packet.Percentage)
 	buffer.WriteString(packet.StatusType)
@@ -36,6 +38,9 @@ func (packet *ExecutionStatusUpdate) Deserialize(buffer *bytebuf.ByteBuffer) err
 	if err != nil {
 		return err
 	}
+
+	packet.Kind = buffer.ReadString()
+
 	jobId, err := uuid.Parse(buffer.ReadString())
 	if err != nil {
 		return err

@@ -11,7 +11,7 @@ import (
 )
 
 func SyncLogsToSupervisor() {
-	if !application.CurrentSettings.Logger.SyncToSupervisor {
+	if !application.CurrentSettings.LogSync.Active {
 		return
 	}
 	// iterate over all connection in server
@@ -34,7 +34,7 @@ func SyncLogsToSupervisor() {
 	}
 }
 
-func SendBackupStatusUpdate(id *uuid.UUID, status strategy.BackupStatusUpdate) {
+func SendExecutionStatusUpdate(id *uuid.UUID, kind string, status strategy.BackupStatusUpdate) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {
 		if connection.Protocol != protocol.Supervisor {
@@ -43,6 +43,7 @@ func SendBackupStatusUpdate(id *uuid.UUID, status strategy.BackupStatusUpdate) {
 
 		connection.Send(&packet.ExecutionStatusUpdate{
 			Id:         *id,
+			Kind:       kind,
 			JobId:      *status.JobId,
 			Percentage: status.Percentage,
 			StatusType: status.StatusType,

@@ -6,6 +6,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/graphql"
 	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
+	"kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/pkg/utils"
 	"os"
 )
@@ -27,6 +28,9 @@ func main() {
 		os.Exit(1)
 		return
 	}
+
+	// We start the log cleanup job
+	go satellitelog.StartCleanupJob()
 
 	// We check for new satellites every ... minutes
 	go satelliteService.StartWatchdog()
