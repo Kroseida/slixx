@@ -26,6 +26,10 @@ export default defineComponent({
     });
   },
   props: {
+    title: {
+      type: String,
+      default: 'Satellite List'
+    },
     enableFilter: {
       type: Boolean,
       default: true

@@ -9,6 +9,7 @@ import KindInputComponent from "components/KindedInputComponent/KindInputCompone
 import BackupListComponent from "components/BackupListComponent/BackupListComponent.vue";
 import ExecutionListComponent from "components/ExecutionListComponent/ExecutionListComponent.vue";
 import JobSelectableComponent from "components/StorageSelectableComponent/StorageSelectableComponent.vue";
+import SatelliteSelectableComponent from "components/SatelliteSelectableComponent/SatelliteSelectableComponent.vue";
 
 export default defineComponent({
   name: 'JobListPage',
@@ -18,7 +19,8 @@ export default defineComponent({
     KindInputComponent,
     BackupListComponent,
     ExecutionListComponent,
-    JobSelectableComponent
+    JobSelectableComponent,
+    SatelliteSelectableComponent
   },
   data() {
     const constantsStore = useConstantsStore();
@@ -323,6 +325,9 @@ export default defineComponent({
     },
     onDestinationStorageSelected(storage) {
       this.job.destinationStorageId = storage.id;
+    },
+    onExecutorSatelliteSelected(satellite) {
+      this.job.executorSatelliteId = satellite.id;
     }
   }
 })
