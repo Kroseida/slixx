@@ -8,6 +8,7 @@ import moment from "moment/moment";
 import KindInputComponent from "components/KindedInputComponent/KindInputComponent.vue";
 import BackupListComponent from "components/BackupListComponent/BackupListComponent.vue";
 import ExecutionListComponent from "components/ExecutionListComponent/ExecutionListComponent.vue";
+import JobSelectableComponent from "components/StorageSelectableComponent/StorageSelectableComponent.vue";
 
 export default defineComponent({
   name: 'JobListPage',
@@ -17,6 +18,7 @@ export default defineComponent({
     KindInputComponent,
     BackupListComponent,
     ExecutionListComponent,
+    JobSelectableComponent
   },
   data() {
     const constantsStore = useConstantsStore();
@@ -312,6 +314,15 @@ export default defineComponent({
         return false;
       }
       return true;
+    },
+    openBackup(_, row) {
+      this.router.push({path: `/backup/${row.id}`})
+    },
+    onOriginStorageSelected(storage) {
+      this.job.originStorageId = storage.id;
+    },
+    onDestinationStorageSelected(storage) {
+      this.job.destinationStorageId = storage.id;
     }
   }
 })

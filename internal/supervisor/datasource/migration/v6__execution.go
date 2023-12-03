@@ -15,6 +15,7 @@ func (V6Execution) Migrate(database *gorm.DB) error {
 	err := database.Exec(`CREATE TABLE executions (id char(36) NOT NULL, 
 													job_id char(36) NOT NULL,
 													status text NOT NULL,
+													kind text NOT NULL,
                                                     created_at DATETIME, 
                                                     finished_at DATETIME,
                                                     updated_at DATETIME default NULL,

@@ -10,7 +10,7 @@
     </thead>
     <tbody>
     <tr v-for="entry in history" :key="entry.id"
-        :class="{'bg-green-4': entry.statusType === 'FINISHED', 'bg-red-4': entry.statusType === 'FAILED'}">
+        :class="{'bg-green-3': entry.statusType === 'FINISHED', 'bg-red-4': entry.statusType === 'FAILED'}">
       <td class="text-left">{{ entry.createdAt }}</td>
       <td class="text-left">{{ entry.message }}</td>
       <td class="text-left">{{ entry.statusType }}</td>

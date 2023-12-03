@@ -26,6 +26,10 @@ export default defineComponent({
     });
   },
   props: {
+    title: {
+      type: String,
+      default: 'Storage List'
+    },
     enableFilter: {
       type: Boolean,
       default: true

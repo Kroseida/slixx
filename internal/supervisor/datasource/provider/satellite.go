@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"kroseida.org/slixx/pkg/model"
 	"math"
+	"time"
 )
 
 // SatelliteProvider Satellite Provider
@@ -175,4 +176,14 @@ func (provider SatelliteProvider) GetLogs(satelliteId uuid.UUID, pagination *Pag
 
 	pagination.Rows = logs
 	return pagination, nil
+}
+
+func (provider SatelliteProvider) DeleteLogsOlderThan(date time.Time) error {
+	result := provider.Database.Where("logged_at < ?", date).Delete(&model.SatelliteLogEntry{})
+
+	if isSqlError(result.Error) {
+		return result.Error
+	}
+
+	return nil
 }

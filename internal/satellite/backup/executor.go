@@ -131,7 +131,7 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
 		status.Id = id
 		status.JobId = &job.Id
-		action.SendBackupStatusUpdate(id, status)
+		action.SendExecutionStatusUpdate(id, "BACKUP", status)
 	})
 	if err != nil {
 		return err

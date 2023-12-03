@@ -7,11 +7,15 @@ import (
 type Settings struct {
 	Logger    Log       `json:"logger" graphql:"logger"`
 	Satellite Satellite `json:"satellite" graphql:"satellite"`
+	LogSync   LogSync   `json:"logSync" graphql:"logSync"`
+}
+
+type LogSync struct {
+	Active bool `json:"active" graphql:"active"`
 }
 
 type Log struct {
-	Mode             string `json:"mode" graphql:"mode"`
-	SyncToSupervisor bool   `json:"syncToSuperVisor" graphql:"syncToSuperVisor"`
+	Mode string `json:"mode" graphql:"mode"`
 }
 
 type Satellite struct {
@@ -25,8 +29,10 @@ type Network struct {
 
 var DefaultSettings = Settings{
 	Logger: Log{
-		Mode:             "info",
-		SyncToSupervisor: true,
+		Mode: "info",
+	},
+	LogSync: LogSync{
+		Active: true,
 	},
 	Satellite: Satellite{
 		Network: Network{

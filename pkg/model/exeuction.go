@@ -7,6 +7,7 @@ import (
 
 type Execution struct {
 	Id         uuid.UUID `sql:"default:uuid_generate_v4()"`
+	Kind       string
 	JobId      uuid.UUID
 	Status     string
 	CreatedAt  time.Time
