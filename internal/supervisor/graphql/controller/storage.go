@@ -25,7 +25,7 @@ type Storage struct {
 	DeletedAt     time.Time `json:"deletedAt" graphql:"deletedAt"`
 }
 
-type StoragePrototype struct {
+type StoragePrototypeDto struct {
 	Id          uuid.UUID `json:"id" graphql:"id"`
 	Name        string    `json:"name" graphql:"name"`
 	Description string    `json:"description" graphql:"description"`
@@ -35,8 +35,8 @@ type StoragePrototype struct {
 	DeletedAt   time.Time `json:"deletedAt" graphql:"deletedAt"`
 }
 
-type StoragesPage struct {
-	Rows []StoragePrototype `json:"rows" graphql:"rows"`
+type StoragesPageDto struct {
+	Rows []StoragePrototypeDto `json:"rows" graphql:"rows"`
 	Page
 }
 
@@ -59,7 +59,7 @@ func GetStorage(ctx context.Context, args GetStorageDto) (*Storage, error) {
 	return storageDto, nil
 }
 
-func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
+func GetStorages(ctx context.Context, args GetPageDto) (*StoragesPageDto, error) {
 	if !IsPermitted(ctx, []string{"storage.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -73,7 +73,7 @@ func GetStorages(ctx context.Context, args PageArgs) (*StoragesPage, error) {
 		return nil, err
 	}
 
-	var pageDto StoragesPage
+	var pageDto StoragesPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil

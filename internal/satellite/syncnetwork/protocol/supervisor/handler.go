@@ -7,6 +7,7 @@ import (
 	"kroseida.org/slixx/internal/satellite/syncdata"
 	"kroseida.org/slixx/internal/satellite/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
+	"kroseida.org/slixx/pkg/statustype"
 	strategyRegistry "kroseida.org/slixx/pkg/strategy"
 	syncnetworkBase "kroseida.org/slixx/pkg/syncnetwork"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
@@ -33,6 +34,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, packet protocol.Packet) 
 	}
 	if packet.PacketId() == (&supervisorPacket.RequestResync{}).PacketId() {
 		return h.HandleRequestResync(client, packet.(*supervisorPacket.RequestResync))
+	}
+	if packet.PacketId() == (&supervisorPacket.ExecuteRestore{}).PacketId() {
+		return h.HandleExecuteRestore(client, packet.(*supervisorPacket.ExecuteRestore))
 	}
 	return nil
 }
@@ -94,10 +98,10 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 		err := backup.Execute(execute.Id, execute.JobId)
 		if err != nil {
 			application.Logger.Error("Error while executing backup", err)
-			action.SendExecutionStatusUpdate(execute.Id, "BACKUO", strategyRegistry.BackupStatusUpdate{
+			action.SendStatusUpdate(execute.Id, "BACKUP", strategyRegistry.StatusUpdate{
 				JobId:      &execute.JobId,
 				Percentage: 0,
-				StatusType: "FAILED",
+				StatusType: statustype.Error,
 				Message:    err.Error(),
 			})
 		}
@@ -109,5 +113,21 @@ func (h *Handler) HandleRequestResync(client protocol.WrappedClient, _ *supervis
 	c := client.(*syncnetworkBase.ConnectedClient)
 	c.Server.Logger.Info("Received request for resync from supervisor")
 	backup.SendBackupInfos()
+	return nil
+}
+
+func (h *Handler) HandleExecuteRestore(_ protocol.WrappedClient, restore *supervisorPacket.ExecuteRestore) error {
+	go func() {
+		err := backup.Restore(restore.Id, restore.JobId, restore.BackupId)
+		if err != nil {
+			application.Logger.Error("Error while executing backup", err)
+			action.SendStatusUpdate(restore.Id, "RESTORE", strategyRegistry.StatusUpdate{
+				JobId:      &restore.JobId,
+				Percentage: 0,
+				StatusType: statustype.Error,
+				Message:    err.Error(),
+			})
+		}
+	}()
 	return nil
 }

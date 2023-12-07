@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-type Job struct {
+type JobDto struct {
 	Id                   uuid.UUID `sql:"default:uuid_generate_v4()"`
 	Name                 string
 	Description          string
@@ -31,12 +31,12 @@ type GetJobDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }
 
-type JobsPage struct {
-	Rows []Job `json:"rows" graphql:"rows"`
+type GetJobsPageDto struct {
+	Rows []JobDto `json:"rows" graphql:"rows"`
 	Page
 }
 
-func GetJob(ctx context.Context, args GetJobDto) (*Job, error) {
+func GetJob(ctx context.Context, args GetJobDto) (*JobDto, error) {
 	if !IsPermitted(ctx, []string{"job.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -45,13 +45,13 @@ func GetJob(ctx context.Context, args GetJobDto) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jobDto *Job
+	var jobDto *JobDto
 	dto.Map(&job, &jobDto)
 
 	return jobDto, nil
 }
 
-func GetJobs(ctx context.Context, args PageArgs) (*JobsPage, error) {
+func GetJobs(ctx context.Context, args GetPageDto) (*GetJobsPageDto, error) {
 	if !IsPermitted(ctx, []string{"job.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -65,7 +65,7 @@ func GetJobs(ctx context.Context, args PageArgs) (*JobsPage, error) {
 		return nil, err
 	}
 
-	var pageDto JobsPage
+	var pageDto GetJobsPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil
@@ -81,7 +81,7 @@ type CreateJobDto struct {
 	ExecutorSatelliteId  uuid.UUID
 }
 
-func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
+func CreateJob(ctx context.Context, args CreateJobDto) (*JobDto, error) {
 	if !IsPermitted(ctx, []string{"job.create"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -98,7 +98,7 @@ func CreateJob(ctx context.Context, args CreateJobDto) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jobsDto Job
+	var jobsDto JobDto
 	dto.Map(job, &jobsDto)
 
 	return &jobsDto, err
@@ -115,7 +115,7 @@ type UpdateJobDto struct {
 	ExecutorSatelliteId  *uuid.UUID
 }
 
-func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
+func UpdateJob(ctx context.Context, args UpdateJobDto) (*JobDto, error) {
 	if !IsPermitted(ctx, []string{"job.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -133,7 +133,7 @@ func UpdateJob(ctx context.Context, args UpdateJobDto) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jobDto Job
+	var jobDto JobDto
 	dto.Map(job, &jobDto)
 
 	return &jobDto, err
@@ -143,7 +143,7 @@ type DeleteJobDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }
 
-func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
+func DeleteJob(ctx context.Context, args DeleteJobDto) (*JobDto, error) {
 	if !IsPermitted(ctx, []string{"job.delete"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -152,7 +152,7 @@ func DeleteJob(ctx context.Context, args DeleteJobDto) (*Job, error) {
 	if err != nil {
 		return nil, err
 	}
-	var jobDto Job
+	var jobDto JobDto
 	dto.Map(job, &jobDto)
 
 	return &jobDto, err

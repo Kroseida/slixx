@@ -17,7 +17,7 @@ type ExecuteBackupResponseDto struct {
 	JobId uuid.UUID `json:"jobId" graphql:"jobId"`
 }
 
-type Backup struct {
+type BackupDto struct {
 	Id          uuid.UUID  `json:"id" graphql:"id"`
 	Name        string     `json:"name" graphql:"name"`
 	Description string     `json:"description" graphql:"description"`
@@ -45,6 +45,27 @@ func ExecuteBackup(ctx context.Context, execute ExecuteBackupDto) (*ExecuteBacku
 	}, nil
 }
 
+type RestoreBackupDto struct {
+	BackupId uuid.UUID `json:"backupId" graphql:"backupId"`
+}
+
+type RestoreBackupResponseDto struct {
+	Id uuid.UUID `json:"id" graphql:"id"`
+}
+
+func RestoreBackup(ctx context.Context, restore RestoreBackupDto) (*RestoreBackupResponseDto, error) {
+	if !IsPermitted(ctx, []string{"backup.restore"}) {
+		return nil, graphql.NewSafeError("missing permission")
+	}
+	var id, err = backupService.Restore(restore.BackupId)
+	if err != nil {
+		return nil, err
+	}
+	return &RestoreBackupResponseDto{
+		Id: *id,
+	}, nil
+}
+
 type RequestBackupSyncDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }
@@ -64,12 +85,12 @@ func DeleteBackup() {
 
 }
 
-type BackupPage struct {
-	Rows []Backup `json:"rows" graphql:"rows"`
+type BackupPageDto struct {
+	Rows []BackupDto `json:"rows" graphql:"rows"`
 	Page
 }
 
-type GetBackupsRequest struct {
+type GetBackupsPageRequest struct {
 	JobId  *uuid.UUID `json:"jobId" graphql:"jobId"`
 	Limit  *int64     `json:"limit,omitempty;query:limit"`
 	Page   *int64     `json:"page,omitempty;query:page"`
@@ -77,7 +98,7 @@ type GetBackupsRequest struct {
 	Search *string    `json:"search"`
 }
 
-func GetBackups(ctx context.Context, args GetBackupsRequest) (*BackupPage, error) {
+func GetBackups(ctx context.Context, args GetBackupsPageRequest) (*BackupPageDto, error) {
 	if !IsPermitted(ctx, []string{"backup.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -91,8 +112,27 @@ func GetBackups(ctx context.Context, args GetBackupsRequest) (*BackupPage, error
 		return nil, err
 	}
 
-	var pageDto BackupPage
+	var pageDto BackupPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil
+}
+
+type GetBackupDto struct {
+	Id uuid.UUID `json:"id" graphql:"id"`
+}
+
+func GetBackup(ctx context.Context, args GetBackupDto) (*BackupDto, error) {
+	if !IsPermitted(ctx, []string{"backup.view"}) {
+		return nil, graphql.NewSafeError("missing permission")
+	}
+	reactive.InvalidateAfter(ctx, 5*time.Second)
+	job, err := backupService.Get(args.Id)
+	if err != nil {
+		return nil, err
+	}
+	var backupDto *BackupDto
+	dto.Map(&job, &backupDto)
+
+	return backupDto, nil
 }

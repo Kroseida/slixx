@@ -34,14 +34,14 @@ func SyncLogsToSupervisor() {
 	}
 }
 
-func SendExecutionStatusUpdate(id *uuid.UUID, kind string, status strategy.BackupStatusUpdate) {
+func SendStatusUpdate(id *uuid.UUID, kind string, status strategy.StatusUpdate) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {
 		if connection.Protocol != protocol.Supervisor {
 			continue
 		}
 
-		connection.Send(&packet.ExecutionStatusUpdate{
+		connection.Send(&packet.StatusUpdate{
 			Id:         *id,
 			Kind:       kind,
 			JobId:      *status.JobId,

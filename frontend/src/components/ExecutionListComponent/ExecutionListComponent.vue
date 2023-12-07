@@ -1,5 +1,4 @@
 <template>
-
   <q-dialog v-model="showExecutionHistory" persistent>
     <q-card style="width: 100%; max-width: 800px; min-width: 600px; min-height: 400px; max-height: 600px; overflow: auto;">
       <q-card-section class="row items-center q-pb-none">

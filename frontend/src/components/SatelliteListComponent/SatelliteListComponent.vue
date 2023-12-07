@@ -11,8 +11,16 @@
     row-key="name"
     @request="subscribe"
   >
-    <template v-slot:top-right v-if="enableFilter">
+    <template v-slot:top-right v-if="enableFilter && title !== ''">
       <q-input dense debounce="300" v-model="filter" placeholder="Search" style="min-width: 350px">
+        <template v-slot:append>
+          <q-icon name="search"/>
+        </template>
+      </q-input>
+      <slot name="action"/>
+    </template>
+    <template v-slot:top v-if="enableFilter && title === ''">
+      <q-input dense debounce="300" v-model="filter" placeholder="Search" style="min-width: 100%">
         <template v-slot:append>
           <q-icon name="search"/>
         </template>

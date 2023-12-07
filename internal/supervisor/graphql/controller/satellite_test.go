@@ -58,7 +58,7 @@ func Test_GetSatellites(t *testing.T) {
 		return
 	}
 
-	satellites, err := controller.GetSatellites(withPermissions([]string{"satellite.view"}), controller.PageArgs{})
+	satellites, err := controller.GetSatellites(withPermissions([]string{"satellite.view"}), controller.GetPageDto{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()
@@ -135,7 +135,7 @@ func Test_DeleteSatellite(t *testing.T) {
 		return
 	}
 
-	satellites, err := controller.GetSatellites(withPermissions([]string{"satellite.view"}), controller.PageArgs{})
+	satellites, err := controller.GetSatellites(withPermissions([]string{"satellite.view"}), controller.GetPageDto{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

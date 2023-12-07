@@ -255,7 +255,7 @@ func Test_RemoveUserPermission(t *testing.T) {
 
 func Test_CreatePasswordAuthentication_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPassword{
+	_, err := controller.CreatePasswordAuthentication(withPermissions([]string{"user.notupdate"}), controller.UpdateUserPasswordDto{
 		Id:       uuid.New(),
 		Password: "123123123",
 	})
@@ -284,7 +284,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPassword{
+	_, err = controller.CreatePasswordAuthentication(withPermissions([]string{"user.update"}), controller.UpdateUserPasswordDto{
 		Id:       user.Id,
 		Password: "123123123",
 	})
@@ -294,7 +294,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 		return
 	}
 
-	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthentication{
+	session, err := controller.Authenticate(context.Background(), controller.PasswordAuthenticationDto{
 		Name:     "user",
 		Password: "123123123",
 	})
@@ -305,7 +305,7 @@ func Test_CreatePasswordAuthentication(t *testing.T) {
 
 func Test_GetUsers_MissingPermission(t *testing.T) {
 	teardownSuite := setupSuite()
-	_, err := controller.GetUsers(withPermissions([]string{"user.notview"}), controller.PageArgs{})
+	_, err := controller.GetUsers(withPermissions([]string{"user.notview"}), controller.GetPageDto{})
 	if err == nil && err.Error() != "missing permission" {
 		t.Error("Expected error (permission denied)")
 		teardownSuite()
@@ -316,7 +316,7 @@ func Test_GetUsers_MissingPermission(t *testing.T) {
 
 func Test_GetUsers(t *testing.T) {
 	teardownSuite := setupSuite()
-	users, err := controller.GetUsers(withPermissions([]string{"user.view"}), controller.PageArgs{})
+	users, err := controller.GetUsers(withPermissions([]string{"user.view"}), controller.GetPageDto{})
 	if err != nil {
 		t.Error(err)
 		teardownSuite()

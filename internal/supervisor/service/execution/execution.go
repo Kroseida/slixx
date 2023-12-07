@@ -5,7 +5,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/pkg/model"
-	"kroseida.org/slixx/pkg/strategy/statustype"
+	"kroseida.org/slixx/pkg/statustype"
 	"time"
 )
 

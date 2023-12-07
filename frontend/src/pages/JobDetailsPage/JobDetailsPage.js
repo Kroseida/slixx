@@ -70,6 +70,14 @@ export default defineComponent({
           format: val => val === null ? '' : `${moment(val).format("YYYY-MM-DD HH:mm:ss")}`
         },
         {
+          name: 'kind',
+          required: true,
+          label: 'Kind',
+          align: 'left',
+          field: row => row.kind,
+          format: val => `${val}`
+        },
+        {
           name: 'duration',
           required: true,
           label: 'Duration',

@@ -92,3 +92,21 @@ func SendRequestBackupSync(id *uuid.UUID) error {
 	}
 	return nil
 }
+
+func SendExecuteRestore(jobId uuid.UUID, backupId uuid.UUID) (*uuid.UUID, error) {
+	id := uuid.New()
+	for _, client := range syncnetworkClients.List {
+		if client.Client.Protocol != protocol.Supervisor {
+			continue
+		}
+		err := client.Client.Send(&supervisorPacket.ExecuteRestore{
+			Id:       &id,
+			JobId:    jobId,
+			BackupId: backupId,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &id, nil
+}

@@ -45,6 +45,7 @@ var Permissions = map[string]string{
 	"satellite.resync": "Request Satellite Resync",
 
 	"backup.view":    "View Backup",
+	"backup.restore": "Restore Backup",
 	"execution.view": "View Execution",
 }
 

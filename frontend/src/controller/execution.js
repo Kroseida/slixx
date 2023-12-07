@@ -9,6 +9,7 @@ export default (client) => ({
           rows  {
             id
             jobId
+            kind
             createdAt
             finishedAt
             updatedAt

@@ -18,8 +18,8 @@ func (h *Handler) Handle(client protocol.WrappedClient, p protocol.Packet) error
 	if p.PacketId() == (&supervisorPacket.RawBackupInfo{}).PacketId() {
 		return h.HandleRawBackupInfo(client, p.(*supervisorPacket.RawBackupInfo))
 	}
-	if p.PacketId() == (&supervisorPacket.ExecutionStatusUpdate{}).PacketId() {
-		return h.HandleExecutionStatusUpdate(client, p.(*supervisorPacket.ExecutionStatusUpdate))
+	if p.PacketId() == (&supervisorPacket.StatusUpdate{}).PacketId() {
+		return h.HandleStatusUpdate(client, p.(*supervisorPacket.StatusUpdate))
 	}
 	return nil
 }
@@ -40,7 +40,7 @@ func (h *Handler) HandleRawBackupInfo(_ protocol.WrappedClient, info *supervisor
 	)
 }
 
-func (h *Handler) HandleExecutionStatusUpdate(_ protocol.WrappedClient, update *supervisorPacket.ExecutionStatusUpdate) error {
+func (h *Handler) HandleStatusUpdate(_ protocol.WrappedClient, update *supervisorPacket.StatusUpdate) error {
 	return executionService.ApplyExecutionToIndex(
 		update.Id,
 		update.Kind,

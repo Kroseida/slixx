@@ -12,16 +12,17 @@ import (
 	"time"
 )
 
-type Execution struct {
+type ExecutionDto struct {
 	Id         uuid.UUID  `json:"id" graphql:"id"`
 	JobId      uuid.UUID  `json:"jobId" graphql:"jobId"`
+	Kind       string     `json:"kind" graphql:"kind"`
 	Status     string     `json:"status" graphql:"status"`
 	CreatedAt  time.Time  `json:"createdAt" graphql:"createdAt"`
 	FinishedAt *time.Time `json:"finishedAt" graphql:"finishedAt"`
 	UpdatedAt  time.Time  `json:"updatedAt" graphql:"updatedAt"`
 }
 
-type ExecutionHistory struct {
+type ExecutionHistoryDto struct {
 	Id          uuid.UUID `json:"id" graphql:"id"`
 	ExecutionId uuid.UUID `json:"executionId" graphql:"executionId"`
 	Percentage  float64   `json:"percentage" graphql:"percentage"`
@@ -31,12 +32,12 @@ type ExecutionHistory struct {
 	UpdatedAt   time.Time `json:"updatedAt" graphql:"updatedAt"`
 }
 
-type ExecutionPage struct {
-	Rows []Execution `json:"rows" graphql:"rows"`
+type ExecutionPageDto struct {
+	Rows []ExecutionDto `json:"rows" graphql:"rows"`
 	Page
 }
 
-type GetExecutionsRequest struct {
+type GetExecutionsPageDto struct {
 	JobId  *uuid.UUID `json:"jobId" graphql:"jobId"`
 	Limit  *int64     `json:"limit,omitempty;query:limit"`
 	Page   *int64     `json:"page,omitempty;query:page"`
@@ -44,7 +45,7 @@ type GetExecutionsRequest struct {
 	Search *string    `json:"search"`
 }
 
-func GetExecutions(ctx context.Context, args GetExecutionsRequest) (*ExecutionPage, error) {
+func GetExecutions(ctx context.Context, args GetExecutionsPageDto) (*ExecutionPageDto, error) {
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -58,7 +59,7 @@ func GetExecutions(ctx context.Context, args GetExecutionsRequest) (*ExecutionPa
 		return nil, err
 	}
 
-	var pageDto ExecutionPage
+	var pageDto ExecutionPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil
@@ -68,7 +69,7 @@ type GetExecutionDto struct {
 	ExecutionId uuid.UUID `json:"executionId" graphql:"executionId"`
 }
 
-func GetExecution(ctx context.Context, args GetExecutionDto) (*Execution, error) {
+func GetExecution(ctx context.Context, args GetExecutionDto) (*ExecutionDto, error) {
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -77,13 +78,13 @@ func GetExecution(ctx context.Context, args GetExecutionDto) (*Execution, error)
 	if err != nil {
 		return nil, err
 	}
-	var executionDto *Execution
+	var executionDto *ExecutionDto
 	dto.Map(&execution, &executionDto)
 
 	return executionDto, nil
 }
 
-func GetExecutionHistory(ctx context.Context, args GetExecutionDto) ([]*ExecutionHistory, error) {
+func GetExecutionHistory(ctx context.Context, args GetExecutionDto) ([]*ExecutionHistoryDto, error) {
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -93,7 +94,7 @@ func GetExecutionHistory(ctx context.Context, args GetExecutionDto) ([]*Executio
 	if err != nil {
 		return nil, err
 	}
-	var executionDto []*ExecutionHistory
+	var executionDto []*ExecutionHistoryDto
 	dto.Map(&execution, &executionDto)
 
 	return executionDto, nil

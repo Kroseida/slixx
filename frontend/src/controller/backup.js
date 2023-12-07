@@ -37,4 +37,34 @@ export default (client) => ({
       }
     }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
+  subscribeBackup(subscriptionIdBefore, id, callback, error) {
+    client.graphql.unsubscribe(subscriptionIdBefore);
+    return client.graphql.subscribeTrackedObject(`query {
+      data: getBackup(id: "${id}") {
+        id
+        executionId
+        createdAt
+        updatedAt
+      }
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
+  },
+  restoreBackup(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "restoreBackup",
+      args,
+      fields: [
+        "id",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  },
 });
