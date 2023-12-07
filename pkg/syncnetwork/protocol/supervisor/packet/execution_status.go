@@ -6,7 +6,7 @@ import (
 	"kroseida.org/slixx/pkg/utils/bytebuf"
 )
 
-type ExecutionStatusUpdate struct {
+type StatusUpdate struct {
 	Id         uuid.UUID `json:"id"`
 	Kind       string    `json:"kind"`
 	JobId      uuid.UUID `json:"jobId"`
@@ -15,15 +15,15 @@ type ExecutionStatusUpdate struct {
 	Message    string    `json:"message"`
 }
 
-func (packet *ExecutionStatusUpdate) PacketId() int64 {
+func (packet *StatusUpdate) PacketId() int64 {
 	return 7
 }
 
-func (packet *ExecutionStatusUpdate) Protocol() []string {
+func (packet *StatusUpdate) Protocol() []string {
 	return []string{protocol.Supervisor}
 }
 
-func (packet *ExecutionStatusUpdate) Serialize(buffer *bytebuf.ByteBuffer) error {
+func (packet *StatusUpdate) Serialize(buffer *bytebuf.ByteBuffer) error {
 	buffer.WriteString(packet.Id.String())
 	buffer.WriteString(packet.Kind)
 	buffer.WriteString(packet.JobId.String())
@@ -33,7 +33,7 @@ func (packet *ExecutionStatusUpdate) Serialize(buffer *bytebuf.ByteBuffer) error
 	return nil
 }
 
-func (packet *ExecutionStatusUpdate) Deserialize(buffer *bytebuf.ByteBuffer) error {
+func (packet *StatusUpdate) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	id, err := uuid.Parse(buffer.ReadString())
 	if err != nil {
 		return err

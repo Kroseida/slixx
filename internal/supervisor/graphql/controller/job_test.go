@@ -117,7 +117,7 @@ func Test_GetJobs(t *testing.T) {
 		return
 	}
 
-	jobs, err := controller.GetJobs(withPermissions([]string{"job.view"}), controller.PageArgs{})
+	jobs, err := controller.GetJobs(withPermissions([]string{"job.view"}), controller.GetPageDto{})
 
 	assert.Equal(t, 3, len(jobs.Rows))
 	assert.Equal(t, "Testaaaaaa", jobs.Rows[0].Name)
@@ -165,7 +165,7 @@ func Test_DeleteJob(t *testing.T) {
 		return
 	}
 
-	jobs, err := controller.GetJobs(withPermissions([]string{"job.view"}), controller.PageArgs{})
+	jobs, err := controller.GetJobs(withPermissions([]string{"job.view"}), controller.GetPageDto{})
 	assert.Equal(t, 1, len(jobs.Rows))
 
 	_, err = controller.DeleteJob(withPermissions([]string{"job.delete"}), controller.DeleteJobDto{
@@ -177,7 +177,7 @@ func Test_DeleteJob(t *testing.T) {
 		return
 	}
 
-	jobs, err = controller.GetJobs(withPermissions([]string{"job.view"}), controller.PageArgs{})
+	jobs, err = controller.GetJobs(withPermissions([]string{"job.view"}), controller.GetPageDto{})
 	assert.Equal(t, 0, len(jobs.Rows))
 	teardownSuite()
 }

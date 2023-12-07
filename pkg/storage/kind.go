@@ -15,6 +15,7 @@ type Kind interface {
 	Size(file string) (uint64, error)
 	Read(file string, offset uint64, size uint64) ([]byte, error)
 	Delete(file string) error
+	DeleteDirectory(directory string) error
 	Parse(configurationJson string) (interface{}, error)
 	DefaultConfiguration() interface{}
 	CanStore() bool

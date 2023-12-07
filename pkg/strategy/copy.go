@@ -3,9 +3,11 @@ package strategy
 import (
 	"encoding/json"
 	"github.com/google/uuid"
+	"kroseida.org/slixx/internal/satellite/application"
+	"kroseida.org/slixx/pkg/statustype"
 	"kroseida.org/slixx/pkg/storage"
-	"kroseida.org/slixx/pkg/strategy/statustype"
 	"kroseida.org/slixx/pkg/utils/fileutils"
+	"kroseida.org/slixx/pkg/utils/parallel"
 	"reflect"
 	"strconv"
 	"strings"
@@ -36,190 +38,137 @@ func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {
 	return nil
 }
 
-func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) (*RawBackupInfo, error) {
-	rawFiles, id, err := strategy.handleInitialize(origin, destination, callback)
+func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error) {
+	backupId := uuid.New()
+	rawFiles, err := strategy.handleInitialize(backupId.String(), "", origin, destination, callback)
 	if err != nil {
 		return nil, err
 	}
-	var parallels [][]fileutils.FileInfo
-	var parallelStatus = make([]float64, strategy.Configuration.Parallel)
-	var parallelError = make(chan error)
-	var parallelFinished = make([]bool, strategy.Configuration.Parallel)
-	var parallelProceededBytes = make([]uint64, strategy.Configuration.Parallel)
+	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
 
-	parallels, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
+	parallelExecutor := parallel.NewExecutor(
+		parallelFiles,
+		func(executorStatus parallel.ExecutorStatus) {
+			callback(StatusUpdate{
+				Percentage: executorStatus.Percentage,
+				Message:    executorStatus.Message,
+				StatusType: statustype.Info,
+			})
+		},
+	)
 
-	callback(BackupStatusUpdate{
-		Id:         &id,
-		Percentage: 0,
-		Message:    "Opening " + strconv.Itoa(len(parallels)) + " parallels",
-		StatusType: statustype.Info,
+	parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		files := ctx.Items
+
+		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
+		err = originCopy.Initialize(origin.GetConfiguration())
+		if err != nil {
+			parallelExecutor.Error <- err
+			return
+		}
+
+		destinationCopy := reflect.New(reflect.TypeOf(destination).Elem()).Interface().(storage.Kind)
+		err := destinationCopy.Initialize(destination.GetConfiguration())
+		if err != nil {
+			parallelExecutor.Error <- err
+			return
+		}
+
+		for _, file := range files {
+			if file.Directory {
+				continue
+			}
+			tryCopy(strategy, originCopy, destinationCopy, file, backupId.String(), parallelExecutor.Error)
+
+			if ctx.Data["proceededBytes"] == nil {
+				ctx.Data["proceededBytes"] = uint64(0)
+			}
+
+			processedSize := ctx.Data["proceededBytes"].(uint64)
+			ctx.Data["proceededBytes"] = processedSize + file.Size
+
+			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
+				ctx.Status = 0
+			} else {
+				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
+			}
+		}
+
+		// Close the connections
+		originCopy.Close()
+		destinationCopy.Close()
+		ctx.Finished = true
 	})
-
-	for index, _ := range parallels {
-		atomicIndex := index
-		parallelFinished[atomicIndex] = false
-		parallelStatus[atomicIndex] = 0
-		go func() {
-			files := parallels[atomicIndex]
-
-			originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
-			err = originCopy.Initialize(origin.GetConfiguration())
-			if err != nil {
-				parallelError <- err
-				return
-			}
-
-			destinationCopy := reflect.New(reflect.TypeOf(destination).Elem()).Interface().(storage.Kind)
-			err := destinationCopy.Initialize(destination.GetConfiguration())
-			if err != nil {
-				parallelError <- err
-				return
-			}
-
-			for _, file := range files {
-				if file.Directory {
-					continue
-				}
-				tryCopy(strategy, originCopy, destinationCopy, file, id, parallelError)
-				parallelProceededBytes[atomicIndex] += file.Size
-				if sizes[atomicIndex] == 0 || parallelProceededBytes[atomicIndex] == 0 {
-					parallelStatus[atomicIndex] = 0
-				} else {
-					parallelStatus[atomicIndex] = float64(parallelProceededBytes[atomicIndex]) / float64(sizes[atomicIndex])
-				}
-			}
-
-			// Close the connections
-			originCopy.Close()
-			destinationCopy.Close()
-			parallelFinished[atomicIndex] = true
-		}()
-	}
-	err = strategy.handleBackupWatchdog(parallelStatus, parallelFinished, callback, id, parallelError)
-	if err != nil {
-		return nil, err
-	}
-
-	return strategy.handleIndexingBackup(id, jobId, origin, destination, callback)
+	return strategy.handleIndexingBackup(backupId, jobId, origin, destination, callback)
 }
 
 func tryCopy(strategy *CopyStrategy, originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
-	id uuid.UUID, parallelError chan error) error {
+	storePrefix string, parallelError chan error) error {
 	retries := 0
 	for {
-		copyErr := strategy.copy(originCopy, destinationCopy, file, id.String())
+		copyErr := strategy.copy(originCopy, destinationCopy, file, storePrefix)
 		if copyErr == nil {
 			break
 		}
+		application.Logger.Error("Error while copying file("+file.FullDirectory+") retrying", copyErr)
 		retries++
 		if retries > 15 {
 			parallelError <- copyErr
 			return copyErr
 		}
-		// Wait 3 second before retrying so that we don't overload the server
-		time.Sleep(3 * time.Second)
+		// Wait 1 second before retrying so that we don't overload the server
+		time.Sleep(time.Second)
 	}
 	return nil
 }
 
-func (strategy *CopyStrategy) handleInitialize(origin storage.Kind, destination storage.Kind, callback func(BackupStatusUpdate)) ([]fileutils.FileInfo, uuid.UUID, error) {
-	id := uuid.New()
-	callback(BackupStatusUpdate{
-		Id:         &id,
+func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sourceDirectory string, from storage.Kind, to storage.Kind, callback func(StatusUpdate)) ([]fileutils.FileInfo, error) {
+	callback(StatusUpdate{
 		Percentage: 0,
 		Message:    "Initializing strategy",
 		StatusType: statustype.Info,
 	})
-	rawFiles, err := origin.ListFiles("")
+	rawFiles, err := from.ListFiles(sourceDirectory)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, file := range rawFiles {
 		if file.Directory {
-			err := destination.CreateDirectory(id.String() + file.RelativePath)
+			err := to.CreateDirectory(destinationDirectory + file.RelativePath)
 			if err != nil {
-				callback(BackupStatusUpdate{
-					Id:         &id,
+				callback(StatusUpdate{
 					Percentage: 0,
 					Message:    err.Error(),
 					StatusType: statustype.Error,
 				})
-				return nil, id, err
+				return nil, err
 			}
 		}
 	}
 
-	callback(BackupStatusUpdate{
-		Id:         &id,
+	callback(StatusUpdate{
 		Percentage: 0,
 		Message:    "Detected " + strconv.Itoa(len(rawFiles)) + " files",
 		StatusType: statustype.Info,
 	})
 
 	if err != nil {
-		callback(BackupStatusUpdate{
-			Id:         &id,
+		callback(StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
 		})
-		return nil, id, err
+		return nil, err
 	}
 
-	return rawFiles, id, nil
-}
-
-func (strategy *CopyStrategy) handleBackupWatchdog(parallelStatus []float64, parallelFinished []bool,
-	callback func(BackupStatusUpdate), id uuid.UUID, parallelError chan error) error {
-	for {
-		allFinished := true
-		for _, finished := range parallelFinished {
-			if !finished {
-				allFinished = false
-				break
-			}
-		}
-		if allFinished {
-			break
-		}
-
-		percentage := 0.0
-		for _, status := range parallelStatus {
-			percentage += status
-		}
-		percentage /= float64(len(parallelStatus))
-		callback(BackupStatusUpdate{
-			Id:         &id,
-			Percentage: percentage * 100,
-			Message:    "Copying files from origin to destination",
-			StatusType: statustype.Info,
-		})
-
-		var err error
-		// Check for errors in the parallelError channel
-		select {
-		case res := <-parallelError:
-			err = res
-		case <-time.After(1000 * time.Millisecond):
-			err = nil
-		}
-
-		if err != nil {
-			callback(BackupStatusUpdate{
-				Id:         &id,
-				Percentage: 0,
-				Message:    err.Error(),
-				StatusType: statustype.Error,
-			})
-			return err
-		}
-	}
-	return nil
+	return rawFiles, nil
 }
 
 func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID, origin storage.Kind, destination storage.Kind,
-	callback func(BackupStatusUpdate)) (*RawBackupInfo, error) {
+	callback func(StatusUpdate)) (*RawBackupInfo, error) {
 
-	callback(BackupStatusUpdate{
-		Id:         &id,
+	callback(StatusUpdate{
 		Percentage: 100,
 		Message:    "Creating backup info file on destination",
 		StatusType: statustype.Info,
@@ -239,8 +188,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 	}
 	rawBackupInfoBytes, err := json.Marshal(rawBackupInfo)
 	if err != nil {
-		callback(BackupStatusUpdate{
-			Id:         &id,
+		callback(StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -255,8 +203,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 		0,
 	)
 	if err != nil {
-		callback(BackupStatusUpdate{
-			Id:         &id,
+		callback(StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -264,8 +211,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 		return nil, err
 	}
 
-	callback(BackupStatusUpdate{
-		Id:         &id,
+	callback(StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -280,22 +226,163 @@ func handleCreateSlixxDirectories(destination storage.Kind) {
 	destination.CreateDirectory(fileutils.FixedPathName(BackupInfoDirectory))
 }
 
-func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID) error {
-	files, err := destination.ListFiles(id.String())
+func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, callback func(StatusUpdate)) error {
+	rawFiles, err := targetStorage.ListFiles(prefix)
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		if !file.Directory {
-			err = strategy.copy(origin, destination, file, id.String())
-		} else {
-			err = destination.CreateDirectory(id.String() + "/" + file.FullDirectory)
+
+	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, parallels)
+
+	parallelExecutor := parallel.NewExecutor(
+		parallelFiles,
+		func(executorStatus parallel.ExecutorStatus) {
+			callback(StatusUpdate{
+				Percentage: executorStatus.Percentage,
+				Message:    "Deleting files...",
+				StatusType: statustype.Info,
+			})
+		},
+	)
+
+	parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		files := fileutils.SortByLength(ctx.Items)
+
+		storageCopy := reflect.New(reflect.TypeOf(targetStorage).Elem()).Interface().(storage.Kind)
+		err = storageCopy.Initialize(targetStorage.GetConfiguration())
+		if err != nil {
+			parallelExecutor.Error <- err
+			return
 		}
 
+		for _, file := range files {
+			if file.Directory {
+				continue
+			}
+			if ctx.Data["proceededBytes"] == nil {
+				ctx.Data["proceededBytes"] = uint64(0)
+			}
+
+			processedSize := ctx.Data["proceededBytes"].(uint64)
+			ctx.Data["proceededBytes"] = processedSize + file.Size
+
+			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
+				ctx.Status = 0
+			} else {
+				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
+			}
+
+			err := storageCopy.Delete(file.FullDirectory)
+			if err != nil {
+				parallelExecutor.Error <- err
+				return
+			}
+		}
+
+		for _, file := range files {
+			if !file.Directory {
+				continue
+			}
+			err := storageCopy.Delete(file.FullDirectory)
+			if err != nil {
+				parallelExecutor.Error <- err
+				return
+			}
+		}
+
+		storageCopy.Close()
+		ctx.Finished = true
+	})
+
+	// Try to delete the files 10 times
+	for retryDelete := 0; retryDelete < 10; retryDelete++ {
+		// Delete again
+		rawFiles, err = targetStorage.ListFiles(prefix)
 		if err != nil {
-			return err
+			callback(StatusUpdate{
+				Percentage: 0,
+				Message:    err.Error(),
+				StatusType: statustype.Error,
+			})
+		}
+
+		// If there are no files left, then we are done
+		if len(rawFiles) == 0 {
+			break
+		}
+
+		for _, file := range fileutils.SortByLength(rawFiles) {
+			targetStorage.DeleteDirectory(file.FullDirectory)
 		}
 	}
+	return nil
+}
+
+func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
+	err := deleteAllFiles(origin, "", strategy.Configuration.Parallel, callback)
+	if err != nil {
+		return err
+	}
+
+	rawFiles, err := strategy.handleInitialize("", id.String(), destination, origin, callback)
+	if err != nil {
+		return err
+	}
+	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
+
+	parallelExecutor := parallel.NewExecutor(
+		parallelFiles,
+		func(executorStatus parallel.ExecutorStatus) {
+			callback(StatusUpdate{
+				Percentage: executorStatus.Percentage,
+				Message:    executorStatus.Message,
+				StatusType: statustype.Info,
+			})
+		},
+	)
+
+	parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		files := ctx.Items
+
+		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
+		err = originCopy.Initialize(origin.GetConfiguration())
+		if err != nil {
+			parallelExecutor.Error <- err
+			return
+		}
+
+		destinationCopy := reflect.New(reflect.TypeOf(destination).Elem()).Interface().(storage.Kind)
+		err := destinationCopy.Initialize(destination.GetConfiguration())
+		if err != nil {
+			parallelExecutor.Error <- err
+			return
+		}
+
+		for _, file := range files {
+			if file.Directory {
+				continue
+			}
+			tryCopy(strategy, destinationCopy, originCopy, file, "", parallelExecutor.Error)
+
+			if ctx.Data["proceededBytes"] == nil {
+				ctx.Data["proceededBytes"] = uint64(0)
+			}
+
+			processedSize := ctx.Data["proceededBytes"].(uint64)
+			ctx.Data["proceededBytes"] = processedSize + file.Size
+
+			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
+				ctx.Status = 0
+			} else {
+				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
+			}
+		}
+
+		// Close the connections
+		originCopy.Close()
+		destinationCopy.Close()
+		ctx.Finished = true
+	})
 	return nil
 }
 
@@ -339,8 +426,10 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 	if lastBlockSize != 0 {
 		iterations++
 	}
+
+	fileName := storePrefix + "/" + file.RelativePath
 	if iterations == 0 {
-		err = destination.Store(storePrefix+"/"+file.RelativePath, []byte{}, uint64(0))
+		err = destination.Store(fileName, []byte{}, uint64(0))
 		if err != nil {
 			return err
 		}
@@ -357,7 +446,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 			return err
 		}
 
-		err = destination.Store(storePrefix+"/"+file.RelativePath, data, uint64(index*strategy.Configuration.BlockSize))
+		err = destination.Store(fileName, data, uint64(index*strategy.Configuration.BlockSize))
 		if err != nil {
 			return err
 		}

@@ -18,6 +18,19 @@ func Execute(jobId uuid.UUID) (*uuid.UUID, error) {
 	return backup, nil
 }
 
+func Restore(backupId uuid.UUID) (*uuid.UUID, error) {
+	backup, err := datasource.BackupProvider.Get(backupId)
+	if err != nil {
+		return nil, err
+	}
+
+	backupRes, err := action.SendExecuteRestore(backup.JobId, backupId)
+	if err != nil {
+		return nil, err
+	}
+	return backupRes, nil
+}
+
 func ResyncSatellite(satelliteId uuid.UUID) error {
 	action.SyncStorages(&satelliteId)
 	action.SyncJobs(&satelliteId)
@@ -69,4 +82,8 @@ func ApplyBackupToIndex(
 
 func GetPaged(pagination *provider.Pagination[model.Backup], jobId *uuid.UUID) (*provider.Pagination[model.Backup], error) {
 	return datasource.BackupProvider.ListPaged(pagination, jobId)
+}
+
+func Get(id uuid.UUID) (*model.Backup, error) {
+	return datasource.BackupProvider.Get(id)
 }

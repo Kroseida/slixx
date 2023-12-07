@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-type Satellite struct {
+type SatelliteDto struct {
 	Id          uuid.UUID `sql:"default:uuid_generate_v4()"`
 	Name        string
 	Description string
@@ -22,7 +22,7 @@ type Satellite struct {
 	Connected   bool
 }
 
-type SatellitePrototype struct {
+type SatellitePrototypeDto struct {
 	Id          uuid.UUID `sql:"default:uuid_generate_v4()"`
 	Name        string
 	Description string
@@ -36,12 +36,12 @@ type GetSatelliteDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }
 
-type SatellitesPage struct {
-	Rows []SatellitePrototype `json:"rows" graphql:"rows"`
+type SatellitesPageDto struct {
+	Rows []SatellitePrototypeDto `json:"rows" graphql:"rows"`
 	Page
 }
 
-func GetSatellite(ctx context.Context, args GetSatelliteDto) (*Satellite, error) {
+func GetSatellite(ctx context.Context, args GetSatelliteDto) (*SatelliteDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -50,13 +50,13 @@ func GetSatellite(ctx context.Context, args GetSatelliteDto) (*Satellite, error)
 	if err != nil {
 		return nil, err
 	}
-	var satelliteDto *Satellite
+	var satelliteDto *SatelliteDto
 	dto.Map(&satellite, &satelliteDto)
 
 	return satelliteDto, nil
 }
 
-func GetSatellites(ctx context.Context, args PageArgs) (*SatellitesPage, error) {
+func GetSatellites(ctx context.Context, args GetPageDto) (*SatellitesPageDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -70,7 +70,7 @@ func GetSatellites(ctx context.Context, args PageArgs) (*SatellitesPage, error) 
 		return nil, err
 	}
 
-	var pageDto SatellitesPage
+	var pageDto SatellitesPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil
@@ -83,7 +83,7 @@ type CreateSatelliteDto struct {
 	Token       string
 }
 
-func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*Satellite, error) {
+func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*SatelliteDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.create"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -94,7 +94,7 @@ func CreateSatellite(ctx context.Context, args CreateSatelliteDto) (*Satellite, 
 	if err != nil {
 		return nil, err
 	}
-	var satellitesDto Satellite
+	var satellitesDto SatelliteDto
 	dto.Map(satellite, &satellitesDto)
 
 	return &satellitesDto, err
@@ -108,7 +108,7 @@ type UpdateSatelliteDto struct {
 	Token       *string
 }
 
-func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, error) {
+func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*SatelliteDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -123,7 +123,7 @@ func UpdateSatellite(ctx context.Context, args UpdateSatelliteDto) (*Satellite, 
 	if err != nil {
 		return nil, err
 	}
-	var satelliteDto Satellite
+	var satelliteDto SatelliteDto
 	dto.Map(satellite, &satelliteDto)
 
 	return &satelliteDto, err
@@ -133,7 +133,7 @@ type DeleteSatelliteDto struct {
 	Id uuid.UUID `json:"id" graphql:"id"`
 }
 
-func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, error) {
+func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*SatelliteDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.delete"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
@@ -142,13 +142,13 @@ func DeleteSatellite(ctx context.Context, args DeleteSatelliteDto) (*Satellite, 
 	if err != nil {
 		return nil, err
 	}
-	var satelliteDto Satellite
+	var satelliteDto SatelliteDto
 	dto.Map(satellite, &satelliteDto)
 
 	return &satelliteDto, err
 }
 
-type LogEntry struct {
+type LogEntryDto struct {
 	Id          uuid.UUID
 	Sender      string
 	SatelliteId uuid.UUID
@@ -157,7 +157,7 @@ type LogEntry struct {
 	LoggedAt    time.Time
 }
 
-type GetLogsRequest struct {
+type GetLogsRequestDto struct {
 	SatelliteId uuid.UUID `json:"satelliteId" graphql:"satelliteId"`
 	Limit       *int64    `json:"limit,omitempty;query:limit"`
 	Page        *int64    `json:"page,omitempty;query:page"`
@@ -165,12 +165,12 @@ type GetLogsRequest struct {
 	Search      *string   `json:"search"`
 }
 
-type LogsPage struct {
-	Rows []LogEntry `json:"rows" graphql:"rows"`
+type LogsPageDto struct {
+	Rows []LogEntryDto `json:"rows" graphql:"rows"`
 	Page
 }
 
-func GetSatelliteLogs(ctx context.Context, args GetLogsRequest) (*LogsPage, error) {
+func GetSatelliteLogs(ctx context.Context, args GetLogsRequestDto) (*LogsPageDto, error) {
 	if !IsPermitted(ctx, []string{"satellite.view"}) {
 		//return nil, graphql.NewSafeError("missing permission")
 	}
@@ -184,7 +184,7 @@ func GetSatelliteLogs(ctx context.Context, args GetLogsRequest) (*LogsPage, erro
 		return nil, err
 	}
 
-	var pageDto LogsPage
+	var pageDto LogsPageDto
 	dto.Map(&pages, &pageDto)
 
 	return &pageDto, nil

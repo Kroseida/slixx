@@ -8,7 +8,7 @@ type Page struct {
 	TotalPages int    `json:"totalPages"`
 }
 
-type PageArgs struct {
+type GetPageDto struct {
 	Limit  *int64  `json:"limit,omitempty;query:limit"`
 	Page   *int64  `json:"page,omitempty;query:page"`
 	Sort   *string `json:"sort,omitempty;query:sort"`

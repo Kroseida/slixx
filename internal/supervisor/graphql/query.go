@@ -24,4 +24,5 @@ func registerQuery(schema *schemabuilder.Schema) {
 	obj.FieldFunc("getExecutions", controller.GetExecutions)
 	obj.FieldFunc("getExecution", controller.GetExecution)
 	obj.FieldFunc("getExecutionHistory", controller.GetExecutionHistory)
+	obj.FieldFunc("getBackup", controller.GetBackup)
 }

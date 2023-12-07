@@ -36,6 +36,9 @@ func FixedPathName(path string) string {
 
 func ParentDirectory(path string) string {
 	var pos = strings.LastIndex(path, "/")
+	if pos == -1 {
+		return path
+	}
 	return path[0:pos]
 }
 
@@ -66,4 +69,11 @@ func SplitArrayBySize(array []FileInfo, n int) ([][]FileInfo, []uint64) {
 	}
 
 	return result, totalSizes
+}
+
+func SortByLength(array []FileInfo) []FileInfo {
+	sort.SliceStable(array, func(i, j int) bool {
+		return len(array[i].RelativePath) > len(array[j].RelativePath)
+	})
+	return array
 }

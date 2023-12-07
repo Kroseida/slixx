@@ -115,16 +115,19 @@ func (kind *FtpKind) ListFiles(directory string) ([]fileutils.FileInfo, error) {
 		if entry.Type == ftp.EntryTypeFolder {
 			files = append(files, fileutils.FileInfo{
 				FullDirectory: fileutils.FixedPathName(baseDir + "/" + entry.Name),
-				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File)),
+				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
 				Directory:     true,
 				Size:          entry.Size,
 			})
-			kind.listFiles(baseDir+"/"+entry.Name, &files)
+			err := kind.listFiles(baseDir+"/"+entry.Name, &files, directory)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			files = append(files, fileutils.FileInfo{
 				FullDirectory: fileutils.FixedPathName(baseDir + "/" + entry.Name),
-				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File)),
+				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
 				Directory:     false,
 				Size:          entry.Size,
@@ -134,7 +137,7 @@ func (kind *FtpKind) ListFiles(directory string) ([]fileutils.FileInfo, error) {
 	return files, nil
 }
 
-func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo) error {
+func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo, directory string) error {
 	entries, err := kind.Client.List(fileutils.FixedPathName(path))
 	if err != nil {
 		return err
@@ -144,16 +147,19 @@ func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo) error {
 		if entry.Type == ftp.EntryTypeFolder {
 			*files = append(*files, fileutils.FileInfo{
 				FullDirectory: fileutils.FixedPathName(path + "/" + entry.Name),
-				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File)),
+				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
 				Directory:     true,
 				Size:          entry.Size,
 			})
-			kind.listFiles(path+"/"+entry.Name, files)
+			err := kind.listFiles(path+"/"+entry.Name, files, directory)
+			if err != nil {
+				return err
+			}
 		} else {
 			*files = append(*files, fileutils.FileInfo{
 				FullDirectory: fileutils.FixedPathName(path + "/" + entry.Name),
-				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File)),
+				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
 				Directory:     false,
 				Size:          entry.Size,
@@ -196,6 +202,10 @@ func (kind *FtpKind) Parse(configurationJson string) (interface{}, error) {
 
 func (kind *FtpKind) Delete(file string) error {
 	return kind.Client.Delete(fileutils.FixedPathName(file))
+}
+
+func (kind *FtpKind) DeleteDirectory(directory string) error {
+	return kind.Client.RemoveDir(fileutils.FixedPathName(directory))
 }
 
 func (kind *FtpKind) DefaultConfiguration() interface{} {
