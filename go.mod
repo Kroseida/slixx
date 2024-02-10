@@ -26,6 +26,7 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rakyll/statik v0.1.7 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/samsarahq/go/oops v0.0.0-20220211150445-4b291d6feac4 // indirect
 	github.com/samsarahq/go/snapshotter v0.0.0-20220211150445-4b291d6feac4 // indirect
 	github.com/satori/go.uuid v1.2.0 // indirect

@@ -40,7 +40,7 @@ func ResyncSatellite(satelliteId uuid.UUID) error {
 func ApplyBackupToIndex(
 	id uuid.UUID,
 	jobId uuid.UUID,
-	executionId *uuid.UUID,
+	executionId uuid.UUID,
 	createdAt time.Time,
 	originKind string,
 	destinationKind string,

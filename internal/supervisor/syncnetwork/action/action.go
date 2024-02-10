@@ -110,3 +110,24 @@ func SendExecuteRestore(jobId uuid.UUID, backupId uuid.UUID) (*uuid.UUID, error)
 	}
 	return &id, nil
 }
+
+func SyncJobSchedules(id *uuid.UUID) {
+	jobSchedules, err := datasource.JobScheduleProvider.List()
+
+	if err != nil {
+		application.Logger.Error("Failed to load jobSchedules from database for sync: ", err)
+		return
+	}
+
+	for clientId, client := range syncnetworkClients.List {
+		if id != nil && clientId != *id {
+			continue
+		}
+		if client.Client.Protocol != protocol.Supervisor {
+			continue
+		}
+		client.Client.Send(&supervisorPacket.SyncJobSchedule{
+			Schedules: jobSchedules,
+		})
+	}
+}

@@ -66,7 +66,7 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 			parallelExecutor.Error <- err
 			return
 		}
-
+		
 		destinationCopy := reflect.New(reflect.TypeOf(destination).Elem()).Interface().(storage.Kind)
 		err := destinationCopy.Initialize(destination.GetConfiguration())
 		if err != nil {
