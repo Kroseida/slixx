@@ -7,9 +7,9 @@ import (
 )
 
 type ExecuteRestore struct {
-	Id       *uuid.UUID `json:"id"`
-	JobId    uuid.UUID  `json:"jobId"`
-	BackupId uuid.UUID  `json:"backupId"`
+	Id       uuid.UUID `json:"id"`
+	JobId    uuid.UUID `json:"jobId"`
+	BackupId uuid.UUID `json:"backupId"`
 }
 
 func (packet *ExecuteRestore) PacketId() int64 {
@@ -32,7 +32,7 @@ func (packet *ExecuteRestore) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	if err != nil {
 		return err
 	}
-	packet.Id = &id
+	packet.Id = id
 
 	jobId, err := uuid.Parse(buffer.ReadString())
 	if err != nil {

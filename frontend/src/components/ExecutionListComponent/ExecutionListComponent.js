@@ -90,6 +90,7 @@ export default defineComponent({
         limit: this.pagination.rowsPerPage,
         search: this.filter,
         page: this.pagination.page,
+        sort: "created_at DESC"
       }
       if (this.jobId) {
         args.jobId = this.jobId;

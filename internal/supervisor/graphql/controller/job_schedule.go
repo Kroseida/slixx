@@ -68,7 +68,7 @@ type GetJobSchedulesPageRequest struct {
 }
 
 func GetJobSchedules(ctx context.Context, args GetJobSchedulesPageRequest) (*JobSchedulesPageDto, error) {
-	if !IsPermitted(ctx, []string{"jobSchedule.view"}) {
+	if !IsPermitted(ctx, []string{"job.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
@@ -95,7 +95,7 @@ type CreateJobScheduleDto struct {
 }
 
 func CreateJobSchedule(ctx context.Context, args CreateJobScheduleDto) (*JobSchedule, error) {
-	if !IsPermitted(ctx, []string{"jobSchedule.create"}) {
+	if !IsPermitted(ctx, []string{"job.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
@@ -118,7 +118,7 @@ type UpdateJobScheduleDto struct {
 }
 
 func UpdateJobSchedule(ctx context.Context, args UpdateJobScheduleDto) (*JobSchedule, error) {
-	if !IsPermitted(ctx, []string{"jobSchedule.update"}) {
+	if !IsPermitted(ctx, []string{"job.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
@@ -144,7 +144,7 @@ type DeleteJobScheduleDto struct {
 }
 
 func DeleteJobSchedule(ctx context.Context, args DeleteJobScheduleDto) (*JobSchedule, error) {
-	if !IsPermitted(ctx, []string{"jobSchedule.delete"}) {
+	if !IsPermitted(ctx, []string{"job.update"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	jobSchedule, err := jobScheduleService.Delete(args.Id)

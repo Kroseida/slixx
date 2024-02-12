@@ -66,7 +66,7 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 			parallelExecutor.Error <- err
 			return
 		}
-		
+
 		destinationCopy := reflect.New(reflect.TypeOf(destination).Elem()).Interface().(storage.Kind)
 		err := destinationCopy.Initialize(destination.GetConfiguration())
 		if err != nil {
@@ -383,6 +383,13 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 		destinationCopy.Close()
 		ctx.Finished = true
 	})
+
+	callback(StatusUpdate{
+		Percentage: 100,
+		Message:    "FINISHED",
+		StatusType: statustype.Finished,
+	})
+
 	return nil
 }
 

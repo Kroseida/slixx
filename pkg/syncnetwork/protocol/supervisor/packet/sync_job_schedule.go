@@ -12,7 +12,7 @@ type SyncJobSchedule struct {
 }
 
 func (packet *SyncJobSchedule) PacketId() int64 {
-	return 3
+	return 12
 }
 
 func (packet *SyncJobSchedule) Protocol() []string {

@@ -5,7 +5,8 @@
       && globalStore.userLoaded
       && constantsStore.permissionLoaded
       && constantsStore.storageKindsLoaded
-      && constantsStore.jobStrategiesLoaded"
+      && constantsStore.jobStrategiesLoaded
+      && constantsStore.scheduleKindsLoaded"
     />
     <div v-else>
       <div class="text-center">
@@ -54,6 +55,7 @@ export default defineComponent({
         this.constantsStore.subscribePermissions(this.handleError);
         this.constantsStore.subscribeStorageKinds(this.handleError);
         this.constantsStore.subscribeJobStrategies(this.handleError);
+        this.constantsStore.subscribeJobScheduleKinds(this.handleError)
 
         const currentPath = this.router.options.history.location;
 
@@ -73,6 +75,7 @@ export default defineComponent({
       this.globalStore.connectionState = "CLOSED";
       this.globalStore.userLoaded = false;
       this.globalStore.permissionLoaded = false;
+      this.globalStore.scheduleKindsLoaded = false
       Notify.create({
         message: 'Lost connection to backend server',
         color: 'negative',

@@ -62,7 +62,7 @@ func SendExecuteBackup(jobId uuid.UUID) (*uuid.UUID, error) {
 			continue
 		}
 		err := client.Client.Send(&supervisorPacket.ExecuteBackup{
-			Id:    &id,
+			Id:    id,
 			JobId: jobId,
 		})
 		if err != nil {
@@ -100,7 +100,7 @@ func SendExecuteRestore(jobId uuid.UUID, backupId uuid.UUID) (*uuid.UUID, error)
 			continue
 		}
 		err := client.Client.Send(&supervisorPacket.ExecuteRestore{
-			Id:       &id,
+			Id:       id,
 			JobId:    jobId,
 			BackupId: backupId,
 		})
