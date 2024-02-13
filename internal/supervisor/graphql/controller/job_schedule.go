@@ -26,13 +26,14 @@ type JobSchedule struct {
 }
 
 type JobSchedulePrototypeDto struct {
-	Id          uuid.UUID `json:"id" graphql:"id"`
-	Name        string    `json:"name" graphql:"name"`
-	Description string    `json:"description" graphql:"description"`
-	Kind        string    `json:"kind" graphql:"kind"`
-	CreatedAt   time.Time `json:"createdAt" graphql:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt" graphql:"updatedAt"`
-	DeletedAt   time.Time `json:"deletedAt" graphql:"deletedAt"`
+	Id            uuid.UUID `json:"id" graphql:"id"`
+	Name          string    `json:"name" graphql:"name"`
+	Description   string    `json:"description" graphql:"description"`
+	Kind          string    `json:"kind" graphql:"kind"`
+	Configuration string    `json:"configuration" graphql:"configuration"`
+	CreatedAt     time.Time `json:"createdAt" graphql:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt" graphql:"updatedAt"`
+	DeletedAt     time.Time `json:"deletedAt" graphql:"deletedAt"`
 }
 
 type JobSchedulesPageDto struct {
@@ -88,10 +89,11 @@ func GetJobSchedules(ctx context.Context, args GetJobSchedulesPageRequest) (*Job
 }
 
 type CreateJobScheduleDto struct {
-	Name          string `json:"name" graphql:"name"`
-	Description   string `json:"description" graphql:"description"`
-	Kind          string `json:"kind" graphql:"kind"`
-	Configuration string `json:"configuration" graphql:"configuration"`
+	Name          string    `json:"name" graphql:"name"`
+	JobId         uuid.UUID `json:"jobId" graphql:"jobId"`
+	Description   string    `json:"description" graphql:"description"`
+	Kind          string    `json:"kind" graphql:"kind"`
+	Configuration string    `json:"configuration" graphql:"configuration"`
 }
 
 func CreateJobSchedule(ctx context.Context, args CreateJobScheduleDto) (*JobSchedule, error) {
@@ -99,7 +101,7 @@ func CreateJobSchedule(ctx context.Context, args CreateJobScheduleDto) (*JobSche
 		return nil, graphql.NewSafeError("missing permission")
 	}
 	reactive.InvalidateAfter(ctx, 5*time.Second)
-	jobSchedule, err := jobScheduleService.Create(args.Name, args.Description, args.Kind, args.Configuration)
+	jobSchedule, err := jobScheduleService.Create(args.Name, args.JobId, args.Description, args.Kind, args.Configuration)
 	if err != nil {
 		return nil, err
 	}

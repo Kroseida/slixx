@@ -2584,6 +2584,11 @@ crc32-stream@^4.0.2:
     crc-32 "^1.2.0"
     readable-stream "^3.4.0"
 
+cronstrue@^2.48.0:
+  version "2.48.0"
+  resolved "https://registry.npmjs.org/cronstrue/-/cronstrue-2.48.0.tgz"
+  integrity sha512-w+VAWjiBJmKYeeK+i0ur3G47LcKNgFuWwb8LVJTaXSS2ExtQ5zdiIVnuysgB3N457gTaSllme0qTpdsJWK/wIg==
+
 cross-spawn@^7.0.2, cross-spawn@^7.0.3, cross-spawn@7.0.3:
   version "7.0.3"
   resolved "https://registry.npmjs.org/cross-spawn/-/cross-spawn-7.0.3.tgz"

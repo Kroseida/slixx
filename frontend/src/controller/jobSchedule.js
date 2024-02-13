@@ -10,6 +10,9 @@ export default (client) => ({
           rows  {
             id
             name
+            description
+            kind
+            configuration
             createdAt
             updatedAt
           }
@@ -24,11 +27,13 @@ export default (client) => ({
     return client.graphql.subscribeTrackedObject(`query {
       data: getJobSchedules(limit: ${args.limit}, search: "${search}", page: ${args.page}, sort: "${sort}") {
         rows  {
-          id
-          name
-          createdAt
-          updatedAt
-          jobId
+            id
+            name
+            description
+            kind
+            configuration
+            createdAt
+            updatedAt
         }
         page {
           totalRows
@@ -50,4 +55,63 @@ export default (client) => ({
       }
     }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
   },
+  createJobSchedule(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "createJobSchedule",
+      args,
+      fields: [
+        "id",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  },
+  updateJobSchedule(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "updateJobSchedule",
+      args,
+      fields: [
+        "id",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  },
+  deleteJobSchedule(args, callback, error) {
+    let fullQuery = client.graphql.buildQuery({
+      method: "deleteJobSchedule",
+      args: {
+        id: args.id,
+      },
+      fields: [
+        "id",
+      ],
+      isMutation: true
+    });
+
+    let updatedSubscriptionId = client.graphql.subscribeTrackedObject(
+      fullQuery,
+      (data) => {
+        client.graphql.unsubscribe(updatedSubscriptionId);
+        callback(data);
+      },
+      (data) => error(data.message)
+    );
+  }
 });

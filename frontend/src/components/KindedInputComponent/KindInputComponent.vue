@@ -14,6 +14,13 @@
       v-else-if="kind === 'LONG'"
       @update:model-value="handleInput"
     />
+    <cron-kind-input-component
+      :model-value="modelValue"
+      :label="label"
+      :readonly="readonly"
+      v-else-if="kind === 'CRON'"
+      @update:model-value="handleInput"
+    />
     <text-kind-input-component
       :model-value="modelValue"
       :label="label"

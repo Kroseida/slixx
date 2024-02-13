@@ -16,8 +16,8 @@ func GetPaged(pagination *provider.Pagination[model.JobSchedule], jobId *uuid.UU
 	return datasource.JobScheduleProvider.ListPaged(pagination, jobId)
 }
 
-func Create(name string, description string, kindName string, configuration string) (*model.JobSchedule, error) {
-	jobSchedule, err := datasource.JobScheduleProvider.Create(name, description, kindName, configuration)
+func Create(name string, jobId uuid.UUID, description string, kindName string, configuration string) (*model.JobSchedule, error) {
+	jobSchedule, err := datasource.JobScheduleProvider.Create(name, jobId, description, kindName, configuration)
 	if err != nil {
 		return nil, err
 	}

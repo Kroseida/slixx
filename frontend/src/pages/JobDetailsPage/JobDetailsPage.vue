@@ -143,7 +143,7 @@
           </div>
         </q-tab-panel>
         <q-tab-panel name="schedule" class="no-padding">
-          <job-schedule-view-component :job-id="job.id"/>
+          <job-schedule-view-component :job-id="job.id" :allow-creation="true"/>
         </q-tab-panel>
         <q-tab-panel name="backups" class="no-padding">
           <backup-list-component :job-id="job.id" :columns="backupColumns" @rowClick="openBackup"/>

@@ -16,7 +16,7 @@ type CronKind struct {
 }
 
 type CronKindConfiguration struct {
-	Expression string `json:"expression" slixx:"CRON" default:"* * * * *"` // Add the expression field to the configuration
+	Expression string `json:"expression" slixx:"CRON" default:"0 3 * * *"` // Add the expression field to the configuration
 }
 
 func (kind *CronKind) GetName() string {

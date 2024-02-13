@@ -31,7 +31,7 @@ func (provider JobScheduleProvider) Delete(id uuid.UUID) (*model.JobSchedule, er
 	return jobSchedule, nil
 }
 
-func (provider JobScheduleProvider) Create(name string, description string, kindName string, configuration string) (*model.JobSchedule, error) {
+func (provider JobScheduleProvider) Create(name string, jobId uuid.UUID, description string, kindName string, configuration string) (*model.JobSchedule, error) {
 	if name == "" {
 		return nil, graphql.NewSafeError("name can not be empty")
 	}
@@ -54,6 +54,7 @@ func (provider JobScheduleProvider) Create(name string, description string, kind
 
 	jobSchedule := model.JobSchedule{
 		Id:            uuid.New(),
+		JobId:         jobId,
 		Name:          name,
 		Description:   description,
 		Kind:          kindName,

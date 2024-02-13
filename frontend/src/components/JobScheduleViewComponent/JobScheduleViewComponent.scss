@@ -1,4 +1,11 @@
+.schedule-list :first-of-type {
+  margin-top: 0px;
+}
+
+.schedule {
+  margin-top: 15px;
+}
 .schedule:hover {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
 }
