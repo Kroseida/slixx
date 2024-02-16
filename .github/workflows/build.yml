@@ -2,6 +2,8 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ "develop" ]
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -32,8 +34,8 @@ jobs:
           file: .docker/supervisor/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:${{ github.ref_name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:latest
       - name: Build and Push Docker Image for Satellite
         uses: docker/build-push-action@v2
         with:
@@ -41,5 +43,5 @@ jobs:
           file: .docker/satellite/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:${{ github.ref_name }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:latest
