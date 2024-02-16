@@ -25,7 +25,8 @@ type Kind interface {
 }
 
 var kinds = map[string]Kind{
-	"FTP": &FtpKind{},
+	"FTP":  &FtpKind{},
+	"SFTP": &SFtpKind{},
 }
 
 func ValueOf(name string) Kind {

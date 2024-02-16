@@ -16,7 +16,7 @@ type FtpKind struct {
 }
 
 type FtpKindConfiguration struct {
-	Host     string `json:"host" slixx:"HOST" default:"ftp.slixx.app"`
+	Host     string `json:"host" slixx:"HOST" default:"ftp.slixx.app:21"`
 	Timeout  int64  `json:"timeout" slixx:"LONG" default:"1000"`
 	File     string `json:"file" slixx:"PATH" default:"/"`
 	Username string `json:"username" slixx:"STRING" default:"root"`
@@ -84,6 +84,7 @@ func (kind *FtpKind) FileInfo(name string) (fileutils.FileInfo, error) {
 		return fileutils.FileInfo{}, err
 	}
 	return fileutils.FileInfo{
+		Name:          name,
 		FullDirectory: fileutils.FixedPathName(kind.Configuration.File + name),
 		RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(kind.Configuration.File+name, kind.Configuration.File)),
 		CreatedAt:     info.Time.Unix(),
@@ -93,13 +94,13 @@ func (kind *FtpKind) FileInfo(name string) (fileutils.FileInfo, error) {
 }
 
 func (kind *FtpKind) CreateDirectory(name string) error {
-	err := kind.Client.MakeDir(kind.Configuration.File + name)
+	err := kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + name))
 	if err != nil {
 		err = kind.CreateDirectory(fileutils.ParentDirectory(name))
 		if err != nil {
 			return err
 		}
-		return kind.Client.MakeDir(kind.Configuration.File + name)
+		return kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + name))
 	}
 	return nil
 }
@@ -114,6 +115,7 @@ func (kind *FtpKind) ListFiles(directory string) ([]fileutils.FileInfo, error) {
 	for _, entry := range entries {
 		if entry.Type == ftp.EntryTypeFolder {
 			files = append(files, fileutils.FileInfo{
+				Name:          entry.Name,
 				FullDirectory: fileutils.FixedPathName(baseDir + "/" + entry.Name),
 				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
@@ -126,6 +128,7 @@ func (kind *FtpKind) ListFiles(directory string) ([]fileutils.FileInfo, error) {
 			}
 		} else {
 			files = append(files, fileutils.FileInfo{
+				Name:          entry.Name,
 				FullDirectory: fileutils.FixedPathName(baseDir + "/" + entry.Name),
 				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(baseDir+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
@@ -146,6 +149,7 @@ func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo, directo
 	for _, entry := range entries {
 		if entry.Type == ftp.EntryTypeFolder {
 			*files = append(*files, fileutils.FileInfo{
+				Name:          entry.Name,
 				FullDirectory: fileutils.FixedPathName(path + "/" + entry.Name),
 				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
@@ -158,6 +162,7 @@ func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo, directo
 			}
 		} else {
 			*files = append(*files, fileutils.FileInfo{
+				Name:          entry.Name,
 				FullDirectory: fileutils.FixedPathName(path + "/" + entry.Name),
 				RelativePath:  fileutils.FixedPathName(strings.TrimPrefix(strings.TrimPrefix(path+"/"+entry.Name, kind.Configuration.File), directory)),
 				CreatedAt:     entry.Time.Unix(),
