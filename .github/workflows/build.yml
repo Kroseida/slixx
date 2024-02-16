@@ -31,6 +31,6 @@ jobs:
           context: .
           file: .docker/supervisor/Dockerfile
           push: true
-          tags:
-            - ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:latest
-            - ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:${{ github.ref_name }}
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:${{ github.ref_name }}
