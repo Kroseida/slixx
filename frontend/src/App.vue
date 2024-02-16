@@ -7,7 +7,8 @@
       && constantsStore.storageKindsLoaded
       && constantsStore.jobStrategiesLoaded
       && constantsStore.scheduleKindsLoaded
-      && constantsStore.environmentLoaded"
+      && constantsStore.environmentLoaded
+      && constantsStore.scheduleKindsLoaded"
     />
     <div v-else>
       <div class="text-center">
