@@ -38,6 +38,6 @@ export default {
       this.$emit('s-click', () => {
         this.loading = false;
       });
-    }
+    },
   }
 }

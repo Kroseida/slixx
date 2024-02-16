@@ -10,16 +10,18 @@ import (
 )
 
 type ContainerModel struct {
-	Version  string
-	Storages map[uuid.UUID]*model.Storage
-	Jobs     map[uuid.UUID]*model.Job
+	Version      string
+	Storages     map[uuid.UUID]*model.Storage
+	Jobs         map[uuid.UUID]*model.Job
+	JobSchedules map[uuid.UUID]*model.JobSchedule
 }
 
 var CacheFile = ".cache"
 var DefaultContainer = ContainerModel{
-	Version:  common.CurrentVersion,
-	Storages: map[uuid.UUID]*model.Storage{},
-	Jobs:     map[uuid.UUID]*model.Job{},
+	Version:      common.CurrentVersion,
+	Storages:     map[uuid.UUID]*model.Storage{},
+	Jobs:         map[uuid.UUID]*model.Job{},
+	JobSchedules: map[uuid.UUID]*model.JobSchedule{},
 }
 var Container = DefaultContainer
 

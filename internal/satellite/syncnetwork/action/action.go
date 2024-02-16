@@ -34,7 +34,7 @@ func SyncLogsToSupervisor() {
 	}
 }
 
-func SendStatusUpdate(id *uuid.UUID, kind string, status strategy.StatusUpdate) {
+func SendStatusUpdate(id uuid.UUID, kind string, status strategy.StatusUpdate) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {
 		if connection.Protocol != protocol.Supervisor {
@@ -42,7 +42,7 @@ func SendStatusUpdate(id *uuid.UUID, kind string, status strategy.StatusUpdate) 
 		}
 
 		connection.Send(&packet.StatusUpdate{
-			Id:         *id,
+			Id:         id,
 			Kind:       kind,
 			JobId:      *status.JobId,
 			Percentage: status.Percentage,
@@ -52,7 +52,7 @@ func SendStatusUpdate(id *uuid.UUID, kind string, status strategy.StatusUpdate) 
 	}
 }
 
-func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, executionId *uuid.UUID, date time.Time,
+func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, executionId uuid.UUID, date time.Time,
 	originKind string, destinationKind string, strategy string) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {

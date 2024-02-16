@@ -5,9 +5,7 @@
     <q-item
       tag="label" v-ripple
       v-for="permission in sortedPermissions()"
-      v-bind:key="permission.name"
-
-    >
+      v-bind:key="permission.name">
       <q-item-section side top>
         <q-checkbox
           v-model="permissionMap[permission.value]"

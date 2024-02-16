@@ -21,3 +21,14 @@ type Job struct {
 	// while crating partial backup we send the hash of the file to the destination satellite and then the destination satellite checks if it has the file
 	// if it has the file it will not download it again from the origin satellite
 }
+
+type JobSchedule struct {
+	Id            uuid.UUID `sql:"default:uuid_generate_v4()"`
+	JobId         uuid.UUID
+	Name          string
+	Description   string
+	Kind          string
+	Configuration string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+}

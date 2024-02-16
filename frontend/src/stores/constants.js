@@ -6,10 +6,12 @@ export const useConstantsStore = defineStore('constants', {
     configurationsLoaded: false,
     storageKindsLoaded: false,
     jobStrategiesLoaded: false,
+    scheduleKindsLoaded: false,
     version: '0.0.1',
     permissions: [],
     storageKinds: [],
     jobStrategies: [],
+    scheduleKinds: []
   }),
   getters: {},
   actions: {
@@ -54,6 +56,20 @@ export const useConstantsStore = defineStore('constants', {
           }
         }
       );
+    },
+    subscribeJobScheduleKinds(error) {
+        this.subscribeJobScheduleKindsId = this.$controller.jobSchedule.subscribeJobScheduleKinds(
+          this.subscribeJobScheduleKindsId,
+          (data) => {
+            this.scheduleKinds = data
+            this.scheduleKindsLoaded = true
+          },
+          (data) => {
+            if (!this.scheduleKinds) {
+              error(data);
+            }
+          }
+        )
     }
   },
 });

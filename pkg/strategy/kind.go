@@ -28,7 +28,7 @@ type Strategy interface {
 }
 
 type StatusUpdate struct {
-	Id         *uuid.UUID `json:"id"`
+	Id         uuid.UUID  `json:"id"`
 	JobId      *uuid.UUID `json:"jobId"`
 	Percentage float64    `json:"percentage"`
 	Message    string     `json:"message"`

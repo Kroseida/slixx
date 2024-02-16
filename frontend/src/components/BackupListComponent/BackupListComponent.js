@@ -20,7 +20,7 @@ export default defineComponent({
         descending: false,
         page: 1,
         rowsPerPage: 15,
-        rowsNumber: 1
+        rowsNumber: 1,
       },
       filter: ""
     });
@@ -84,6 +84,7 @@ export default defineComponent({
         limit: this.pagination.rowsPerPage,
         search: this.filter,
         page: this.pagination.page,
+        sort: "created_at DESC"
       }
       if (this.jobId) {
         args.jobId = this.jobId;

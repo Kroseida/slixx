@@ -1,11 +1,12 @@
 export default (client) => ({
   subscribeExecutions(subscriptionIdBefore, args, callback, error) {
     let search = args.search.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+    let sort = args.sort || ""
 
     client.graphql.unsubscribe(subscriptionIdBefore);
     if (args.jobId) {
       return client.graphql.subscribeTrackedObject(`query {
-        data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}, jobId: "${args.jobId}") {
+        data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}, jobId: "${args.jobId}", sort: "${sort}") {
           rows  {
             id
             jobId
@@ -24,7 +25,7 @@ export default (client) => ({
     }
 
     return client.graphql.subscribeTrackedObject(`query {
-      data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}) {
+      data: getExecutions(limit: ${args.limit}, search: "${search}", page: ${args.page}, sort: "${sort}") {
         rows  {
           id
           jobId

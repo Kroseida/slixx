@@ -383,6 +383,13 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 		destinationCopy.Close()
 		ctx.Finished = true
 	})
+
+	callback(StatusUpdate{
+		Percentage: 100,
+		Message:    "FINISHED",
+		StatusType: statustype.Finished,
+	})
+
 	return nil
 }
 

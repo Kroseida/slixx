@@ -13,7 +13,7 @@ type Backup struct {
 	Name            string
 	Description     string
 	JobId           uuid.UUID
-	ExecutionId     *uuid.UUID
+	ExecutionId     uuid.UUID
 	OriginKind      string
 	DestinationKind string
 	Strategy        string

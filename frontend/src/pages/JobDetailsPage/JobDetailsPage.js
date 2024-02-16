@@ -10,6 +10,7 @@ import BackupListComponent from "components/BackupListComponent/BackupListCompon
 import ExecutionListComponent from "components/ExecutionListComponent/ExecutionListComponent.vue";
 import JobSelectableComponent from "components/StorageSelectableComponent/StorageSelectableComponent.vue";
 import SatelliteSelectableComponent from "components/SatelliteSelectableComponent/SatelliteSelectableComponent.vue";
+import JobScheduleViewComponent from "components/JobScheduleViewComponent/JobScheduleViewComponent.vue";
 
 export default defineComponent({
   name: 'JobListPage',
@@ -20,7 +21,8 @@ export default defineComponent({
     BackupListComponent,
     ExecutionListComponent,
     JobSelectableComponent,
-    SatelliteSelectableComponent
+    SatelliteSelectableComponent,
+    JobScheduleViewComponent
   },
   data() {
     const constantsStore = useConstantsStore();

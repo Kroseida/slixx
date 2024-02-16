@@ -12,7 +12,6 @@ import (
 	syncnetworkBase "kroseida.org/slixx/pkg/syncnetwork"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
-	"kroseida.org/slixx/pkg/utils"
 	"strconv"
 )
 
@@ -38,6 +37,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, packet protocol.Packet) 
 	if packet.PacketId() == (&supervisorPacket.ExecuteRestore{}).PacketId() {
 		return h.HandleExecuteRestore(client, packet.(*supervisorPacket.ExecuteRestore))
 	}
+	if packet.PacketId() == (&supervisorPacket.SyncJobSchedule{}).PacketId() {
+		return h.HandleSyncJobSchedule(client, packet.(*supervisorPacket.SyncJobSchedule))
+	}
 	return nil
 }
 
@@ -57,33 +59,12 @@ func (h *Handler) HandleSyncStorage(client protocol.WrappedClient, storage *supe
 
 func (h *Handler) HandleSyncJob(client protocol.WrappedClient, job *supervisorPacket.SyncJob) error {
 	c := client.(*syncnetworkBase.ConnectedClient)
-
-	jobIdsBeforeSync := make([]uuid.UUID, len(syncdata.Container.Jobs))
-	for _, job := range syncdata.Container.Jobs {
-		jobIdsBeforeSync = append(jobIdsBeforeSync, job.Id)
-	}
-
 	syncdata.Container.Jobs = map[uuid.UUID]*model.Job{}
-
 	for _, job := range job.Jobs {
 		syncdata.Container.Jobs[job.Id] = job
 	}
 	syncdata.GenerateCache()
-
 	c.Server.Logger.Info("Synced " + strconv.Itoa(len(syncdata.Container.Jobs)) + " jobs from supervisor")
-
-	jobIdsAfterSync := make([]uuid.UUID, len(syncdata.Container.Jobs))
-	for _, job := range syncdata.Container.Jobs {
-		jobIdsAfterSync = append(jobIdsAfterSync, job.Id)
-	}
-
-	newJobIds := make([]uuid.UUID, 0)
-	for _, jobId := range jobIdsAfterSync {
-		if !utils.ContainsUUID(jobIdsBeforeSync, jobId) {
-			newJobIds = append(newJobIds, jobId)
-		}
-	}
-
 	return nil
 }
 
@@ -129,5 +110,17 @@ func (h *Handler) HandleExecuteRestore(_ protocol.WrappedClient, restore *superv
 			})
 		}
 	}()
+	return nil
+}
+
+func (h *Handler) HandleSyncJobSchedule(client protocol.WrappedClient, schedule *supervisorPacket.SyncJobSchedule) error {
+	c := client.(*syncnetworkBase.ConnectedClient)
+	syncdata.Container.JobSchedules = map[uuid.UUID]*model.JobSchedule{}
+	for _, schedule := range schedule.Schedules {
+		syncdata.Container.JobSchedules[schedule.Id] = schedule
+	}
+	syncdata.GenerateCache()
+	backup.InitializeScheduler()
+	c.Server.Logger.Info("Synced " + strconv.Itoa(len(syncdata.Container.JobSchedules)) + " job schedules from supervisor")
 	return nil
 }

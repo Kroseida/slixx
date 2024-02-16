@@ -27,4 +27,7 @@ func registerMutation(schema *schemabuilder.Schema) {
 	obj.FieldFunc("deleteBackup", controller.DeleteBackup)
 	obj.FieldFunc("resyncSatellite", controller.ResyncSatellite)
 	obj.FieldFunc("restoreBackup", controller.RestoreBackup)
+	obj.FieldFunc("createJobSchedule", controller.CreateJobSchedule)
+	obj.FieldFunc("updateJobSchedule", controller.UpdateJobSchedule)
+	obj.FieldFunc("deleteJobSchedule", controller.DeleteJobSchedule)
 }

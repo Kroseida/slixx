@@ -17,7 +17,7 @@ func (provider BackupProvider) Create(
 	name string,
 	description string,
 	jobId uuid.UUID,
-	executionId *uuid.UUID,
+	executionId uuid.UUID,
 	createdAt time.Time,
 	originKind string,
 	destinationKind string,

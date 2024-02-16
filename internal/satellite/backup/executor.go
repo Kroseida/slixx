@@ -10,7 +10,7 @@ import (
 	strategyRegistry "kroseida.org/slixx/pkg/strategy"
 )
 
-func Execute(id *uuid.UUID, jobId uuid.UUID) error {
+func Execute(id uuid.UUID, jobId uuid.UUID) error {
 	application.Logger.Info("Executing job", jobId)
 	job := syncdata.Container.Jobs[jobId]
 	if job == nil {
@@ -76,7 +76,7 @@ func Execute(id *uuid.UUID, jobId uuid.UUID) error {
 	return nil
 }
 
-func Restore(id *uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+func Restore(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
 	application.Logger.Info("Restoring backup", backupId)
 	job := syncdata.Container.Jobs[jobId]
 	if job == nil {

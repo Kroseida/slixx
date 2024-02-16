@@ -10,7 +10,7 @@ import (
 type RawBackupInfo struct {
 	Id              *uuid.UUID `json:"id"`
 	JobId           *uuid.UUID `json:"job_id"`
-	ExecutionId     *uuid.UUID `json:"execution_id"`
+	ExecutionId     uuid.UUID  `json:"execution_id"`
 	CreatedAt       time.Time  `json:"created_at"`
 	OriginKind      string     `json:"origin_kind"`
 	DestinationKind string     `json:"destination_kind"`
@@ -53,7 +53,7 @@ func (packet *RawBackupInfo) Deserialize(buffer *bytebuf.ByteBuffer) error {
 	if err != nil {
 		return err
 	}
-	packet.ExecutionId = &executionId
+	packet.ExecutionId = executionId
 
 	date, err := time.Parse(time.RFC3339, buffer.ReadString())
 	if err != nil {

@@ -25,4 +25,7 @@ func registerQuery(schema *schemabuilder.Schema) {
 	obj.FieldFunc("getExecution", controller.GetExecution)
 	obj.FieldFunc("getExecutionHistory", controller.GetExecutionHistory)
 	obj.FieldFunc("getBackup", controller.GetBackup)
+	obj.FieldFunc("getJobSchedule", controller.GetJobSchedule)
+	obj.FieldFunc("getJobSchedules", controller.GetJobSchedules)
+	obj.FieldFunc("getJobScheduleKinds", controller.GetJobScheduleKinds)
 }

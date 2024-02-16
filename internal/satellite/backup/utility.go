@@ -50,7 +50,7 @@ func SendBackupInfos() {
 			action.SendRawBackupInfo(
 				backupInfo.Id,
 				&job.Id,
-				&uuid.UUID{},
+				uuid.UUID{},
 				backupInfo.CreatedAt,
 				backupInfo.OriginKind,
 				backupInfo.DestinationKind,
