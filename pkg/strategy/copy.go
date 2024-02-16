@@ -448,7 +448,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 			readSize = lastBlockSize
 		}
 
-		data, err := origin.Read(file.FullDirectory, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
+		data, err := origin.Read(file.RelativePath, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
 		if err != nil {
 			return err
 		}
