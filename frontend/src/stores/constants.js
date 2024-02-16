@@ -7,7 +7,8 @@ export const useConstantsStore = defineStore('constants', {
     storageKindsLoaded: false,
     jobStrategiesLoaded: false,
     scheduleKindsLoaded: false,
-    version: '0.0.1',
+    environmentLoaded: false,
+    version: 'DEV',
     permissions: [],
     storageKinds: [],
     jobStrategies: [],
@@ -15,6 +16,20 @@ export const useConstantsStore = defineStore('constants', {
   }),
   getters: {},
   actions: {
+    subscribeEnvironment(error) {
+      this.environmentSubscriptionId = this.$controller.environment.environment(
+        this.environmentSubscriptionId,
+        (data) => {
+          this.version = data.version;
+          this.environmentLoaded = true;
+        },
+        (data) => {
+          if (!this.permissions) {
+            error(data);
+          }
+        }
+      );
+    },
     subscribePermissions(error) {
       this.permissionsSubscriptionId = this.$controller.user.subscribePermissions(
         this.permissionsSubscriptionId,

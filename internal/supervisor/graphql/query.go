@@ -7,6 +7,7 @@ import (
 
 func registerQuery(schema *schemabuilder.Schema) {
 	obj := schema.Query()
+	obj.FieldFunc("environment", controller.Environment)
 	obj.FieldFunc("getJob", controller.GetJob)
 	obj.FieldFunc("getJobs", controller.GetJobs)
 	obj.FieldFunc("getStorage", controller.GetStorage)
