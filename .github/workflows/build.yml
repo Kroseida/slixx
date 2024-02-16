@@ -25,7 +25,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image for Supervisor
         uses: docker/build-push-action@v2
         with:
           context: .
@@ -34,3 +34,12 @@ jobs:
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:latest
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:${{ github.ref_name }}
+      - name: Build and Push Docker Image for Satellite
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: .docker/satellite/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:latest
+            ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:${{ github.ref_name }}
