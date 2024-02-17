@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/pkg/utils/fileutils"
 	"os"
 )
@@ -21,7 +22,7 @@ func LoadSettings(file string, settings interface{}, defaultSettings interface{}
 	}
 
 	content = []byte(os.ExpandEnv(string(content)))
-
+	application.Logger.Info("Detected settings file content: ", string(content))
 	err = json.Unmarshal(content, settings)
 	if err != nil {
 		return err
