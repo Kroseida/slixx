@@ -8,7 +8,10 @@ WORKDIR /app
 COPY supervisor /app/
 COPY supervisor.settings.json /app/config/
 
-RUN chmod +x /app/supervisor
+RUN CHMOD +X /app/supervisor
+RUN CHMOD +X /app/supervisor.settings.json
+RUN CHMOD +X /app/data
+RUN CHMOD +X /app/config
 
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
@@ -23,4 +26,4 @@ ARG LOGGER_CHECK_INTERVAL=6
 EXPOSE 3030
 
 # Run the image
-CMD ["/app/supervisor"]
+ENTRYPOINT ["/app/supervisor"]
