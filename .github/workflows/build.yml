@@ -17,7 +17,7 @@ jobs:
       - name: Replace Version in version.go
         run: sed -i 's/{development}/${{ github.ref_name }}/' ./internal/common/version.go
       - name: Mkdir dist
-        run: mkdir -p ./dist
+        run: mkdir -p /dist
       - name: Compile Supervisor
         run: go build -o /dist/supervisor ./internal/supervisor/main.go
       - name: Compile Satellite
