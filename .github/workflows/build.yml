@@ -19,10 +19,10 @@ jobs:
       - name: Mkdir dist
         run: mkdir -p ./dist
       - name: Compile Supervisor
-        WORKDIR: .c
+        working-directory: ./internal/supervisor
         run: go build -o ../../dist/supervisor .
       - name: Compile Satellite
-        WORKDIR: ./internal/satellite
+        working-directory: ./internal/satellite
         run: go build -o ../../dist/satellite .
       - name: Login to Docker Hub
         uses: docker/login-action@v1
