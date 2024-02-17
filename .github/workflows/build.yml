@@ -32,7 +32,7 @@ jobs:
       - name: Build and Push Docker Image for Supervisor
         uses: docker/build-push-action@v5
         with:
-          context: .docker/supervisor
+          context: ./.docker/supervisor
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-supervisor:${{ github.ref_name }}
@@ -40,7 +40,7 @@ jobs:
       - name: Build and Push Docker Image for Satellite
         uses: docker/build-push-action@v5
         with:
-          context: .docker/satellite
+          context: ./.docker/satellite
           push: true
           tags: |
             ${{ secrets.DOCKER_HUB_USERNAME }}/slixx-satellite:${{ github.ref_name }}

@@ -43,7 +43,3 @@ frontend/selenium-debug.log
 frontend/.netlify
 frontend/.*.dockerfile
 frontend/.vs
-
-#Backend
-supervisor.settings.json
-satellite.settings.json

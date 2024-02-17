@@ -1,0 +1,27 @@
+{
+  "authentication": {
+    "hashCost": ${AUTHENTICATION_HASH_COST},
+    "tokenSize": ${AUTHENTICATION_TOKEN_SIZE},
+    "sessionDuration": ${AUTHENTICATION_SESSION_DURATION}
+  },
+  "http": {
+    "AllowedOrigin": "${HTTP_ALLOWED_ORIGIN}",
+    "bindAddress": ":3030",
+    "enableGraphiql": ${ENABLE_GRAPHIQL},
+  },
+  "database": {
+    "kind": "sqlite",
+    "configuration": {
+      "file": "data/slixx.db"
+    }
+  },
+  "logger": {
+    "mode": "${LOGGER_MODE}"
+  },
+  "logSync": {
+    "active": ${LOGGER_SYNC_ACTIVE},
+    "runCleanUp": ${LOGGER_RUN_CLEANUP},
+    "logRetention": ${LOGGER_LOG_RETENTION},
+    "checkInterval": ${LOGGER_CHECK_INTERVAL}
+  }
+}

@@ -1,0 +1,14 @@
+{
+    "logger": {
+        "mode": "${LOGGER_MODE}"
+    },
+    "satellite": {
+        "network": {
+            "bindAddress": ":9623"
+        },
+        "authenticationToken": "${SATELLITE_AUTH_TOKEN}"
+    },
+    "logSync": {
+        "active": ${LOGGER_SYNC_ACTIVE}
+    }
+}

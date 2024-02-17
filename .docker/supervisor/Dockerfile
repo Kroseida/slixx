@@ -5,8 +5,8 @@ RUN mkdir -p /app/data
 RUN mkdir -p /app/config
 
 WORKDIR /app
-COPY supervisor /app
-COPY supervisor.settings.json /app/config
+COPY supervisor /app/
+COPY supervisor.settings.json /app/config/
 
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
