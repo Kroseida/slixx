@@ -5,8 +5,8 @@ RUN mkdir -p /app/data
 RUN mkdir -p /app/config
 
 WORKDIR /app
-COPY ./dist/supervisor /app/supervisor
-COPY ./.docker/supervisor/supervisor.settings.json /app/config/supervisor.settings.json
+COPY supervisor /app/supervisor
+COPY supervisor.settings.json /app/config/supervisor.settings.json
 
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
