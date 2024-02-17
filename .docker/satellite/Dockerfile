@@ -8,9 +8,9 @@ WORKDIR /app
 COPY satellite /app/
 COPY satellite.settings.json /app/config/
 
-ARG LOGGER_MODE=info
-ARG LOGGER_SYNC_ACTIVE=true
-ARG SATELLITE_AUTH_TOKEN=$(openssl rand -hex 16)
+ENV LOGGER_MODE=info
+ENV LOGGER_SYNC_ACTIVE=true
+ENV SATELLITE_AUTH_TOKEN=$(openssl rand -hex 16)
 
 EXPOSE 9623
 
