@@ -4,7 +4,7 @@ RUN mkdir -p /app
 RUN mkdir -p /app/data
 
 WORKDIR /app
-COPY /dist/supervisor /app
+COPY ./dist/supervisor /app
 
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
@@ -16,4 +16,4 @@ ARG LOGGER_SYNC_ACTIVE=true
 ARG LOGGER_LOG_RETENTION=168
 ARG LOGGER_CHECK_INTERVAL=6
 
-CMD ["./supervisor"]
+CMD ["supervisor"]
