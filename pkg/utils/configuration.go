@@ -20,6 +20,8 @@ func LoadSettings(file string, settings interface{}, defaultSettings interface{}
 		return err
 	}
 
+	content = []byte(os.ExpandEnv(string(content)))
+
 	err = json.Unmarshal(content, settings)
 	if err != nil {
 		return err

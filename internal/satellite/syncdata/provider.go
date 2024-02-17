@@ -16,7 +16,7 @@ type ContainerModel struct {
 	JobSchedules map[uuid.UUID]*model.JobSchedule
 }
 
-var CacheFile = ".cache"
+var CacheFile = "data/.cache"
 var DefaultContainer = ContainerModel{
 	Version:      common.CurrentVersion,
 	Storages:     map[uuid.UUID]*model.Storage{},

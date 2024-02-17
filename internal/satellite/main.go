@@ -7,17 +7,23 @@ import (
 	"kroseida.org/slixx/internal/satellite/syncnetwork"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/utils"
+	"kroseida.org/slixx/pkg/utils/fileutils"
+	"os"
 )
 
-var SETTINGS = "satellite.settings.json"
+var SETTINGS = "config/satellite.settings.json"
 
 func main() {
+	if !fileutils.FileExists("data") {
+		os.Mkdir("data", 0755)
+	}
+
 	err := utils.LoadSettings(SETTINGS, &application.CurrentSettings, &application.DefaultSettings)
 	if err != nil {
 		panic(err)
 	}
 	application.Logger = &application.SyncedLogger{
-		Logger:      utils.CreateLogger(application.CurrentSettings.Logger.Mode, "satellite.log"),
+		Logger:      utils.CreateLogger(application.CurrentSettings.Logger.Mode, "log/satellite.log"),
 		CachedLines: []*model.SatelliteLogEntry{},
 	}
 

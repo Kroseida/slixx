@@ -11,14 +11,14 @@ import (
 	"os"
 )
 
-var SETTINGS = "supervisor.settings.json"
+var SETTINGS = "config/supervisor.settings.json"
 
 func main() {
 	err := utils.LoadSettings(SETTINGS, &application.CurrentSettings, &application.DefaultSettings)
 	if err != nil {
 		panic(err)
 	}
-	application.Logger = utils.CreateLogger(application.CurrentSettings.Logger.Mode, "supervisor.log")
+	application.Logger = utils.CreateLogger(application.CurrentSettings.Logger.Mode, "log/supervisor.log")
 	application.Logger.Info("Starting Slixx supervisor v" + common.CurrentVersion)
 
 	application.Logger.Info("Initializing database connection")

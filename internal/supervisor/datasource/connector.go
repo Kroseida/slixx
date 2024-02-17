@@ -7,6 +7,8 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource/migration"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	"kroseida.org/slixx/pkg/utils/fileutils"
+	"os"
 )
 
 var StorageProvider provider.StorageProvider
@@ -69,6 +71,10 @@ func ConnectSqlite() error {
 		logMode = logger.Info
 	} else {
 		logMode = logger.Silent
+	}
+
+	if !fileutils.FileExists(fileutils.ParentDirectory(application.CurrentSettings.Database.Configuration["file"])) {
+		os.Mkdir(fileutils.ParentDirectory(application.CurrentSettings.Database.Configuration["file"]), 0755)
 	}
 
 	database, err := gorm.Open(sqlite.Open(application.CurrentSettings.Database.Configuration["file"]), &gorm.Config{

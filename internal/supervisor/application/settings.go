@@ -50,7 +50,7 @@ var DefaultSettings = Settings{
 	Database: Database{
 		Kind: "sqlite",
 		Configuration: map[string]string{
-			"file": "slixx.db",
+			"file": "data/slixx.db",
 		},
 	},
 	Logger: Log{
