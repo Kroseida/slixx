@@ -8,11 +8,6 @@ WORKDIR /app
 COPY supervisor /app/
 COPY supervisor.settings.json /app/config/
 
-RUN CHMOD +X /app/supervisor
-RUN CHMOD +X /app/supervisor.settings.json
-RUN CHMOD +X /app/data
-RUN CHMOD +X /app/config
-
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
 ARG AUTHENTICATION_HASH_COST=16
