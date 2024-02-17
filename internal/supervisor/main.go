@@ -8,12 +8,17 @@ import (
 	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
 	"kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/pkg/utils"
+	"kroseida.org/slixx/pkg/utils/fileutils"
 	"os"
 )
 
 var SETTINGS = "config/supervisor.settings.json"
 
 func main() {
+	if !fileutils.FileExists("log") {
+		os.Mkdir("log", 0755)
+	}
+
 	err := utils.LoadSettings(SETTINGS, &application.CurrentSettings, &application.DefaultSettings)
 	if err != nil {
 		panic(err)

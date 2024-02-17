@@ -17,6 +17,9 @@ func main() {
 	if !fileutils.FileExists("data") {
 		os.Mkdir("data", 0755)
 	}
+	if !fileutils.FileExists("log") {
+		os.Mkdir("log", 0755)
+	}
 
 	err := utils.LoadSettings(SETTINGS, &application.CurrentSettings, &application.DefaultSettings)
 	if err != nil {
