@@ -7,7 +7,7 @@
   "http": {
     "AllowedOrigin": "${HTTP_ALLOWED_ORIGIN}",
     "bindAddress": ":3030",
-    "enableGraphiql": ${ENABLE_GRAPHIQL}
+    "enableGraphiql": ${HTTP_ENABLE_GRAPHIQL}
   },
   "database": {
     "kind": "sqlite",
