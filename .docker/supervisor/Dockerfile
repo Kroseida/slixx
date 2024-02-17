@@ -2,9 +2,11 @@ FROM alpine:latest
 
 RUN mkdir -p /app
 RUN mkdir -p /app/data
+RUN mkdir -p /app/config
 
 WORKDIR /app
-COPY ./dist/supervisor /app
+COPY ./dist/supervisor /app/supervisor
+COPY supervisor.settings.json /app/config/supervisor.settings.json
 
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
@@ -15,5 +17,7 @@ ARG LOGGER_MODE=info
 ARG LOGGER_SYNC_ACTIVE=true
 ARG LOGGER_LOG_RETENTION=168
 ARG LOGGER_CHECK_INTERVAL=6
+
+EXPOSE 3030
 
 CMD ["./supervisor"]

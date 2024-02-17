@@ -2,9 +2,11 @@ FROM alpine:latest
 
 RUN mkdir -p /app
 RUN mkdir -p /app/data
+RUN mkdir -p /app/config
 
 WORKDIR /app
-COPY ./dist/satellite /app
+COPY ./dist/satellite /app/satellite
+COPY satellite.settings.json /app/config/satellite.settings.json
 
 ARG LOGGER_MODE=info
 ARG LOGGER_SYNC_ACTIVE=true
