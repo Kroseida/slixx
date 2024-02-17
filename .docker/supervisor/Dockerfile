@@ -8,6 +8,8 @@ WORKDIR /app
 COPY supervisor /app/
 COPY supervisor.settings.json /app/config/
 
+RUN chmod +x /app/supervisor
+
 ARG HTTP_ALLOWED_ORIGIN=*
 ARG HTTP_ENABLE_GRAPHIQL=true
 ARG AUTHENTICATION_HASH_COST=16
@@ -20,4 +22,5 @@ ARG LOGGER_CHECK_INTERVAL=6
 
 EXPOSE 3030
 
-CMD ["./supervisor"]
+# Run the image
+CMD ["/app/supervisor"]
