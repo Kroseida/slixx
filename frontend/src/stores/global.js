@@ -40,7 +40,7 @@ export const useGlobalStore = defineStore('global', {
           }
         },
         (data) => {
-          if (!this.userLoaded) {
+          if (!this.localUser) {
             error(data);
           }
         }

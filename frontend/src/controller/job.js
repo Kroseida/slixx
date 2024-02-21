@@ -1,4 +1,17 @@
 export default (client) => ({
+  subscribeJobStrategies(subscriptionIdBefore, callback, error) {
+    client.graphql.unsubscribe(subscriptionIdBefore);
+    return client.graphql.subscribeTrackedObject(`query {
+      data: getJobStrategies {
+        name
+        configuration {
+          name
+          kind
+          default
+        }
+      }
+    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
+  },
   subscribeJob(subscriptionIdBefore, id, callback, error) {
     client.graphql.unsubscribe(subscriptionIdBefore);
     return client.graphql.subscribeTrackedObject(`query {
@@ -32,19 +45,6 @@ export default (client) => ({
         page {
           totalRows
           totalPages
-        }
-      }
-    }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));
-  },
-  subscribeJobStrategies(subscriptionIdBefore, callback, error) {
-    client.graphql.unsubscribe(subscriptionIdBefore);
-    return client.graphql.subscribeTrackedObject(`query {
-      data: getJobStrategies {
-        name
-        configuration {
-          name
-          kind
-          default
         }
       }
     }`, (data, subscribeId) => callback(data, subscribeId), (data) => error(data.message));

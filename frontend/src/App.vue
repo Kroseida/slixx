@@ -35,14 +35,6 @@ export default defineComponent({
       constantsStore: useConstantsStore(),
     }
   },
-  handleError(message) {
-    Notify.create({
-      message,
-      color: 'negative',
-      icon: 'report_problem',
-      position: 'top',
-    })
-  },
   async mounted() {
     if (localStorage.getItem('_darkMode') == 'true') {
       this.globalStore.setDarkMode(this.$q.dark, true)
@@ -94,6 +86,16 @@ export default defineComponent({
       }
     }, 5000);
 
+  },
+  methods: {
+    handleError(message) {
+      Notify.create({
+        message,
+        color: 'negative',
+        icon: 'report_problem',
+        position: 'top',
+      })
+    }
   }
 })
 </script>
