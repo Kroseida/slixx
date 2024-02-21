@@ -3,10 +3,12 @@ FROM ubuntu:latest
 RUN mkdir -p /app
 RUN mkdir -p /app/data
 RUN mkdir -p /app/config
+RUN mkdir -p /app/log
 
 WORKDIR /app
 COPY supervisor /app/
 COPY supervisor.settings.json /app/config/
+COPY ../frontend/dist/spa /app/dist
 
 ENV HTTP_ALLOWED_ORIGIN=*
 ENV HTTP_ENABLE_GRAPHIQL=true

@@ -23,6 +23,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	application.Logger = utils.CreateLogger(application.CurrentSettings.Logger.Mode, "log/supervisor.log")
 	application.Logger.Info("Starting Slixx supervisor v" + common.CurrentVersion)
 

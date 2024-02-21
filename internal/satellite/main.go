@@ -25,12 +25,25 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	application.Logger = &application.SyncedLogger{
 		Logger:      utils.CreateLogger(application.CurrentSettings.Logger.Mode, "log/satellite.log"),
 		CachedLines: []*model.SatelliteLogEntry{},
 	}
 
 	application.Logger.Info("Starting Slixx satellite v" + common.CurrentVersion)
+	if application.CurrentSettings.Satellite.AuthenticationToken == "" {
+		application.Logger.Error("No authentication token found in settings")
+		application.Logger.Error("Please add a token to the settings file")
+		application.Logger.Error("You can generate a token with the following command:")
+		application.Logger.Error("echo $(openssl rand -base64 32)")
+		os.Exit(1)
+	}
+	if len(application.CurrentSettings.Satellite.AuthenticationToken) < 8 {
+		application.Logger.Warn("Authentication token is too short")
+		application.Logger.Warn("Please use a token with at least 8 characters")
+	}
+
 	application.Logger.Info("Loading cache from disk")
 	err = syncdata.LoadCache()
 	if err != nil {

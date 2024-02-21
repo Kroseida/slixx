@@ -9,7 +9,9 @@ import (
 	"github.com/samsarahq/thunder/graphql/schemabuilder"
 	"kroseida.org/slixx/internal/supervisor/application"
 	userService "kroseida.org/slixx/internal/supervisor/service/user"
+	"kroseida.org/slixx/pkg/utils/fileutils"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -89,5 +91,14 @@ func Start() error {
 	if application.CurrentSettings.Http.EnableGraphiql {
 		http.Handle("/graphiql/", http.StripPrefix("/graphiql/", graphiql.Handler()))
 	}
+
+	distPath := "dist/"
+	if !fileutils.FileExists(distPath) {
+		os.Mkdir(distPath, 0755)
+	}
+
+	fs := http.FileServer(http.Dir(distPath))
+	http.Handle("/", fs)
+
 	return http.ListenAndServe(application.CurrentSettings.Http.BindAddress, nil)
 }
