@@ -118,7 +118,21 @@ export default {
             this.client.close();
             this.onReset();
           }
-          this.client = new WebSocket(`ws://localhost:3030/graphql?authorization=${token}`);
+
+          const CUSTOM_HOST = localStorage.getItem("custom_host")
+          const LOCAL_DEV_HOST = localStorage.getItem("local_dev_host")
+          if (CUSTOM_HOST) {
+            this.client = new WebSocket(`ws://${CUSTOM_HOST}/graphql?authorization=${token}`);
+          } else if (LOCAL_DEV_HOST) {
+            this.client = new WebSocket(`ws://localhost:3030/graphql?authorization=${token}`);
+          } else {
+            let protocol = 'ws';
+            if (window.location.protocol === 'https') {
+              protocol = 'wss';
+            }
+            this.client = new WebSocket(`${protocol}://${window.location.host}/graphql?authorization=${token}`);
+          }
+
           this.listener();
           this.client.addEventListener('open', () => {
             this.onConnected();
