@@ -127,7 +127,7 @@ export default {
             this.client = new WebSocket(`ws://localhost:3030/graphql?authorization=${token}`);
           } else {
             let protocol = 'ws';
-            if (window.location.protocol === 'https') {
+            if (window.location.protocol === 'https:') {
               protocol = 'wss';
             }
             this.client = new WebSocket(`${protocol}://${window.location.host}/graphql?authorization=${token}`);
