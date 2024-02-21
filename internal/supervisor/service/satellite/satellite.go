@@ -13,7 +13,7 @@ import (
 )
 
 type StatefulSatellite struct {
-	*model.Satellite
+	model.Satellite
 	Connected bool
 }
 
@@ -26,11 +26,11 @@ func StartWatchdog() {
 
 		// Create clients for database entries that are not provided yet
 		for _, satellite := range satellites {
-			syncnetwork.ProvideClient(*satellite.Satellite)
+			syncnetwork.ProvideClient(satellite.Satellite)
 		}
 
 		// Remove clients that are not in the database anymore
-		satellitesMap := make(map[uuid.UUID]*model.Satellite)
+		satellitesMap := make(map[uuid.UUID]model.Satellite)
 		for _, satellite := range satellites {
 			satellitesMap[satellite.Id] = satellite.Satellite
 		}
@@ -45,15 +45,15 @@ func StartWatchdog() {
 	}
 }
 
-func List() ([]*StatefulSatellite, error) {
+func List() ([]StatefulSatellite, error) {
 	satellites, err := datasource.SatelliteProvider.List()
 	if err != nil {
 		return nil, err
 	}
-	statefulSatellites := make([]*StatefulSatellite, len(satellites))
+	statefulSatellites := make([]StatefulSatellite, len(satellites))
 	for i, satellite := range satellites {
-		statefulSatellites[i] = &StatefulSatellite{
-			Satellite: satellite,
+		statefulSatellites[i] = StatefulSatellite{
+			Satellite: *satellite,
 			Connected: syncnetwork.GetClient(satellite.Id) != nil && syncnetwork.GetClient(satellite.Id).Client != nil &&
 				syncnetwork.GetClient(satellite.Id).Client.CurrentProtocol == protocol.Supervisor,
 		}
@@ -67,7 +67,7 @@ func Get(id uuid.UUID) (*StatefulSatellite, error) {
 		return nil, err
 	}
 	return &StatefulSatellite{
-		Satellite: satellite,
+		Satellite: *satellite,
 		Connected: syncnetwork.GetClient(satellite.Id) != nil && syncnetwork.GetClient(satellite.Id).Client != nil &&
 			syncnetwork.GetClient(satellite.Id).Client.CurrentProtocol == protocol.Supervisor,
 	}, nil
@@ -83,7 +83,7 @@ func GetPaged(pagination *provider.Pagination[model.Satellite]) (*provider.Pagin
 	statefulPagedData.Rows = make([]StatefulSatellite, len(pagedData.Rows))
 	for i, satellite := range pagedData.Rows {
 		statefulPagedData.Rows[i] = StatefulSatellite{
-			Satellite: &satellite,
+			Satellite: satellite,
 			Connected: syncnetwork.GetClient(satellite.Id) != nil && syncnetwork.GetClient(satellite.Id).Client != nil &&
 				syncnetwork.GetClient(satellite.Id).Client.CurrentProtocol == protocol.Supervisor,
 		}
