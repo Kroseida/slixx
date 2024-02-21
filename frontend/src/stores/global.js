@@ -29,7 +29,7 @@ export const useGlobalStore = defineStore('global', {
       localStorage.setItem('_darkMode', darkMode);
       dark.set(darkMode)
     },
-    async subscribeLocalUser(callback, error) {
+    subscribeLocalUser(callback, error) {
       this.localUserSubscriptionId = this.$controller.user.subscribeLocalUser(
         this.localUserSubscriptionId,
         (data) => {
@@ -40,7 +40,7 @@ export const useGlobalStore = defineStore('global', {
           this.localUser = data;
         },
         (data) => {
-          if (!this.localUser) {
+          if (!this.userLoaded) {
             error(data);
           }
         }
