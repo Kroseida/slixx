@@ -34,10 +34,10 @@ export const useGlobalStore = defineStore('global', {
         this.localUserSubscriptionId,
         (response) => {
           this.userLoaded = true;
-          this.localUser = response;
           if (!this.localUser) {
             callback(response);
           }
+          this.localUser = response;
         },
         (data) => {
           if (!this.localUser) {
