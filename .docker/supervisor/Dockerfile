@@ -8,7 +8,7 @@ RUN mkdir -p /app/log
 WORKDIR /app
 COPY supervisor /app/
 COPY supervisor.settings.json /app/config/
-COPY ../frontend/dist/spa /app/dist
+COPY dist/* /app/dist
 
 ENV HTTP_ALLOWED_ORIGIN=*
 ENV HTTP_ENABLE_GRAPHIQL=true
