@@ -53,7 +53,7 @@ export default defineComponent({
     this.$controller.graphql.onConnected = async () => {
       this.globalStore.connectionState = "CONNECTED";
       this.globalStore.connectedBefore = true;
-      await this.globalStore.subscribeLocalUser((user) => {
+      this.globalStore.subscribeLocalUser((user) => {
         this.constantsStore.subscribePermissions(this.handleError);
         this.constantsStore.subscribeStorageKinds(this.handleError);
         this.constantsStore.subscribeJobStrategies(this.handleError);

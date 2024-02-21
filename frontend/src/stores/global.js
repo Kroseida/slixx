@@ -32,12 +32,12 @@ export const useGlobalStore = defineStore('global', {
     subscribeLocalUser(callback, error) {
       this.localUserSubscriptionId = this.$controller.user.subscribeLocalUser(
         this.localUserSubscriptionId,
-        (data) => {
+        (response) => {
           this.userLoaded = true;
+          this.localUser = response;
           if (!this.localUser) {
-            callback(data);
+            callback(response);
           }
-          this.localUser = data;
         },
         (data) => {
           if (!this.userLoaded) {
