@@ -11,8 +11,10 @@ import JobSelectableComponent from "components/StorageSelectableComponent/Storag
 export default defineComponent({
   name: 'SatelliteDetailsPage',
   components: {
-    JobSelectableComponent, SatelliteSelectableComponent,
-    SlixxButton, ButtonGroup,
+    JobSelectableComponent,
+    SatelliteSelectableComponent,
+    SlixxButton,
+    ButtonGroup,
     ExecutionHistoryViewer,
   },
   data(){
@@ -59,14 +61,38 @@ export default defineComponent({
     restore(callback) {
       const args = {
         backupId: this.backup.id,
+        jobId: this.backup.jobId
       }
 
       this.$controller.backup.restoreBackup(args, () => {
         this.$q.notify({
           type: 'positive',
-          message: 'Restore started',
+          message: 'Deletion started',
           position: 'top',
         })
+        callback();
+      }, (data) => {
+        this.$q.notify({
+          type: 'negative',
+          message: data,
+          position: 'top',
+        })
+        callback();
+      });
+    },
+    remove(callback) {
+      const args = {
+        backupId: this.backup.id,
+        jobId: this.backup.jobId
+      }
+
+      this.$controller.backup.deleteBackup(args, () => {
+        this.$q.notify({
+          type: 'positive',
+          message: 'Deletion started',
+          position: 'top',
+        })
+        this.router.push({path: `/job/${this.backup.jobId}`})
         callback();
       }, (data) => {
         this.$q.notify({

@@ -57,7 +57,7 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 		},
 	)
 
-	parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
 		files := ctx.Items
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
@@ -99,6 +99,10 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 		destinationCopy.Close()
 		ctx.Finished = true
 	})
+	if err != nil {
+		return nil, err
+	}
+
 	return strategy.handleIndexingBackup(backupId, jobId, origin, destination, callback)
 }
 
@@ -133,6 +137,7 @@ func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sour
 		return nil, err
 	}
 
+	to.CreateDirectory(destinationDirectory)
 	for _, file := range rawFiles {
 		if file.Directory {
 			err := to.CreateDirectory(destinationDirectory + file.RelativePath)
@@ -272,7 +277,7 @@ func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, ca
 				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
 			}
 
-			err := storageCopy.Delete(file.FullDirectory)
+			err := storageCopy.Delete(prefix + "/" + file.RelativePath)
 			if err != nil {
 				parallelExecutor.Error <- err
 				return
@@ -312,9 +317,21 @@ func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, ca
 		}
 
 		for _, file := range fileutils.SortByLength(rawFiles) {
-			targetStorage.DeleteDirectory(file.FullDirectory)
+			targetStorage.DeleteDirectory(file.RelativePath)
 		}
 	}
+	return nil
+}
+
+func (strategy *CopyStrategy) Delete(destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
+	err := destination.Delete(fileutils.FixedPathName(BackupInfoDirectory + id.String()))
+	if err != nil {
+		return err
+	}
+	deleteAllFiles(destination, id.String(), strategy.Configuration.Parallel, func(status StatusUpdate) {
+		callback(status)
+	})
+	destination.DeleteDirectory(id.String())
 	return nil
 }
 
@@ -341,7 +358,7 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 		},
 	)
 
-	parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
 		files := ctx.Items
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
@@ -383,6 +400,9 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 		destinationCopy.Close()
 		ctx.Finished = true
 	})
+	if err != nil {
+		return err
+	}
 
 	callback(StatusUpdate{
 		Percentage: 100,

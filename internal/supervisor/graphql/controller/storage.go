@@ -152,6 +152,8 @@ func DeleteStorage(ctx context.Context, args DeleteStorageDto) (*Storage, error)
 type StorageKindDescriptionDto struct {
 	Name          string                               `json:"name" graphql:"name"`
 	Configuration []StorageConfigurationDescriptionDto `json:"configuration" graphql:"configuration"`
+	CanRead       bool                                 `json:"canRead" graphql:"canRead"`
+	CanStore      bool                                 `json:"canStore" graphql:"canStore"`
 }
 
 type StorageConfigurationDescriptionDto struct {
@@ -177,6 +179,8 @@ func GetStorageKinds() ([]StorageKindDescriptionDto, error) {
 		descriptions = append(descriptions, StorageKindDescriptionDto{
 			Name:          kind.GetName(),
 			Configuration: configurations,
+			CanRead:       kind.CanRead(),
+			CanStore:      kind.CanStore(),
 		})
 	}
 	return descriptions, nil

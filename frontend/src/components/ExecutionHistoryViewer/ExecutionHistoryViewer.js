@@ -11,7 +11,7 @@ export default {
   },
   props: {
     executionId: {
-      type: Object,
+      type: String,
       required: true,
     },
   },

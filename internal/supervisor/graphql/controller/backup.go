@@ -81,10 +81,6 @@ func ResyncSatellite(ctx context.Context, request RequestBackupSyncDto) (*Reques
 	return &request, nil
 }
 
-func DeleteBackup() {
-
-}
-
 type BackupPageDto struct {
 	Rows []BackupDto `json:"rows" graphql:"rows"`
 	Page
@@ -135,4 +131,28 @@ func GetBackup(ctx context.Context, args GetBackupDto) (*BackupDto, error) {
 	dto.Map(&job, &backupDto)
 
 	return backupDto, nil
+}
+
+type DeleteBackupDto struct {
+	Id       *uuid.UUID `json:"id" graphql:"id"`
+	JobId    uuid.UUID  `json:"jobId" graphql:"jobId"`
+	BackupId uuid.UUID  `json:"backupId" graphql:"backupId"`
+}
+
+func DeleteBackup(ctx context.Context, args DeleteBackupDto) (*DeleteBackupDto, error) {
+	if !IsPermitted(ctx, []string{"backup.delete"}) {
+		return nil, graphql.NewSafeError("missing permission")
+	}
+	if args.Id == nil {
+		id, err := uuid.NewRandom()
+		if err != nil {
+			return nil, err
+		}
+		args.Id = &id
+	}
+	var err = backupService.RequestDelete(*args.Id, args.JobId, args.BackupId)
+	if err != nil {
+		return nil, err
+	}
+	return &args, nil
 }

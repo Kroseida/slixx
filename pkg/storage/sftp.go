@@ -248,11 +248,11 @@ func (kind *SFtpKind) Parse(configurationJson string) (interface{}, error) {
 }
 
 func (kind *SFtpKind) Delete(file string) error {
-	return kind.Client.Remove(fileutils.FixedPathName(file))
+	return kind.Client.Remove(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
 }
 
 func (kind *SFtpKind) DeleteDirectory(directory string) error {
-	return kind.Client.RemoveDirectory(fileutils.FixedPathName(directory))
+	return kind.Client.RemoveDirectory(fileutils.FixedPathName(kind.Configuration.File + "/" + directory))
 }
 
 func (kind *SFtpKind) DefaultConfiguration() interface{} {

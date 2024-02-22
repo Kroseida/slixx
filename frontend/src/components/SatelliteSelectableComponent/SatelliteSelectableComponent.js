@@ -7,6 +7,7 @@ export default {
     SelectableComponent,
     SatelliteListComponent,
   },
+  emits: ['input'],
   data() {
     return {
       selectedJob: null,

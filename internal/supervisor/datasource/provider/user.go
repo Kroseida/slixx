@@ -47,6 +47,7 @@ var Permissions = map[string]string{
 	"backup.view":    "View Backup",
 	"backup.restore": "Restore Backup",
 	"backup.execute": "Execute Backup",
+	"backup.delete":  "Delete Backup",
 	"execution.view": "View Execution",
 }
 

@@ -36,6 +36,13 @@
               @s-click="openLogs"
               :disable="!globalStore.isPermitted('backup.view')"
             />
+            <slixx-button
+              color="negative"
+              label="Delete"
+              class="action"
+              @s-click="remove"
+              :disable="!globalStore.isPermitted('backup.delete')"
+            />
           </button-group>
         </div>
       </q-card-section>

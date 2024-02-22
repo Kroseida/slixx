@@ -32,7 +32,7 @@ func NewExecutor[T any](items [][]T, callback func(status ExecutorStatus)) *Exec
 	return &Executor[T]{Contexts: contexts, Error: make(chan error), StatusCallback: callback}
 }
 
-func (executor Executor[T]) Run(execute func(index *int, ctx *Context[T])) {
+func (executor Executor[T]) Run(execute func(index *int, ctx *Context[T])) error {
 	for index := range executor.Contexts {
 		atomicIndex := index
 		executor.Contexts[atomicIndex].Finished = false
@@ -41,7 +41,7 @@ func (executor Executor[T]) Run(execute func(index *int, ctx *Context[T])) {
 
 		go execute(&atomicIndex, &executor.Contexts[atomicIndex])
 	}
-	executor.waitWatchdog(executor.StatusCallback)
+	return executor.waitWatchdog(executor.StatusCallback)
 }
 
 func (executor Executor[T]) waitWatchdog(callback func(status ExecutorStatus)) error {

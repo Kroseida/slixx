@@ -21,6 +21,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, p protocol.Packet) error
 	if p.PacketId() == (&supervisorPacket.StatusUpdate{}).PacketId() {
 		return h.HandleStatusUpdate(client, p.(*supervisorPacket.StatusUpdate))
 	}
+	if p.PacketId() == (&supervisorPacket.DeleteInfo{}).PacketId() {
+		return h.HandleDeleteInfo(client, p.(*supervisorPacket.DeleteInfo))
+	}
 	return nil
 }
 
@@ -49,4 +52,8 @@ func (h *Handler) HandleStatusUpdate(_ protocol.WrappedClient, update *superviso
 		update.StatusType,
 		update.Message,
 	)
+}
+
+func (h *Handler) HandleDeleteInfo(_ protocol.WrappedClient, info *supervisorPacket.DeleteInfo) error {
+	return backupService.DeleteBackupFromIndex(info.Id)
 }

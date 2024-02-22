@@ -130,3 +130,54 @@ func Restore(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
 	application.Logger.Info("Backup restored", backupId)
 	return nil
 }
+
+func Delete(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+	application.Logger.Info("Deleting backup", backupId)
+	job := syncdata.Container.Jobs[jobId]
+	if job == nil {
+		return errors.New("job not found")
+	}
+	if job.ExecutorSatelliteId != *manager.Server.Id {
+		return nil
+	}
+
+	strategy := strategyRegistry.ValueOf(job.Strategy)
+	if strategy == nil {
+		return errors.New("strategy not found")
+	}
+	parsedConfiguration, err := strategy.Parse(job.Configuration)
+	if err != nil {
+		return err
+	}
+
+	// Initialize strategy
+	err = strategy.Initialize(parsedConfiguration)
+	if err != nil {
+		return err
+	}
+
+	// Load storages
+	destinationStorage, err := loadAndInitializeStorage(*syncdata.Container.Storages[job.DestinationStorageId])
+	if err != nil {
+		return err
+	}
+
+	// Execute strategy
+	err = strategy.Delete(destinationStorage, &backupId, func(status strategyRegistry.StatusUpdate) {
+		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
+		status.Id = id
+		status.JobId = &job.Id
+		action.SendStatusUpdate(id, "DELETE", status)
+	})
+	if err != nil {
+		return err
+	}
+
+	// Close everything
+	destinationStorage.Close()
+	strategy.Close()
+
+	action.SendDeleteInfo(id, jobId, backupId)
+	application.Logger.Info("Backup deleted", backupId)
+	return nil
+}

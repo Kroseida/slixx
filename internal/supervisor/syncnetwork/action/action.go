@@ -131,3 +131,20 @@ func SyncJobSchedules(id *uuid.UUID) {
 		})
 	}
 }
+
+func SendRequestDeleteBackup(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+	for _, client := range syncnetworkClients.List {
+		if client.Client.Protocol != protocol.Supervisor {
+			continue
+		}
+		err := client.Client.Send(&supervisorPacket.DeleteBackup{
+			Id:       id,
+			JobId:    jobId,
+			BackupId: backupId,
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

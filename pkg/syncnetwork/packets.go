@@ -20,4 +20,6 @@ var PACKETS = map[int64]protocol.Packet{
 	(&supervisorPacket.RequestResync{}).PacketId():     &supervisorPacket.RequestResync{},
 	(&supervisorPacket.ExecuteRestore{}).PacketId():    &supervisorPacket.ExecuteRestore{},
 	(&supervisorPacket.SyncJobSchedule{}).PacketId():   &supervisorPacket.SyncJobSchedule{},
+	(&supervisorPacket.DeleteBackup{}).PacketId():      &supervisorPacket.DeleteBackup{},
+	(&supervisorPacket.DeleteInfo{}).PacketId():        &supervisorPacket.DeleteInfo{},
 }

@@ -16,6 +16,8 @@ type Strategy interface {
 	Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error)
 	// Restore Restore a backup from the destination to the origin storage (this is called when a restore is requested)
 	Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error
+	// Delete Delete a backup from the destination storage (this is called when a delete is requested)
+	Delete(destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error
 	// Parse Parse the configuration of the strategy from a json string to a struct
 	Parse(configurationJson string) (interface{}, error)
 	// DefaultConfiguration Get the DefaultConfiguration Get the default configuration of the strategy

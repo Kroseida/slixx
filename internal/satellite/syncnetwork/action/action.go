@@ -71,3 +71,17 @@ func SendRawBackupInfo(id *uuid.UUID, jobId *uuid.UUID, executionId uuid.UUID, d
 		})
 	}
 }
+
+func SendDeleteInfo(_ uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) {
+	// iterate over all connection in server
+	for _, connection := range manager.Server.ActiveConnection {
+		if connection.Protocol != protocol.Supervisor {
+			continue
+		}
+
+		connection.Send(&packet.DeleteInfo{
+			Id:    backupId,
+			JobId: jobId,
+		})
+	}
+}

@@ -70,7 +70,8 @@ func (kind *FtpKind) Size(name string) (uint64, error) {
 }
 
 func (kind *FtpKind) Store(name string, data []byte, offset uint64) error {
-	err := kind.Client.StorFrom(fileutils.FixedPathName(kind.Configuration.File+name), bytes.NewBuffer(data), offset)
+	fullFile := fileutils.FixedPathName(kind.Configuration.File + "/" + name)
+	err := kind.Client.StorFrom(fullFile, bytes.NewBuffer(data), offset)
 
 	if err != nil {
 		return err
@@ -206,11 +207,11 @@ func (kind *FtpKind) Parse(configurationJson string) (interface{}, error) {
 }
 
 func (kind *FtpKind) Delete(file string) error {
-	return kind.Client.Delete(fileutils.FixedPathName(file))
+	return kind.Client.Delete(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
 }
 
 func (kind *FtpKind) DeleteDirectory(directory string) error {
-	return kind.Client.RemoveDir(fileutils.FixedPathName(directory))
+	return kind.Client.RemoveDir(fileutils.FixedPathName(kind.Configuration.File + "/" + directory))
 }
 
 func (kind *FtpKind) DefaultConfiguration() interface{} {

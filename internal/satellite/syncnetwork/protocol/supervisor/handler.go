@@ -40,6 +40,9 @@ func (h *Handler) Handle(client protocol.WrappedClient, packet protocol.Packet) 
 	if packet.PacketId() == (&supervisorPacket.SyncJobSchedule{}).PacketId() {
 		return h.HandleSyncJobSchedule(client, packet.(*supervisorPacket.SyncJobSchedule))
 	}
+	if packet.PacketId() == (&supervisorPacket.DeleteBackup{}).PacketId() {
+		return h.HandleDeleteBackup(client, packet.(*supervisorPacket.DeleteBackup))
+	}
 	return nil
 }
 
@@ -122,5 +125,13 @@ func (h *Handler) HandleSyncJobSchedule(client protocol.WrappedClient, schedule 
 	syncdata.GenerateCache()
 	backup.InitializeScheduler()
 	c.Server.Logger.Info("Synced " + strconv.Itoa(len(syncdata.Container.JobSchedules)) + " job schedules from supervisor")
+	return nil
+}
+
+func (h *Handler) HandleDeleteBackup(_ protocol.WrappedClient, deleteBackup *supervisorPacket.DeleteBackup) error {
+	err := backup.Delete(deleteBackup.Id, deleteBackup.JobId, deleteBackup.BackupId)
+	if err != nil {
+		application.Logger.Error("Error while deleting backup", err)
+	}
 	return nil
 }

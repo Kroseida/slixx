@@ -13,6 +13,7 @@ export default defineComponent({
       rows: [],
     }
   },
+  emits: ['rowClick'],
   mounted() {
     this.subscribe({
       pagination: {

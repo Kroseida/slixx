@@ -6,6 +6,8 @@ export const useConstantsStore = defineStore('constants', {
     configurationsLoaded: false,
     storageKindsLoaded: false,
     jobStrategiesLoaded: false,
+    scheduleKindsLoaded: false,
+    environmentLoaded: false,
     version: '0.0.1',
     permissions: [],
     storageKinds: [],

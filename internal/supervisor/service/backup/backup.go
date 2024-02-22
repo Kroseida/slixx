@@ -87,3 +87,21 @@ func GetPaged(pagination *provider.Pagination[model.Backup], jobId *uuid.UUID) (
 func Get(id uuid.UUID) (*model.Backup, error) {
 	return datasource.BackupProvider.Get(id)
 }
+
+func RequestDelete(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+	job, _ := datasource.JobProvider.Get(jobId)
+	if job == nil {
+		return nil
+	}
+
+	err := action.SendRequestDeleteBackup(id, jobId, backupId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteBackupFromIndex(id uuid.UUID) error {
+	_, err := datasource.BackupProvider.Delete(id)
+	return err
+}
