@@ -24,6 +24,7 @@ export default defineComponent({
       backupCopy: '',
       subscriptionId: -1,
       backup: {
+        name: '',
         id: '',
         executionId: '',
         createdAt: '',
@@ -32,6 +33,8 @@ export default defineComponent({
       },
       router: useRouter(),
       globalStore: useGlobalStore(),
+      confirmDeleteActive: false,
+      confirmDeletionText: ''
     }
   },
   methods: {
@@ -102,6 +105,11 @@ export default defineComponent({
         })
         callback();
       });
+    },
+    confirmDelete(callback) {
+      this.confirmDeletionText = '';
+      this.confirmDeleteActive = true;
+      callback();
     }
   },
   mounted() {

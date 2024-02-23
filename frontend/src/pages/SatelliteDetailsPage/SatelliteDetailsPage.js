@@ -44,6 +44,8 @@ export default defineComponent({
         page: {},
         rows: [],
       },
+      confirmDeleteActive: false,
+      confirmDeletionText: ''
     }
   },
   mounted() {
@@ -267,6 +269,11 @@ export default defineComponent({
     changeRowsPerPage(rowsPerPage) {
       this.pagination.rowsPerPage = rowsPerPage;
       this.subscribeLogs();
+    },
+    confirmDelete(callback) {
+      this.confirmDeletionText = '';
+      this.confirmDeleteActive = true;
+      callback();
     }
   }
 })

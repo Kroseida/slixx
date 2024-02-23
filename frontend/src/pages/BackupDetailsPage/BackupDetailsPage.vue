@@ -1,4 +1,30 @@
 <template>
+  <q-dialog v-model="confirmDeleteActive">
+    <q-card>
+      <q-toolbar style="padding: 25px; padding-bottom: 15px">
+        <q-avatar icon="warning" color="negative" text-color="white" />
+        <q-toolbar-title><span class="text-weight-bold">Delete a Backup</span></q-toolbar-title>
+        <q-btn flat round dense icon="close" v-close-popup />
+      </q-toolbar>
+
+      <q-card-section>
+        <p>Please take note: Deleting this backup will permanently remove all associated data, configurations, dates, and logs.
+          The backup will be irreversibly deleted and cannot be restored.
+          To confirm, kindly type the name of the backup <b>{{backup.name}}</b> and click 'Delete'.</p>
+
+        <p>If this backup is currently in use, deletion is not possible.</p>
+        <q-input v-model="confirmDeletionText" dense label="Confirm" style="margin-top: 15px"/>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat
+               label="Delete"
+               color="negative"
+               v-close-popup
+               :disable="confirmDeletionText !== backup.name"
+               @click="remove"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
   <q-dialog v-model="showExecutionHistory" persistent>
     <q-card
       style="width: 100%; max-width: 800px; min-width: 600px; min-height: 400px; max-height: 600px; overflow: auto;">
@@ -40,7 +66,7 @@
               color="negative"
               label="Delete"
               class="action"
-              @s-click="remove"
+              @s-click="confirmDelete"
               :disable="!globalStore.isPermitted('backup.delete')"
             />
           </button-group>

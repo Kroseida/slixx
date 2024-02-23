@@ -332,6 +332,13 @@ func (strategy *CopyStrategy) Delete(destination storage.Kind, id *uuid.UUID, ca
 		callback(status)
 	})
 	destination.DeleteDirectory(id.String())
+
+	callback(StatusUpdate{
+		Percentage: 100,
+		Message:    "FINISHED",
+		StatusType: statustype.Finished,
+	})
+
 	return nil
 }
 

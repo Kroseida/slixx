@@ -1,4 +1,30 @@
 <template>
+  <q-dialog v-model="confirmDeleteActive">
+    <q-card>
+      <q-toolbar style="padding: 25px; padding-bottom: 15px">
+        <q-avatar icon="warning" color="negative" text-color="white" />
+        <q-toolbar-title><span class="text-weight-bold">Delete a Storage</span></q-toolbar-title>
+        <q-btn flat round dense icon="close" v-close-popup />
+      </q-toolbar>
+
+      <q-card-section>
+        <p>Please note: Deleting this storage will not remove any data from the storage itself.
+        However, the storage will no longer be available in the application, and any configurations in the application related to this storage will be deleted.
+        To confirm, please type the name of the storage <b>{{storage.name}}</b> and click 'Delete'.</p>
+
+        <p>If this storage is currently in use, deletion is not possible.</p>
+        <q-input v-model="confirmDeletionText" dense label="Confirm" style="margin-top: 15px"/>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat
+               label="Delete"
+               color="negative"
+               v-close-popup
+               :disable="confirmDeletionText !== storage.name"
+               @click="remove"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
   <div class="q-pa-md">
     <q-card>
       <q-card-section>
@@ -19,7 +45,7 @@
               color="negative"
               label="Delete"
               class="action"
-              @s-click="remove"
+              @s-click="confirmDelete"
               :disable="!showDeleteButton() || (!globalStore.isPermitted('storage.delete'))"
             />
           </button-group>

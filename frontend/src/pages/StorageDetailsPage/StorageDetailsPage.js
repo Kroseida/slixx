@@ -33,6 +33,8 @@ export default defineComponent({
         configuration: {},
       },
       storageCopy: JSON.stringify(this.storage),
+      confirmDeleteActive: false,
+      confirmDeletionText: '',
     }
   },
   mounted() {
@@ -205,6 +207,11 @@ export default defineComponent({
         return false;
       }
       return true;
+    },
+    confirmDelete(callback) {
+      this.confirmDeletionText = '';
+      this.confirmDeleteActive = true;
+      callback();
     }
   }
 })

@@ -132,6 +132,8 @@ export default defineComponent({
       router: useRouter(),
       globalStore: useGlobalStore(),
       constantsStore,
+      confirmDeleteActive: false,
+      confirmDeletionText: ''
     }
   },
   mounted() {
@@ -338,6 +340,11 @@ export default defineComponent({
     },
     onExecutorSatelliteSelected(satellite) {
       this.job.executorSatelliteId = satellite.id;
+    },
+    confirmDelete(callback) {
+      this.confirmDeletionText = '';
+      this.confirmDeleteActive = true;
+      callback();
     }
   }
 })

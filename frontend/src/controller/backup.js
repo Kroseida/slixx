@@ -43,6 +43,7 @@ export default (client) => ({
     return client.graphql.subscribeTrackedObject(`query {
       data: getBackup(id: "${id}") {
         id
+        name
         executionId
         createdAt
         updatedAt

@@ -1,4 +1,28 @@
 <template>
+  <q-dialog v-model="confirmDeleteActive">
+    <q-card>
+      <q-toolbar style="padding: 25px; padding-bottom: 15px">
+        <q-avatar icon="warning" color="negative" text-color="white" />
+        <q-toolbar-title><span class="text-weight-bold">Delete a Satellite</span></q-toolbar-title>
+        <q-btn flat round dense icon="close" v-close-popup />
+      </q-toolbar>
+
+      <q-card-section>
+        <p>Please take note: Deleting this satellite will not remove any data from the satellite itself.
+          However, the satellite will no longer be available in the application, and any configurations in the application related to this satellite will be deleted.
+          To confirm, please type the name of the satellite <b>{{satellite.name}}</b> and click 'Delete'.</p>
+        <q-input v-model="confirmDeletionText" dense label="Confirm" style="margin-top: 15px"/>
+      </q-card-section>
+      <q-card-actions align="right">
+        <q-btn flat
+               label="Delete"
+               color="negative"
+               v-close-popup
+               :disable="confirmDeletionText !== satellite.name"
+               @click="remove"/>
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
   <div class="q-pa-md">
     <q-card>
       <q-card-section>
@@ -27,7 +51,7 @@
               color="negative"
               label="Delete"
               class="action"
-              @s-click="remove"
+              @s-click="confirmDelete"
               :disable="!showDeleteButton() || (!globalStore.isPermitted('job.delete'))"
             />
           </button-group>
