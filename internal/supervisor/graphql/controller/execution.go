@@ -7,6 +7,7 @@ import (
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	executionService "kroseida.org/slixx/internal/supervisor/service/execution"
+	"kroseida.org/slixx/internal/supervisor/slixxreactive"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"time"
@@ -73,7 +74,7 @@ func GetExecution(ctx context.Context, args GetExecutionDto) (*ExecutionDto, err
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
+	slixxreactive.InvalidateOn(ctx, "execution."+args.ExecutionId.String())
 	execution, err := executionService.Get(args.ExecutionId)
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func GetExecutionHistory(ctx context.Context, args GetExecutionDto) ([]*Executio
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
+	slixxreactive.InvalidateOn(ctx, "execution."+args.ExecutionId.String())
 	execution, err := executionService.GetHistory(args.ExecutionId)
 
 	if err != nil {

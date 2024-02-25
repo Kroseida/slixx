@@ -12,7 +12,6 @@
           The backup will be irreversibly deleted and cannot be restored.
           To confirm, kindly type the name of the backup <b>{{backup.name}}</b> and click 'Delete'.</p>
 
-        <p>If this backup is currently in use, deletion is not possible.</p>
         <q-input v-model="confirmDeletionText" dense label="Confirm" style="margin-top: 15px"/>
       </q-card-section>
       <q-card-actions align="right">

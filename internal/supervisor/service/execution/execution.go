@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	"kroseida.org/slixx/internal/supervisor/slixxreactive"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/statustype"
 	"time"
@@ -54,6 +55,7 @@ func ApplyExecutionToIndex(
 	if err != nil {
 		return err
 	}
+	slixxreactive.Event("execution." + id.String())
 	return nil
 }
 
