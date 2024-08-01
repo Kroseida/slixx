@@ -14,10 +14,8 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: 1.22.0
-      - name: Add SHORT_SHA env property with commit short sha
-        run: echo "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
       - name: Replace Version in version.go
-        run: sed -i 's/{development}/dev-${SHORT_SHA}/' ./internal/common/version.go
+        run: sed -i 's/{development}/develop/' ./internal/common/version.go
       - name: Mkdir dist
         run: mkdir -p ./dist
       - name: Compile Supervisor
@@ -53,7 +51,6 @@ jobs:
           context: ./.docker/supervisor
           push: true
           tags: |
-            kroseida/slixx.supervisor:${SHORT_SHA}
             kroseida/slixx.supervisor:develop
       - name: Build and Push Docker Image for Satellite
         uses: docker/build-push-action@v5
@@ -61,5 +58,4 @@ jobs:
           context: ./.docker/satellite
           push: true
           tags: |
-            kroseida/slixx.satellite:${SHORT_SHA}
             kroseida/slixx.satellite:develop
