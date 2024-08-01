@@ -62,7 +62,7 @@ func (kind *FtpKind) Initialize(rawConfiguration any) error {
 }
 
 func (kind *FtpKind) Size(name string) (uint64, error) {
-	size, err := kind.Client.FileSize(fileutils.FixedPathName(name))
+	size, err := kind.Client.FileSize(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
 	if err != nil {
 		return 0, err
 	}
@@ -95,13 +95,13 @@ func (kind *FtpKind) FileInfo(name string) (fileutils.FileInfo, error) {
 }
 
 func (kind *FtpKind) CreateDirectory(name string) error {
-	err := kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + name))
+	err := kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
 	if err != nil {
 		err = kind.CreateDirectory(fileutils.ParentDirectory(name))
 		if err != nil {
 			return err
 		}
-		return kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + name))
+		return kind.Client.MakeDir(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
 	}
 	return nil
 }
@@ -176,6 +176,21 @@ func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo, directo
 }
 
 func (kind *FtpKind) Read(file string, offset uint64, size uint64) ([]byte, error) {
+	if size == 0 && offset == 0 {
+		reader, err := kind.Client.Retr(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
+		if err != nil {
+			return nil, err
+		}
+		defer reader.Close()
+		bytes := make([]byte, 0)
+
+		_, err = reader.Read(bytes)
+		if err != nil {
+			return nil, err
+		}
+
+		return bytes, nil
+	}
 	reader, err := kind.Client.RetrFrom(fileutils.FixedPathName(file), offset)
 	if err != nil {
 		return nil, err

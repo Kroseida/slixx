@@ -3,7 +3,6 @@ package strategy
 import (
 	"encoding/json"
 	"github.com/google/uuid"
-	"kroseida.org/slixx/internal/satellite/application"
 	"kroseida.org/slixx/pkg/statustype"
 	"kroseida.org/slixx/pkg/storage"
 	"kroseida.org/slixx/pkg/utils/fileutils"
@@ -14,8 +13,8 @@ import (
 	"time"
 )
 
-var SlixxDirectory = ".slixx"
-var BackupInfoDirectory = SlixxDirectory + "/backups/"
+const SlixxDirectory = ".slixx"
+const BackupInfoDirectory = SlixxDirectory + "/backups/"
 
 type CopyStrategy struct {
 	Configuration *CopyStrategyConfiguration
@@ -78,7 +77,7 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 			if file.Directory {
 				continue
 			}
-			tryCopy(strategy, originCopy, destinationCopy, file, backupId.String(), parallelExecutor.Error)
+			strategy.tryCopy(originCopy, destinationCopy, file, backupId.String(), "", parallelExecutor.Error)
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
@@ -106,15 +105,14 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 	return strategy.handleIndexingBackup(backupId, jobId, origin, destination, callback)
 }
 
-func tryCopy(strategy *CopyStrategy, originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
-	storePrefix string, parallelError chan error) error {
+func (strategy *CopyStrategy) tryCopy(originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
+	storePrefix string, readPrefix string, parallelError chan error) error {
 	retries := 0
 	for {
-		copyErr := strategy.copy(originCopy, destinationCopy, file, storePrefix)
+		copyErr := strategy.copy(originCopy, destinationCopy, file, storePrefix, readPrefix)
 		if copyErr == nil {
 			break
 		}
-		application.Logger.Error("Error while copying file("+file.FullDirectory+") retrying", copyErr)
 		retries++
 		if retries > 15 {
 			parallelError <- copyErr
@@ -226,7 +224,6 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 }
 
 func handleCreateSlixxDirectories(destination storage.Kind) {
-	// Create .slixx directory and ignore errors
 	destination.CreateDirectory(fileutils.FixedPathName(SlixxDirectory))
 	destination.CreateDirectory(fileutils.FixedPathName(BackupInfoDirectory))
 }
@@ -386,7 +383,7 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 			if file.Directory {
 				continue
 			}
-			tryCopy(strategy, destinationCopy, originCopy, file, "", parallelExecutor.Error)
+			strategy.tryCopy(destinationCopy, originCopy, file, "", id.String(), parallelExecutor.Error)
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
@@ -416,6 +413,8 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
 	})
+	destination.Close()
+	origin.Close()
 
 	return nil
 }
@@ -440,16 +439,17 @@ func (strategy *CopyStrategy) ListBackups(destination storage.Kind) ([]*RawBacku
 		})
 	}
 
+	destination.Close()
 	return backupList, nil
 }
 
-func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind, file fileutils.FileInfo, storePrefix string) error {
+func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind, file fileutils.FileInfo, storePrefix string, readPrefix string) error {
 	if file.Directory {
 		return nil
 	}
 
 	// Read File Size
-	size, err := origin.Size(file.FullDirectory)
+	size, err := origin.Size(readPrefix + "/" + file.RelativePath)
 	if err != nil {
 		return err
 	}
@@ -475,7 +475,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 			readSize = lastBlockSize
 		}
 
-		data, err := origin.Read(file.RelativePath, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
+		data, err := origin.Read(readPrefix+"/"+file.RelativePath, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
 		if err != nil {
 			return err
 		}

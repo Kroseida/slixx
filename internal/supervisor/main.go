@@ -5,6 +5,7 @@ import (
 	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/graphql"
+	"kroseida.org/slixx/internal/supervisor/service/execution"
 	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
 	"kroseida.org/slixx/internal/supervisor/service/satellitelog"
 	"kroseida.org/slixx/pkg/utils"
@@ -40,6 +41,7 @@ func main() {
 
 	// We start the log cleanup job
 	go satellitelog.StartCleanupJob()
+	go execution.StartTimeoutDetector()
 
 	// We check for new satellites every ... minutes
 	go satelliteService.StartWatchdog()

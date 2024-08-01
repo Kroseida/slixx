@@ -47,9 +47,11 @@ type RawBackupInfo struct {
 }
 
 var COPY = &CopyStrategy{}
+var INCREMENTAL = &IncrementalStrategy{}
 
 var strategies = map[string]Strategy{
-	"COPY": COPY,
+	"COPY":        COPY,
+	"INCREMENTAL": INCREMENTAL,
 }
 
 func ValueOf(name string) Strategy {
