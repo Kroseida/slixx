@@ -64,7 +64,6 @@ export default defineComponent({
     restore(callback) {
       const args = {
         backupId: this.backup.id,
-        jobId: this.backup.jobId
       }
 
       this.$controller.backup.restoreBackup(args, () => {

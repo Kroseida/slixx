@@ -131,6 +131,8 @@ export default defineComponent({
           return "green";
         case "ERROR":
           return "red";
+        case "TIMEOUT":
+          return "red";
         default:
           return "amber-6";
       }

@@ -52,6 +52,10 @@ func SplitArrayBySize(array []FileInfo, n int) ([][]FileInfo, []uint64) {
 	totalSizes := make([]uint64, n)
 
 	for i := range array {
+		if len(totalSizes) == 0 {
+			break
+		}
+
 		// Find the index of the chunk with the smallest total size so far
 		minIndex := 0
 		minSize := totalSizes[0]

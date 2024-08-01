@@ -68,7 +68,7 @@
         narrow-indicator
       >
         <q-tab name="details" label="Details"/>
-        <q-tab name="schedule" label="Schedule Plan"/>
+        <q-tab name="schedule" label="Schedule Plan" v-if="!isNewJob()"/>
         <q-tab name="configuration" label="Configuration"/>
         <q-tab name="backups" label="Backups" v-if="!isNewJob() && globalStore.isPermitted('backup.view')"/>
         <q-tab name="executions" label="Executions" v-if="!isNewJob() && globalStore.isPermitted('execution.view')"/>

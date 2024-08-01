@@ -2,6 +2,7 @@ package execution
 
 import (
 	"github.com/google/uuid"
+	"kroseida.org/slixx/internal/supervisor/application"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	"kroseida.org/slixx/internal/supervisor/slixxreactive"
@@ -9,6 +10,21 @@ import (
 	"kroseida.org/slixx/pkg/statustype"
 	"time"
 )
+
+func StartTimeoutDetector() {
+	if !application.CurrentSettings.LogSync.Active {
+		return
+	}
+	for {
+		application.Logger.Info("Setting Timeout to executions older than 3 days")
+		err := datasource.ExecutionProvider.UpdateWithStatusAndOlderThan(statustype.Info, time.Now().Add(-time.Hour*3*24), statustype.Timeout)
+		if err != nil {
+			application.Logger.Error("Failed to update old executions: ", err)
+		}
+
+		time.Sleep(time.Hour * time.Duration(application.CurrentSettings.LogSync.CheckInterval))
+	}
+}
 
 func ApplyExecutionToIndex(
 	id uuid.UUID,

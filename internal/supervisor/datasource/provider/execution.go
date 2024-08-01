@@ -118,3 +118,11 @@ func (provider ExecutionProvider) ListHistory(executionId uuid.UUID) ([]*model.E
 
 	return executionHistory, nil
 }
+
+func (provider ExecutionProvider) UpdateWithStatusAndOlderThan(status string, add time.Time, newStatus string) error {
+	result := provider.Database.Exec("UPDATE executions SET status = ? WHERE status = ? AND created_at < ?", newStatus, status, add)
+	if isSqlError(result.Error) {
+		return result.Error
+	}
+	return nil
+}

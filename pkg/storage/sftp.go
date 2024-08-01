@@ -80,7 +80,7 @@ func (kind *SFtpKind) Initialize(rawConfiguration any) error {
 }
 
 func (kind *SFtpKind) Size(name string) (uint64, error) {
-	stat, err := kind.Client.Stat(fileutils.FixedPathName(name))
+	stat, err := kind.Client.Stat(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
 	if err != nil {
 		return 0, err
 	}
@@ -123,14 +123,31 @@ func (kind *SFtpKind) FileInfo(name string) (fileutils.FileInfo, error) {
 	}, nil
 }
 
-func (kind *SFtpKind) CreateDirectory(name string) error {
-	err := kind.Client.Mkdir(kind.Configuration.File + name)
+func (kind *SFtpKind) FileInfoWithoutConfiguration(name string) (fileutils.FileInfo, error) {
+	stat, err := kind.Client.Stat(fileutils.FixedPathName(name))
 	if err != nil {
-		err = kind.CreateDirectory(fileutils.ParentDirectory(name))
+		return fileutils.FileInfo{}, err
+	}
+	return fileutils.FileInfo{
+		FullDirectory: fileutils.FixedPathName(name),
+		RelativePath:  fileutils.FixedPathName(name),
+		CreatedAt:     stat.ModTime().Unix(),
+		Directory:     stat.IsDir(),
+		Size:          uint64(stat.Size()),
+	}, nil
+}
+
+func (kind *SFtpKind) CreateDirectory(name string) error {
+	_, err := kind.FileInfoWithoutConfiguration(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
+	if err != nil && err.Error() == "file does not exist" {
+		err = kind.Client.Mkdir(fileutils.FixedPathName(kind.Configuration.File + "/" + name))
 		if err != nil {
-			return err
+			err = kind.CreateDirectory(fileutils.ParentDirectory(name))
+			if err != nil {
+				return err
+			}
+			return kind.Client.Mkdir(kind.Configuration.File + name)
 		}
-		return kind.Client.Mkdir(kind.Configuration.File + name)
 	}
 	return nil
 }
@@ -207,6 +224,22 @@ func (kind *SFtpKind) listFiles(path string, files *[]fileutils.FileInfo, direct
 }
 
 func (kind *SFtpKind) Read(file string, offset uint64, size uint64) ([]byte, error) {
+	if size == 0 && offset == 0 {
+		// If no size or offset is specified, read the entire file
+		f, err := kind.Client.Open(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+
+		// Read the entire file
+		buf, err := io.ReadAll(f)
+		if err != nil {
+			return nil, err
+		}
+		return buf, nil
+	}
+
 	fullPath := fileutils.FixedPathName(kind.Configuration.File + "/" + file)
 
 	// Open the file for reading
