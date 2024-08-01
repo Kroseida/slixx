@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Develop Pipeline
 on:
   push:
     branches: [ "develop" ]
@@ -15,7 +15,7 @@ jobs:
         with:
           go-version: 1.22.0
       - name: Replace Version in version.go
-        run: sed -i 's/{development}/${{ github.ref_name }}/' ./internal/common/version.go
+        run: sed -i 's/{development}/dev-${{ env.sha_short }}/' ./internal/common/version.go
       - name: Mkdir dist
         run: mkdir -p ./dist
       - name: Compile Supervisor
@@ -51,13 +51,13 @@ jobs:
           context: ./.docker/supervisor
           push: true
           tags: |
-            kroseida/slixx.supervisor:${{ github.ref_name }}
-            kroseida/slixx.supervisor:latest
+            kroseida/slixx.supervisor:${{ env.sha_short }}
+            kroseida/slixx.supervisor:develop
       - name: Build and Push Docker Image for Satellite
         uses: docker/build-push-action@v5
         with:
           context: ./.docker/satellite
           push: true
           tags: |
-            kroseida/slixx.satellite:${{ github.ref_name }}
-            kroseida/slixx.satellite:latest
+            kroseida/slixx.satellite:${{ env.sha_short }}
+            kroseida/slixx.satellite:develop

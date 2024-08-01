@@ -1,0 +1,62 @@
+name: Release Pipeline
+on:
+  create:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.22.0
+      - name: Replace Version in version.go
+        run: sed -i 's/{development}/${{ github.ref_name }}/' ./internal/common/version.go
+      - name: Mkdir dist
+        run: mkdir -p ./dist
+      - name: Compile Supervisor
+        working-directory: ./internal/supervisor
+        run: go build -o ../../.docker/supervisor/supervisor .
+      - name: Compile Satellite
+        working-directory: ./internal/satellite
+        run: go build -o ../../.docker/satellite/satellite .
+      - name: Setup NodeJS
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+      - name: Install NPM Dependencies
+        working-directory: ./frontend
+        run: npm install
+      - name: Install Quasar CLI
+        run: npm install -g @quasar/cli
+      - name: Build Frontend
+        working-directory: ./frontend
+        run: quasar build
+      - name: Mkdir dist
+        run: mkdir -p .docker/supervisor/dist
+      - name: Copy Frontend to dist
+        run: cp -r ./frontend/dist/spa/* .docker/supervisor/dist
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and Push Docker Image for Supervisor
+        uses: docker/build-push-action@v5
+        with:
+          context: ./.docker/supervisor
+          push: true
+          tags: |
+            kroseida/slixx.supervisor:${{ github.ref_name }}
+            kroseida/slixx.supervisor:latest
+      - name: Build and Push Docker Image for Satellite
+        uses: docker/build-push-action@v5
+        with:
+          context: ./.docker/satellite
+          push: true
+          tags: |
+            kroseida/slixx.satellite:${{ github.ref_name }}
+            kroseida/slixx.satellite:latest
