@@ -60,15 +60,7 @@ func SendBackupInfos() {
 
 		// Close everything
 		err = destinationStorage.Close()
-		if err != nil {
-			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
-			continue
-		}
 		err = strategy.Close()
-		if err != nil {
-			application.Logger.Error("Error while listing backups of job("+job.Id.String()+")", err)
-			continue
-		}
 	}
 }
 

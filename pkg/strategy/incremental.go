@@ -12,6 +12,7 @@ import (
 	"kroseida.org/slixx/pkg/utils/parallel"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -481,10 +482,32 @@ func (strategy *IncrementalStrategy) DefaultConfiguration() interface{} {
 
 func (strategy *IncrementalStrategy) ListBackups(destination storage.Kind) ([]*RawBackupInfo, error) {
 	handleCreateSlixxDirectories(destination)
-
 	destination.CreateDirectory(fileutils.FixedPathName(BlocksDirectory))
 
-	return nil, nil
+	files, err := destination.ListFiles(BackupInfoDirectory)
+	if err != nil {
+		return nil, err
+	}
+
+	backupList := make([]*RawBackupInfo, 0, len(files))
+	for _, file := range files {
+		idAsString := strings.TrimPrefix(file.RelativePath, BackupInfoDirectory)
+		if idAsString[0] == '/' || idAsString[0] == '\\' {
+			idAsString = idAsString[1:]
+		}
+
+		parsedId, err := uuid.Parse(idAsString)
+		if err != nil {
+			return nil, err
+		}
+		backupList = append(backupList, &RawBackupInfo{
+			Id:        &parsedId,
+			CreatedAt: time.Unix(file.CreatedAt, 0),
+		})
+	}
+
+	destination.Close()
+	return backupList, nil
 }
 
 func (strategy *IncrementalStrategy) Close() error {
