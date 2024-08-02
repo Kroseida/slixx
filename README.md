@@ -71,7 +71,7 @@ services:
     restart: unless-stopped
 
   satellite2:
-    image: docker.slixx.app/satellite:latest
+    image: kroseida/satellite:latest
     container_name: satellite2
     environment:
       - SATELLITE_AUTH_TOKEN={AUTH TOKEN OF SATELLITE2}
