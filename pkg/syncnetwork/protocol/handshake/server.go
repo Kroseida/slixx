@@ -42,6 +42,7 @@ func (handler *ServerHandler) HandleHandshake(client protocol.WrappedClient, han
 	}
 
 	if c.Server.AfterProtocolSelection != nil {
+		c.Connected = true
 		c.Server.AfterProtocolSelection(client)
 	}
 	return nil

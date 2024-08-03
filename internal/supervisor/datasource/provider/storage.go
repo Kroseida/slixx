@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"kroseida.org/slixx/pkg/model"
 	_storage "kroseida.org/slixx/pkg/storage"
+	"reflect"
 )
 
 // StorageProvider Storage Provider
@@ -96,6 +97,16 @@ func (provider StorageProvider) Update(id uuid.UUID, name *string, description *
 		parsedConfiguration, err := kindType.Parse(*configuration)
 		if err != nil {
 			return nil, err
+		}
+		val := reflect.ValueOf(parsedConfiguration).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			if val.Type().Field(i).Tag.Get("slixx") == "TOKEN" || val.Type().Field(i).Tag.Get("slixx") == "PASSWORD" {
+				oldParsedConfiguration, err := kindType.Parse(updateStorage.Configuration)
+				if err != nil {
+					return nil, err
+				}
+				val.Field(i).SetString(reflect.ValueOf(oldParsedConfiguration).Elem().Field(i).String())
+			}
 		}
 
 		rawConfiguration, err := json.Marshal(parsedConfiguration)

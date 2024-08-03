@@ -2,14 +2,15 @@ import PasswordKindInputComponent from "components/KindedInputComponent/kind/Pas
 import TextKindInputComponent from "components/KindedInputComponent/kind/TextKindInputComponent.vue";
 import LongKindInputComponent from "components/KindedInputComponent/kind/LongKindInputComponent.vue";
 import CronKindInputComponent from "components/KindedInputComponent/kind/CronKindInputComponent.vue";
-
+import ByteKindInputComponent from "components/KindedInputComponent/kind/ByteKindInputComponent.vue";
 export default {
   name: "KindInputComponent",
   components: {
     PasswordKindInputComponent,
     TextKindInputComponent,
     LongKindInputComponent,
-    CronKindInputComponent
+    CronKindInputComponent,
+    ByteKindInputComponent
   },
   emits: ["update:modelValue"],
   props: {

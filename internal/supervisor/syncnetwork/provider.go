@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/common"
 	satellitelogService "kroseida.org/slixx/internal/supervisor/service/satellitelog"
+	"kroseida.org/slixx/internal/supervisor/slixxreactive"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/action"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	supervisorProtocol "kroseida.org/slixx/internal/supervisor/syncnetwork/protocol"
@@ -19,16 +20,18 @@ import (
 )
 
 func RemoveClient(id uuid.UUID) {
-	client := clients.List[id]
+	client := clients.GetConnectedClient(id)
 	if client == nil {
 		return
 	}
 	client.Client.Close()
 	delete(clients.List, id)
+	slixxreactive.Event("satellite.update." + id.String())
+	slixxreactive.Event("satellite.update.*")
 }
 
 func GetClient(id uuid.UUID) *supervisorProtocol.WrappedClient {
-	return clients.List[id]
+	return clients.GetConnectedClient(id)
 }
 
 func ProvideClient(configuration model.Satellite) {
@@ -52,6 +55,8 @@ func ProvideClient(configuration model.Satellite) {
 			})
 			action.SyncStorages(&configuration.Id)
 			action.SyncJobs(&configuration.Id)
+			slixxreactive.Event("satellite.update." + configuration.Id.String())
+			slixxreactive.Event("satellite.update.*")
 		},
 		Version: common.CurrentVersion,
 		LogListener: func(level string, args ...interface{}) {
@@ -81,7 +86,7 @@ func ProvideClient(configuration model.Satellite) {
 }
 
 func ApplyUpdates(configuration model.Satellite) {
-	client := clients.List[configuration.Id]
+	client := clients.GetConnectedClient(configuration.Id)
 	if client == nil {
 		return
 	}

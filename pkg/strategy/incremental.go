@@ -23,7 +23,7 @@ type IncrementalStrategy struct {
 }
 
 type IncrementalStrategyConfiguration struct {
-	BlockSize int64 `json:"blockSize" slixx:"LONG" default:"104857600"` // 100MB
+	BlockSize int64 `json:"blockSize" slixx:"BYTE" default:"104857600"` // 100MB
 	Parallel  int   `json:"parallel" slixx:"LONG" default:"4"`
 }
 

@@ -1,3 +1,5 @@
+<img src=".github/assets/logo.png" width="200">
+
 # Slixx
 
 

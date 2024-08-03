@@ -7,6 +7,7 @@ import (
 	"github.com/samsarahq/thunder/reactive"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
 	satelliteService "kroseida.org/slixx/internal/supervisor/service/satellite"
+	"kroseida.org/slixx/internal/supervisor/slixxreactive"
 	"kroseida.org/slixx/pkg/dto"
 	"kroseida.org/slixx/pkg/model"
 	"time"
@@ -45,7 +46,8 @@ func GetSatellite(ctx context.Context, args GetSatelliteDto) (*SatelliteDto, err
 	if !IsPermitted(ctx, []string{"satellite.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
+	slixxreactive.InvalidateOn(ctx, []string{"satellite.update." + args.Id.String()})
+
 	satellite, err := satelliteService.Get(args.Id)
 	if err != nil {
 		return nil, err
@@ -60,7 +62,7 @@ func GetSatellites(ctx context.Context, args GetPageDto) (*SatellitesPageDto, er
 	if !IsPermitted(ctx, []string{"satellite.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	reactive.InvalidateAfter(ctx, 5*time.Second)
+	slixxreactive.InvalidateOn(ctx, []string{"satellite.create", "satellite.update.*"})
 
 	var pagination provider.Pagination[model.Satellite]
 	dto.Map(&args, &pagination)

@@ -24,6 +24,11 @@ type Client struct {
 	AfterProtocolSelection func(protocol.WrappedClient)
 	Version                string
 	LogListener            func(string, ...interface{})
+	Connected              bool
+}
+
+func (client *Client) IsConnected() bool {
+	return client.Connected
 }
 
 func (client *Client) Close() {

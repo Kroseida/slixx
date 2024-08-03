@@ -14,7 +14,7 @@ export default {
         {
           title: 'Dashboard',
           icon: 'fas fa-dashboard',
-          link: '/#/app'
+          link: '/#/'
         },
         {
           title: 'Satellites',
@@ -39,11 +39,6 @@ export default {
           icon: 'fas fa-users',
           link: '/#/user',
           permission: 'user.view'
-        },
-        {
-          title: 'Settings',
-          icon: 'fas fa-gear',
-          link: 'https://quasar.dev'
         },
       ]
     };

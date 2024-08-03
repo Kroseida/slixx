@@ -25,6 +25,7 @@ func (handler *ClientHandler) HandleConnectionAccepted(client protocol.WrappedCl
 	c.CurrentProtocol = c.Protocol
 
 	if c.AfterProtocolSelection != nil {
+		c.Connected = true
 		c.AfterProtocolSelection(client)
 	}
 
