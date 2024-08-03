@@ -2,7 +2,7 @@ name: Release Pipeline
 on:
   create:
     tags:
-      - '*'
+      - 'v*'
 
 jobs:
   build:
