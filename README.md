@@ -6,10 +6,10 @@
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/kroseida/slixx)
 | ![GitHub contributors](https://img.shields.io/github/contributors/kroseida/slixx)
 ![GitHub License](https://img.shields.io/github/license/kroseida/slixx)
-| ![GitHub forks](https://img.shields.io/github/forks/kroseida/slixx)
 | ![GitHub repo size](https://img.shields.io/github/repo-size/kroseida/slixx)
 | ![GitHub top language](https://img.shields.io/github/languages/top/kroseida/slixx)
 ![GitHub commits since tagged version (branch)](https://img.shields.io/github/commits-since/kroseida/slixx/0.0.1/develop)
+| ![GitHub forks](https://img.shields.io/github/forks/kroseida/slixx)
 
 
 
