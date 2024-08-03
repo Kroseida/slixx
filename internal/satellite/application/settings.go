@@ -11,7 +11,7 @@ type Settings struct {
 }
 
 type LogSync struct {
-	Active bool `json:"active" graphql:"active"`
+	Active bool `json:"active" graphql:"active" slixx:"HOST"`
 }
 
 type Log struct {

@@ -74,7 +74,10 @@ func GetExecution(ctx context.Context, args GetExecutionDto) (*ExecutionDto, err
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	slixxreactive.InvalidateOn(ctx, "execution."+args.ExecutionId.String())
+	slixxreactive.InvalidateOn(ctx, []string{
+		"execution.update." + args.ExecutionId.String(),
+		"execution.update.*",
+	})
 	execution, err := executionService.Get(args.ExecutionId)
 	if err != nil {
 		return nil, err
@@ -89,7 +92,10 @@ func GetExecutionHistory(ctx context.Context, args GetExecutionDto) ([]*Executio
 	if !IsPermitted(ctx, []string{"execution.view"}) {
 		return nil, graphql.NewSafeError("missing permission")
 	}
-	slixxreactive.InvalidateOn(ctx, "execution."+args.ExecutionId.String())
+	slixxreactive.InvalidateOn(ctx, []string{
+		"execution.update." + args.ExecutionId.String(),
+		"execution.update.*",
+	})
 	execution, err := executionService.GetHistory(args.ExecutionId)
 
 	if err != nil {

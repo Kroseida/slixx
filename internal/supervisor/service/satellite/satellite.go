@@ -5,6 +5,7 @@ import (
 	"github.com/samsarahq/thunder/graphql"
 	"kroseida.org/slixx/internal/supervisor/datasource"
 	"kroseida.org/slixx/internal/supervisor/datasource/provider"
+	"kroseida.org/slixx/internal/supervisor/slixxreactive"
 	"kroseida.org/slixx/internal/supervisor/syncnetwork"
 	syncnetworkClients "kroseida.org/slixx/internal/supervisor/syncnetwork/clients"
 	"kroseida.org/slixx/pkg/model"
@@ -34,7 +35,7 @@ func StartWatchdog() {
 		for _, satellite := range satellites {
 			satellitesMap[satellite.Id] = satellite.Satellite
 		}
-		for _, client := range syncnetworkClients.List {
+		for _, client := range syncnetworkClients.ListConnected() {
 			delete(satellitesMap, client.Model.Id)
 		}
 		for id := range satellitesMap {
@@ -104,6 +105,8 @@ func Create(name string, description string, address string, token string) (*mod
 	// Create a connection to the satellite
 	go syncnetwork.ProvideClient(*satellite)
 
+	slixxreactive.Event("satellite.create")
+
 	return satellite, err
 }
 
@@ -120,6 +123,9 @@ func Update(id uuid.UUID, name *string, description *string, address *string, to
 			client.Client.Connection.Close() // force a reconnect
 		}
 	}()
+
+	slixxreactive.Event("satellite.update." + id.String())
+	slixxreactive.Event("satellite.update.*")
 
 	return satellite, err
 }
@@ -140,6 +146,9 @@ func Delete(id uuid.UUID) (*model.Satellite, error) {
 
 	// Remove the connection to the satellite
 	go syncnetwork.RemoveClient(satellite.Id)
+
+	slixxreactive.Event("satellite.update." + id.String())
+	slixxreactive.Event("satellite.update.*")
 
 	return satellite, err
 }

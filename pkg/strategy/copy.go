@@ -21,7 +21,7 @@ type CopyStrategy struct {
 }
 
 type CopyStrategyConfiguration struct {
-	BlockSize int `json:"blockSize" slixx:"LONG" default:"1073741824"` // 1GB in bytes
+	BlockSize int `json:"blockSize" slixx:"BYTE" default:"1073741824"` // 1GB in bytes
 	Parallel  int `json:"parallel" slixx:"LONG" default:"4"`
 }
 

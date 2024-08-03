@@ -6,13 +6,13 @@ import (
 )
 
 type SlixxReactive struct {
-	cause    string
+	cause    []string
 	resource *reactive.Resource
 }
 
 var reactives = make([]*SlixxReactive, 0)
 
-func InvalidateOn(ctx context.Context, cause string) {
+func InvalidateOn(ctx context.Context, cause []string) {
 	r := reactive.NewResource()
 	reactive.AddDependency(ctx, r, nil)
 
@@ -26,9 +26,14 @@ func InvalidateOn(ctx context.Context, cause string) {
 func Event(cause string) {
 	var reactivesToRemove = make([]*SlixxReactive, 0)
 	for _, reactiveModel := range reactives {
-		if reactiveModel.cause == cause {
-			reactiveModel.resource.Invalidate()
-			reactivesToRemove = append(reactivesToRemove, reactiveModel)
+		for _, listenCause := range reactiveModel.cause {
+			if listenCause == "*" {
+				reactiveModel.resource.Invalidate()
+				reactivesToRemove = append(reactivesToRemove, reactiveModel)
+			} else if listenCause == cause {
+				reactiveModel.resource.Invalidate()
+				reactivesToRemove = append(reactivesToRemove, reactiveModel)
+			}
 		}
 	}
 	reactives = remove(reactives, reactivesToRemove)

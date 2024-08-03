@@ -31,6 +31,11 @@ type ConnectedClient struct {
 	Reader     *bufio.Reader
 	Writer     *bufio.Writer
 	Server     *Server
+	Connected  bool
+}
+
+func (client *ConnectedClient) IsConnected() bool {
+	return client.Connected
 }
 
 func (client *ConnectedClient) Send(packet protocol.Packet) error {

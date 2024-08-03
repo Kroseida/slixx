@@ -18,7 +18,7 @@ func SyncStorages(id *uuid.UUID) {
 		return
 	}
 
-	for clientId, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.ListConnected() {
 		if id != nil && clientId != *id {
 			continue
 		}
@@ -39,7 +39,7 @@ func SyncJobs(id *uuid.UUID) {
 		return
 	}
 
-	for clientId, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.ListConnected() {
 		if id != nil && clientId != *id {
 			continue
 		}
@@ -74,7 +74,7 @@ func SendExecuteBackup(jobId uuid.UUID) (*uuid.UUID, error) {
 
 func SendRequestBackupSync(id *uuid.UUID) error {
 	var hasSent bool
-	for clientId, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.ListConnected() {
 		if id != nil && clientId != *id {
 			continue
 		}
@@ -95,7 +95,7 @@ func SendRequestBackupSync(id *uuid.UUID) error {
 
 func SendExecuteRestore(jobId uuid.UUID, backupId uuid.UUID) (*uuid.UUID, error) {
 	id := uuid.New()
-	for _, client := range syncnetworkClients.List {
+	for _, client := range syncnetworkClients.ListConnected() {
 		if client.Client.Protocol != protocol.Supervisor {
 			continue
 		}
@@ -119,7 +119,7 @@ func SyncJobSchedules(id *uuid.UUID) {
 		return
 	}
 
-	for clientId, client := range syncnetworkClients.List {
+	for clientId, client := range syncnetworkClients.ListConnected() {
 		if id != nil && clientId != *id {
 			continue
 		}
@@ -133,7 +133,7 @@ func SyncJobSchedules(id *uuid.UUID) {
 }
 
 func SendRequestDeleteBackup(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
-	for _, client := range syncnetworkClients.List {
+	for _, client := range syncnetworkClients.ListConnected() {
 		if client.Client.Protocol != protocol.Supervisor {
 			continue
 		}

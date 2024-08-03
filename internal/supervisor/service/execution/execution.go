@@ -71,7 +71,8 @@ func ApplyExecutionToIndex(
 	if err != nil {
 		return err
 	}
-	slixxreactive.Event("execution." + id.String())
+	slixxreactive.Event("execution.update." + id.String())
+	slixxreactive.Event("execution.update.*")
 	return nil
 }
 

@@ -96,4 +96,5 @@ type Handler interface {
 
 type WrappedClient interface {
 	Send(packet Packet) error
+	IsConnected() bool
 }
