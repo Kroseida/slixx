@@ -51,7 +51,7 @@ Supervisor: https://hub.docker.com/r/kroseida/slixx.supervisor
 
 Satellite: https://hub.docker.com/r/kroseida/slixx.satellite
 
-### Installation Docker Compose
+### Quickstart Docker Compose
 
    ```yaml
 version: '3'
