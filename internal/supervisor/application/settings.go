@@ -6,6 +6,12 @@ type Settings struct {
 	Database       Database       `json:"database" graphql:"database"`
 	Logger         Log            `json:"logger" graphql:"logger"`
 	LogSync        LogSync        `json:"logSync" graphql:"logSync"`
+	Backup         Backup         `json:"backup" graphql:"backup"`
+}
+
+type Backup struct {
+	Timeout              int64 `json:"timeout" graphql:"timeout"`
+	TimeoutCheckInterval int   `json:"timeoutCheckInterval" graphql:"checkInterval"`
 }
 
 type Authentication struct {
@@ -41,6 +47,10 @@ var DefaultSettings = Settings{
 		HashCost:        16,
 		TokenSize:       128,
 		SessionDuration: 12,
+	},
+	Backup: Backup{
+		Timeout:              3 * 24, // 3 days
+		TimeoutCheckInterval: 15,
 	},
 	Http: Http{
 		AllowedOrigin:  "*",

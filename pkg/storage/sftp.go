@@ -89,7 +89,7 @@ func (kind *SFtpKind) Size(name string) (uint64, error) {
 
 func (kind *SFtpKind) Store(name string, data []byte, offset uint64) error {
 	// Open the file for writing, create it if it does not exist
-	file, err := kind.Client.OpenFile(fileutils.FixedPathName(kind.Configuration.File+name), os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	file, err := kind.Client.OpenFile(fileutils.FixedPathName(kind.Configuration.File+name), os.O_WRONLY|os.O_CREATE)
 	if err != nil {
 		return err
 	}

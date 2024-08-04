@@ -18,6 +18,10 @@
   "logger": {
     "mode": "${LOGGER_MODE}"
   },
+  "Backup": {
+    "timeout": ${BACKUP_TIMEOUT},
+    "timeoutCheckInterval": ${BACKUP_TIMOUT_CHECK_INTERVAL},
+  },
   "logSync": {
     "active": ${LOGGER_SYNC_ACTIVE},
     "runCleanUp": ${LOGGER_RUN_CLEANUP},

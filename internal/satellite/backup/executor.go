@@ -7,10 +7,49 @@ import (
 	"kroseida.org/slixx/internal/satellite/syncdata"
 	"kroseida.org/slixx/internal/satellite/syncnetwork/action"
 	"kroseida.org/slixx/internal/satellite/syncnetwork/manager"
+	"kroseida.org/slixx/pkg/statustype"
 	strategyRegistry "kroseida.org/slixx/pkg/strategy"
+	"kroseida.org/slixx/pkg/utils"
+	"kroseida.org/slixx/pkg/utils/parallel"
+	"time"
 )
 
+var runningJobs = map[uuid.UUID]*parallel.RunningJob{}
+
+func WatchRunningJobs() {
+	for {
+		for id, runningJob := range runningJobs {
+			if runningJob.StartedAt.Add(time.Duration(application.CurrentSettings.Backup.Timeout) * time.Hour).Before(time.Now()) {
+				runningJob.Canceled = true
+				application.Logger.Info("Job with id", runningJob.JobId, "timed out and was canceled automatically")
+			}
+			if runningJob.Canceled {
+				runningJob.Callback(utils.StatusUpdate{
+					StatusType: statustype.Cancelled,
+					Message:    "Job was canceled",
+					Percentage: 0,
+				})
+
+				delete(runningJobs, id)
+			}
+		}
+
+		time.Sleep(5 * time.Second)
+	}
+}
+
 func Execute(id uuid.UUID, jobId uuid.UUID) error {
+	runningJobs[id] = &parallel.RunningJob{
+		JobId:     jobId,
+		Canceled:  false,
+		StartedAt: time.Now(),
+		Callback: func(status utils.StatusUpdate) {
+			application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
+			status.Id = id
+			status.JobId = &jobId
+			action.SendStatusUpdate(id, "BACKUP", status)
+		},
+	}
 	application.Logger.Info("Executing job", jobId)
 	job := syncdata.Container.Jobs[jobId]
 	if job == nil {
@@ -46,12 +85,7 @@ func Execute(id uuid.UUID, jobId uuid.UUID) error {
 	}
 
 	// Execute strategy
-	backupInfo, err := strategy.Execute(jobId, originStorage, destinationStorage, func(status strategyRegistry.StatusUpdate) {
-		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
-		status.Id = id
-		status.JobId = &job.Id
-		action.SendStatusUpdate(id, "BACKUP", status)
-	})
+	backupInfo, err := strategy.Execute(runningJobs[id], originStorage, destinationStorage)
 	if err != nil {
 		return err
 	}
@@ -77,6 +111,18 @@ func Execute(id uuid.UUID, jobId uuid.UUID) error {
 }
 
 func Restore(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+	runningJobs[id] = &parallel.RunningJob{
+		JobId:     jobId,
+		Canceled:  false,
+		StartedAt: time.Now(),
+		Callback: func(status utils.StatusUpdate) {
+			application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
+			status.Id = id
+			status.JobId = &jobId
+			action.SendStatusUpdate(id, "RESTORE", status)
+		},
+	}
+
 	application.Logger.Info("Restoring backup", backupId)
 	job := syncdata.Container.Jobs[jobId]
 	if job == nil {
@@ -112,12 +158,7 @@ func Restore(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
 	}
 
 	// Execute strategy
-	err = strategy.Restore(originStorage, destinationStorage, &backupId, func(status strategyRegistry.StatusUpdate) {
-		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
-		status.Id = id
-		status.JobId = &job.Id
-		action.SendStatusUpdate(id, "RESTORE", status)
-	})
+	err = strategy.Restore(runningJobs[id], originStorage, destinationStorage, &backupId)
 	if err != nil {
 		return err
 	}
@@ -132,6 +173,18 @@ func Restore(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
 }
 
 func Delete(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
+	runningJobs[id] = &parallel.RunningJob{
+		JobId:     jobId,
+		Canceled:  false,
+		StartedAt: time.Now(),
+		Callback: func(status utils.StatusUpdate) {
+			application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
+			status.Id = id
+			status.JobId = &jobId
+			action.SendStatusUpdate(id, "DELETE", status)
+		},
+	}
+
 	application.Logger.Info("Deleting backup", backupId)
 	job := syncdata.Container.Jobs[jobId]
 	if job == nil {
@@ -163,12 +216,7 @@ func Delete(id uuid.UUID, jobId uuid.UUID, backupId uuid.UUID) error {
 	}
 
 	// Execute strategy
-	err = strategy.Delete(destinationStorage, &backupId, func(status strategyRegistry.StatusUpdate) {
-		application.Logger.Info("Status update", status.Message, "P", status.Percentage, status.StatusType)
-		status.Id = id
-		status.JobId = &job.Id
-		action.SendStatusUpdate(id, "DELETE", status)
-	})
+	err = strategy.Delete(runningJobs[id], destinationStorage, &backupId)
 	if err != nil {
 		return err
 	}

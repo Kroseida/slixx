@@ -16,13 +16,18 @@ func StartTimeoutDetector() {
 		return
 	}
 	for {
-		application.Logger.Info("Setting Timeout to executions older than 3 days")
-		err := datasource.ExecutionProvider.UpdateWithStatusAndOlderThan(statustype.Info, time.Now().Add(-time.Hour*3*24), statustype.Timeout)
+		application.Logger.Info("Setting Timeout to executions older than ", application.CurrentSettings.Backup.Timeout, " hours")
+		err := datasource.ExecutionProvider.UpdateWithStatusAndOlderThan(
+			statustype.Info,
+			time.Now().Add(-time.Hour*time.Duration(application.CurrentSettings.Backup.Timeout)),
+			statustype.Timeout,
+		)
+
 		if err != nil {
 			application.Logger.Error("Failed to update old executions: ", err)
 		}
 
-		time.Sleep(time.Hour * time.Duration(application.CurrentSettings.LogSync.CheckInterval))
+		time.Sleep(time.Minute * time.Duration(application.CurrentSettings.Backup.TimeoutCheckInterval))
 	}
 }
 

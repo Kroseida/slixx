@@ -3,6 +3,7 @@ package strategy
 import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/pkg/storage"
+	"kroseida.org/slixx/pkg/utils/parallel"
 	"reflect"
 	"time"
 )
@@ -13,11 +14,11 @@ type Strategy interface {
 	// Initialize Initialize the strategy with the configuration, this is called before any other method
 	Initialize(configuration any) error
 	// Execute The main method of the strategy execute a backup from the origin to the destination storage (this is called when a backup is requested)
-	Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error)
+	Execute(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind) (*RawBackupInfo, error)
 	// Restore Restore a backup from the destination to the origin storage (this is called when a restore is requested)
-	Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error
+	Restore(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind, id *uuid.UUID) error
 	// Delete Delete a backup from the destination storage (this is called when a delete is requested)
-	Delete(destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error
+	Delete(job *parallel.RunningJob, destination storage.Kind, id *uuid.UUID) error
 	// Parse Parse the configuration of the strategy from a json string to a struct
 	Parse(configurationJson string) (interface{}, error)
 	// DefaultConfiguration Get the DefaultConfiguration Get the default configuration of the strategy
@@ -27,14 +28,6 @@ type Strategy interface {
 	ListBackups(destination storage.Kind) ([]*RawBackupInfo, error)
 	// Close Close the strategy and all its resources
 	Close() error
-}
-
-type StatusUpdate struct {
-	Id         uuid.UUID  `json:"id"`
-	JobId      *uuid.UUID `json:"jobId"`
-	Percentage float64    `json:"percentage"`
-	Message    string     `json:"message"`
-	StatusType string     `json:"statusType"`
 }
 
 type RawBackupInfo struct {

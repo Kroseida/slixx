@@ -8,6 +8,9 @@
         },
         "authenticationToken": "${SATELLITE_AUTH_TOKEN}"
     },
+    "Backup": {
+        "timeout": ${BACKUP_TIMEOUT},
+    },
     "logSync": {
         "active": ${LOGGER_SYNC_ACTIVE}
     }

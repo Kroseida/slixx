@@ -8,10 +8,10 @@ import (
 	"kroseida.org/slixx/internal/satellite/syncnetwork/action"
 	"kroseida.org/slixx/pkg/model"
 	"kroseida.org/slixx/pkg/statustype"
-	strategyRegistry "kroseida.org/slixx/pkg/strategy"
 	syncnetworkBase "kroseida.org/slixx/pkg/syncnetwork"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	supervisorPacket "kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
+	utils_ "kroseida.org/slixx/pkg/utils"
 	"strconv"
 )
 
@@ -82,7 +82,7 @@ func (h *Handler) HandleExecuteBackup(_ protocol.WrappedClient, execute *supervi
 		err := backup.Execute(execute.Id, execute.JobId)
 		if err != nil {
 			application.Logger.Error("Error while executing backup", err)
-			action.SendStatusUpdate(execute.Id, "BACKUP", strategyRegistry.StatusUpdate{
+			action.SendStatusUpdate(execute.Id, "BACKUP", utils_.StatusUpdate{
 				JobId:      &execute.JobId,
 				Percentage: 0,
 				StatusType: statustype.Error,
@@ -105,7 +105,7 @@ func (h *Handler) HandleExecuteRestore(_ protocol.WrappedClient, restore *superv
 		err := backup.Restore(restore.Id, restore.JobId, restore.BackupId)
 		if err != nil {
 			application.Logger.Error("Error while executing backup", err)
-			action.SendStatusUpdate(restore.Id, "RESTORE", strategyRegistry.StatusUpdate{
+			action.SendStatusUpdate(restore.Id, "RESTORE", utils_.StatusUpdate{
 				JobId:      &restore.JobId,
 				Percentage: 0,
 				StatusType: statustype.Error,

@@ -6,6 +6,7 @@ import (
 )
 
 type Executor[T any] struct {
+	Job            *RunningJob
 	Contexts       []Context[T]
 	Error          chan error
 	StatusCallback func(status ExecutorStatus)
@@ -24,12 +25,12 @@ type ExecutorStatus struct {
 	StatusType string
 }
 
-func NewExecutor[T any](items [][]T, callback func(status ExecutorStatus)) *Executor[T] {
+func NewExecutor[T any](job *RunningJob, items [][]T, callback func(status ExecutorStatus)) *Executor[T] {
 	contexts := make([]Context[T], len(items))
 	for index, item := range items {
 		contexts[index] = Context[T]{Items: item}
 	}
-	return &Executor[T]{Contexts: contexts, Error: make(chan error), StatusCallback: callback}
+	return &Executor[T]{Job: job, Contexts: contexts, Error: make(chan error), StatusCallback: callback}
 }
 
 func (executor Executor[T]) Run(execute func(index *int, ctx *Context[T])) error {
@@ -45,9 +46,15 @@ func (executor Executor[T]) Run(execute func(index *int, ctx *Context[T])) error
 }
 
 func (executor Executor[T]) waitWatchdog(callback func(status ExecutorStatus)) error {
+watchdog:
 	for {
 		allFinished := true
 		for _, context := range executor.Contexts {
+			if executor.Job.Canceled {
+				allFinished = true
+				break watchdog
+			}
+
 			if !context.Finished {
 				allFinished = false
 				break
