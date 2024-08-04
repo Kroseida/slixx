@@ -2,9 +2,11 @@ package strategy
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
 	"kroseida.org/slixx/pkg/statustype"
 	"kroseida.org/slixx/pkg/storage"
+	"kroseida.org/slixx/pkg/utils"
 	"kroseida.org/slixx/pkg/utils/fileutils"
 	"kroseida.org/slixx/pkg/utils/parallel"
 	"reflect"
@@ -37,18 +39,22 @@ func (strategy *CopyStrategy) Initialize(rawConfiguration any) error {
 	return nil
 }
 
-func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error) {
+func (strategy *CopyStrategy) Execute(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind) (*RawBackupInfo, error) {
 	backupId := uuid.New()
-	rawFiles, err := strategy.handleInitialize(backupId.String(), "", origin, destination, callback)
+	rawFiles, err := strategy.handleInitialize(job, backupId.String(), "", origin, destination)
 	if err != nil {
 		return nil, err
 	}
 	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	parallelExecutor := parallel.NewExecutor(
+		job,
 		parallelFiles,
 		func(executorStatus parallel.ExecutorStatus) {
-			callback(StatusUpdate{
+			job.Callback(utils.StatusUpdate{
 				Percentage: executorStatus.Percentage,
 				Message:    executorStatus.Message,
 				StatusType: statustype.Info,
@@ -56,13 +62,24 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 		},
 	)
 
+	if job.CheckCancel() {
+		return nil, nil
+	}
+
 	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
 		files := ctx.Items
+
+		if job.CheckCancel() {
+			return
+		}
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
 		err = originCopy.Initialize(origin.GetConfiguration())
 		if err != nil {
 			parallelExecutor.Error <- err
+			return
+		}
+		if job.CheckCancel() {
 			return
 		}
 
@@ -72,12 +89,22 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 			parallelExecutor.Error <- err
 			return
 		}
+		if job.CheckCancel() {
+			return
+		}
 
 		for _, file := range files {
+			if job.CheckCancel() {
+				return
+			}
+
 			if file.Directory {
 				continue
 			}
-			strategy.tryCopy(originCopy, destinationCopy, file, backupId.String(), "", parallelExecutor.Error)
+			strategy.tryCopy(job, originCopy, destinationCopy, file, backupId.String(), "", parallelExecutor.Error)
+			if job.CheckCancel() {
+				return
+			}
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
@@ -102,13 +129,16 @@ func (strategy *CopyStrategy) Execute(jobId uuid.UUID, origin storage.Kind, dest
 		return nil, err
 	}
 
-	return strategy.handleIndexingBackup(backupId, jobId, origin, destination, callback)
+	return strategy.handleIndexingBackup(job, backupId, origin, destination)
 }
 
-func (strategy *CopyStrategy) tryCopy(originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
+func (strategy *CopyStrategy) tryCopy(job *parallel.RunningJob, originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
 	storePrefix string, readPrefix string, parallelError chan error) error {
 	retries := 0
 	for {
+		if job.CheckCancel() {
+			return nil
+		}
 		copyErr := strategy.copy(originCopy, destinationCopy, file, storePrefix, readPrefix)
 		if copyErr == nil {
 			break
@@ -124,8 +154,8 @@ func (strategy *CopyStrategy) tryCopy(originCopy storage.Kind, destinationCopy s
 	return nil
 }
 
-func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sourceDirectory string, from storage.Kind, to storage.Kind, callback func(StatusUpdate)) ([]fileutils.FileInfo, error) {
-	callback(StatusUpdate{
+func (strategy *CopyStrategy) handleInitialize(job *parallel.RunningJob, destinationDirectory string, sourceDirectory string, from storage.Kind, to storage.Kind) ([]fileutils.FileInfo, error) {
+	job.Callback(utils.StatusUpdate{
 		Percentage: 0,
 		Message:    "Initializing strategy",
 		StatusType: statustype.Info,
@@ -140,7 +170,7 @@ func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sour
 		if file.Directory {
 			err := to.CreateDirectory(destinationDirectory + file.RelativePath)
 			if err != nil {
-				callback(StatusUpdate{
+				job.Callback(utils.StatusUpdate{
 					Percentage: 0,
 					Message:    err.Error(),
 					StatusType: statustype.Error,
@@ -150,14 +180,14 @@ func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sour
 		}
 	}
 
-	callback(StatusUpdate{
+	job.Callback(utils.StatusUpdate{
 		Percentage: 0,
 		Message:    "Detected " + strconv.Itoa(len(rawFiles)) + " files",
 		StatusType: statustype.Info,
 	})
 
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -168,10 +198,9 @@ func (strategy *CopyStrategy) handleInitialize(destinationDirectory string, sour
 	return rawFiles, nil
 }
 
-func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID, origin storage.Kind, destination storage.Kind,
-	callback func(StatusUpdate)) (*RawBackupInfo, error) {
+func (strategy *CopyStrategy) handleIndexingBackup(job *parallel.RunningJob, id uuid.UUID, origin storage.Kind, destination storage.Kind) (*RawBackupInfo, error) {
 
-	callback(StatusUpdate{
+	job.Callback(utils.StatusUpdate{
 		Percentage: 100,
 		Message:    "Creating backup info file on destination",
 		StatusType: statustype.Info,
@@ -184,14 +213,14 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 	rawBackupInfo := RawBackupInfo{
 		Id:              &id,
 		CreatedAt:       time.Now(),
-		JobId:           &jobId,
+		JobId:           &job.JobId,            // Store job id so that we can restore it later
 		OriginKind:      origin.GetName(),      // Store origin kind so that we can restore it later
 		DestinationKind: destination.GetName(), // Store destination kind so that we can restore it later
 		Strategy:        strategy.GetName(),    // Store strategy so that we can restore it later
 	}
 	rawBackupInfoBytes, err := json.Marshal(rawBackupInfo)
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -206,7 +235,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 		0,
 	)
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -214,7 +243,7 @@ func (strategy *CopyStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID
 		return nil, err
 	}
 
-	callback(StatusUpdate{
+	job.Callback(utils.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -228,7 +257,7 @@ func handleCreateSlixxDirectories(destination storage.Kind) {
 	destination.CreateDirectory(fileutils.FixedPathName(BackupInfoDirectory))
 }
 
-func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, callback func(StatusUpdate)) error {
+func deleteAllFiles(job *parallel.RunningJob, targetStorage storage.Kind, prefix string, parallels int) error {
 	rawFiles, err := targetStorage.ListFiles(prefix)
 	if err != nil {
 		return err
@@ -237,9 +266,10 @@ func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, ca
 	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, parallels)
 
 	parallelExecutor := parallel.NewExecutor(
+		job,
 		parallelFiles,
 		func(executorStatus parallel.ExecutorStatus) {
-			callback(StatusUpdate{
+			job.Callback(utils.StatusUpdate{
 				Percentage: executorStatus.Percentage,
 				Message:    "Deleting files...",
 				StatusType: statustype.Info,
@@ -301,7 +331,7 @@ func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, ca
 		// Delete again
 		rawFiles, err = targetStorage.ListFiles(prefix)
 		if err != nil {
-			callback(StatusUpdate{
+			job.Callback(utils.StatusUpdate{
 				Percentage: 0,
 				Message:    err.Error(),
 				StatusType: statustype.Error,
@@ -320,17 +350,15 @@ func deleteAllFiles(targetStorage storage.Kind, prefix string, parallels int, ca
 	return nil
 }
 
-func (strategy *CopyStrategy) Delete(destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
+func (strategy *CopyStrategy) Delete(job *parallel.RunningJob, destination storage.Kind, id *uuid.UUID) error {
 	err := destination.Delete(fileutils.FixedPathName(BackupInfoDirectory + id.String()))
 	if err != nil {
 		return err
 	}
-	deleteAllFiles(destination, id.String(), strategy.Configuration.Parallel, func(status StatusUpdate) {
-		callback(status)
-	})
+	deleteAllFiles(job, destination, id.String(), strategy.Configuration.Parallel)
 	destination.DeleteDirectory(id.String())
 
-	callback(StatusUpdate{
+	job.Callback(utils.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -339,22 +367,33 @@ func (strategy *CopyStrategy) Delete(destination storage.Kind, id *uuid.UUID, ca
 	return nil
 }
 
-func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
-	err := deleteAllFiles(origin, "", strategy.Configuration.Parallel, callback)
+func (strategy *CopyStrategy) Restore(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind, id *uuid.UUID) error {
+	if job.CheckCancel() {
+		return nil
+	}
+
+	err := deleteAllFiles(job, origin, "", strategy.Configuration.Parallel)
 	if err != nil {
 		return err
 	}
+	if job.CheckCancel() {
+		return nil
+	}
 
-	rawFiles, err := strategy.handleInitialize("", id.String(), destination, origin, callback)
+	rawFiles, err := strategy.handleInitialize(job, "", id.String(), destination, origin)
 	if err != nil {
 		return err
 	}
 	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
+	if job.CheckCancel() {
+		return nil
+	}
 
 	parallelExecutor := parallel.NewExecutor(
+		job,
 		parallelFiles,
 		func(executorStatus parallel.ExecutorStatus) {
-			callback(StatusUpdate{
+			job.Callback(utils.StatusUpdate{
 				Percentage: executorStatus.Percentage,
 				Message:    executorStatus.Message,
 				StatusType: statustype.Info,
@@ -363,12 +402,19 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 	)
 
 	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		if job.CheckCancel() {
+			return
+		}
+
 		files := ctx.Items
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
 		err = originCopy.Initialize(origin.GetConfiguration())
 		if err != nil {
 			parallelExecutor.Error <- err
+			return
+		}
+		if job.CheckCancel() {
 			return
 		}
 
@@ -378,25 +424,47 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 			parallelExecutor.Error <- err
 			return
 		}
+		if job.CheckCancel() {
+			return
+		}
 
 		for _, file := range files {
+			if job.CheckCancel() {
+				return
+			}
+
 			if file.Directory {
 				continue
 			}
-			strategy.tryCopy(destinationCopy, originCopy, file, "", id.String(), parallelExecutor.Error)
+			strategy.tryCopy(job, destinationCopy, originCopy, file, "", id.String(), parallelExecutor.Error)
+			if job.CheckCancel() {
+				return
+			}
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
 			}
+			if job.CheckCancel() {
+				return
+			}
 
 			processedSize := ctx.Data["proceededBytes"].(uint64)
 			ctx.Data["proceededBytes"] = processedSize + file.Size
+			if job.CheckCancel() {
+				return
+			}
 
 			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
 				ctx.Status = 0
 			} else {
 				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
 			}
+			if job.CheckCancel() {
+				return
+			}
+		}
+		if job.CheckCancel() {
+			return
 		}
 
 		// Close the connections
@@ -407,8 +475,11 @@ func (strategy *CopyStrategy) Restore(origin storage.Kind, destination storage.K
 	if err != nil {
 		return err
 	}
+	if job.CheckCancel() {
+		return nil
+	}
 
-	callback(StatusUpdate{
+	job.Callback(utils.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -451,7 +522,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 	// Read File Size
 	size, err := origin.Size(readPrefix + "/" + file.RelativePath)
 	if err != nil {
-		return err
+		return errors.New("error while reading file size for " + file.RelativePath + ": " + err.Error())
 	}
 
 	iterations := int(size) / strategy.Configuration.BlockSize
@@ -465,7 +536,7 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 	if iterations == 0 {
 		err = destination.Store(fileName, []byte{}, uint64(0))
 		if err != nil {
-			return err
+			return errors.New("error while storing empty file " + fileName + ": " + err.Error())
 		}
 	}
 
@@ -477,12 +548,12 @@ func (strategy *CopyStrategy) copy(origin storage.Kind, destination storage.Kind
 
 		data, err := origin.Read(readPrefix+"/"+file.RelativePath, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
 		if err != nil {
-			return err
+			return errors.New("error while reading file " + readPrefix + "/" + file.RelativePath + ": " + err.Error())
 		}
 
 		err = destination.Store(fileName, data, uint64(index*strategy.Configuration.BlockSize))
 		if err != nil {
-			return err
+			return errors.New("error while storing file " + readPrefix + "/" + fileName + ": " + err.Error())
 		}
 	}
 	return nil

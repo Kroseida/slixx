@@ -4,13 +4,16 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"github.com/google/uuid"
 	"gorm.io/gorm/utils"
 	"kroseida.org/slixx/pkg/statustype"
 	"kroseida.org/slixx/pkg/storage"
+	utils_ "kroseida.org/slixx/pkg/utils"
 	"kroseida.org/slixx/pkg/utils/fileutils"
 	"kroseida.org/slixx/pkg/utils/parallel"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -25,6 +28,12 @@ type IncrementalStrategy struct {
 type IncrementalStrategyConfiguration struct {
 	BlockSize int64 `json:"blockSize" slixx:"BYTE" default:"104857600"` // 100MB
 	Parallel  int   `json:"parallel" slixx:"LONG" default:"4"`
+}
+
+type BlockReference struct {
+	Hash   string `json:"hash"`
+	Offset int64  `json:"offset"`
+	Size   int64  `json:"size"`
 }
 
 func (_ *IncrementalStrategy) Hash(data []byte) string {
@@ -45,13 +54,19 @@ func (strategy *IncrementalStrategy) Initialize(rawConfiguration any) error {
 	return nil
 }
 
-func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kind, destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error) {
+func (strategy *IncrementalStrategy) Execute(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind) (*RawBackupInfo, error) {
+	if job.CheckCancel() {
+		return nil, nil
+	}
 	handleCreateSlixxDirectories(destination)
 
 	destination.CreateDirectory(fileutils.FixedPathName(BlocksDirectory))
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	backupId := uuid.New()
-	rawFiles, err := strategy.handleInitialize(backupId.String(), "", origin, destination, callback)
+	rawFiles, err := strategy.handleInitialize(job, backupId.String(), "", origin, destination)
 	if err != nil {
 		return nil, err
 	}
@@ -60,9 +75,15 @@ func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kin
 		return nil, err
 	}
 
+	if job.CheckCancel() {
+		return nil, nil
+	}
 	blockFiles, err := destination.ListFiles(BlocksDirectory)
 	if err != nil {
 		return nil, err
+	}
+	if job.CheckCancel() {
+		return nil, nil
 	}
 
 	var blocks = make([]string, len(blockFiles))
@@ -77,23 +98,34 @@ func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kin
 	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
 
 	parallelExecutor := parallel.NewExecutor(
+		job,
 		parallelFiles,
 		func(executorStatus parallel.ExecutorStatus) {
-			callback(StatusUpdate{
+			job.Callback(utils_.StatusUpdate{
 				Percentage: executorStatus.Percentage,
 				Message:    executorStatus.Message,
 				StatusType: statustype.Info,
 			})
 		},
 	)
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		if job.CheckCancel() {
+			return
+		}
+
 		files := ctx.Items
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
 		err = originCopy.Initialize(origin.GetConfiguration())
 		if err != nil {
 			parallelExecutor.Error <- err
+			return
+		}
+		if job.CheckCancel() {
 			return
 		}
 
@@ -103,12 +135,22 @@ func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kin
 			parallelExecutor.Error <- err
 			return
 		}
+		if job.CheckCancel() {
+			return
+		}
 
 		for _, file := range files {
+			if job.CheckCancel() {
+				return
+			}
+
 			if file.Directory {
 				continue
 			}
-			strategy.tryIncrementalCopy(originCopy, destinationCopy, file, backupId.String(), parallelExecutor.Error, blocks)
+			strategy.tryIncrementalCopy(job, originCopy, destinationCopy, file, backupId.String(), parallelExecutor.Error, blocks)
+			if job.CheckCancel() {
+				return
+			}
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
@@ -116,12 +158,18 @@ func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kin
 
 			processedSize := ctx.Data["proceededBytes"].(uint64)
 			ctx.Data["proceededBytes"] = processedSize + file.Size
+			if job.CheckCancel() {
+				return
+			}
 
 			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
 				ctx.Status = 0
 			} else {
 				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
 			}
+		}
+		if job.CheckCancel() {
+			return
 		}
 
 		// Close the connections
@@ -132,39 +180,51 @@ func (strategy *IncrementalStrategy) Execute(jobId uuid.UUID, origin storage.Kin
 	if err != nil {
 		return nil, err
 	}
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
-	return strategy.handleIndexingBackup(backupId, jobId, origin, destination, callback)
+	return strategy.handleIndexingBackup(backupId, job, origin, destination)
 }
 
-func (strategy *IncrementalStrategy) handleIndexingBackup(id uuid.UUID, jobId uuid.UUID, origin storage.Kind,
-	destination storage.Kind, callback func(StatusUpdate)) (*RawBackupInfo, error) {
+func (strategy *IncrementalStrategy) handleIndexingBackup(id uuid.UUID, job *parallel.RunningJob, origin storage.Kind,
+	destination storage.Kind) (*RawBackupInfo, error) {
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
-	callback(StatusUpdate{
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 100,
 		Message:    "Creating backup info file on destination",
 		StatusType: statustype.Info,
 	})
 
 	handleCreateSlixxDirectories(destination)
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	// This is the raw backup info that we will store in the destination storage, so that we can restore it later e.g
 	// after supervisor get corrupted data or something like that we can restore this backup info and continue
 	rawBackupInfo := RawBackupInfo{
 		Id:              &id,
 		CreatedAt:       time.Now(),
-		JobId:           &jobId,
+		JobId:           &job.JobId,
 		OriginKind:      origin.GetName(),      // Store origin kind so that we can restore it later
 		DestinationKind: destination.GetName(), // Store destination kind so that we can restore it later
 		Strategy:        strategy.GetName(),    // Store strategy so that we can restore it later
 	}
 	rawBackupInfoBytes, err := json.Marshal(rawBackupInfo)
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils_.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
 		})
 		return nil, err
+	}
+	if job.CheckCancel() {
+		return nil, nil
 	}
 
 	// Store backup info file in destination so that we have some information about the backup
@@ -174,7 +234,7 @@ func (strategy *IncrementalStrategy) handleIndexingBackup(id uuid.UUID, jobId uu
 		0,
 	)
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils_.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
@@ -182,7 +242,7 @@ func (strategy *IncrementalStrategy) handleIndexingBackup(id uuid.UUID, jobId uu
 		return nil, err
 	}
 
-	callback(StatusUpdate{
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -191,9 +251,13 @@ func (strategy *IncrementalStrategy) handleIndexingBackup(id uuid.UUID, jobId uu
 	return &rawBackupInfo, nil
 }
 
-func (strategy *IncrementalStrategy) handleInitialize(destinationDirectory string, sourceDirectory string,
-	from storage.Kind, to storage.Kind, callback func(StatusUpdate)) ([]fileutils.FileInfo, error) {
-	callback(StatusUpdate{
+func (strategy *IncrementalStrategy) handleInitialize(job *parallel.RunningJob, destinationDirectory string, sourceDirectory string,
+	from storage.Kind, to storage.Kind) ([]fileutils.FileInfo, error) {
+	if job.CheckCancel() {
+		return nil, nil
+	}
+
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 0,
 		Message:    "Initializing strategy",
 		StatusType: statustype.Info,
@@ -204,13 +268,16 @@ func (strategy *IncrementalStrategy) handleInitialize(destinationDirectory strin
 	}
 
 	to.CreateDirectory(destinationDirectory)
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	for _, file := range rawFiles {
 		if file.Directory {
 			to.CreateDirectory(destinationDirectory + file.RelativePath)
 
 			if err != nil {
-				callback(StatusUpdate{
+				job.Callback(utils_.StatusUpdate{
 					Percentage: 0,
 					Message:    err.Error(),
 					StatusType: statustype.Error,
@@ -219,29 +286,39 @@ func (strategy *IncrementalStrategy) handleInitialize(destinationDirectory strin
 			}
 		}
 	}
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
-	callback(StatusUpdate{
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 0,
 		Message:    "Detected " + strconv.Itoa(len(rawFiles)) + " files",
 		StatusType: statustype.Info,
 	})
 
 	if err != nil {
-		callback(StatusUpdate{
+		job.Callback(utils_.StatusUpdate{
 			Percentage: 0,
 			Message:    err.Error(),
 			StatusType: statustype.Error,
 		})
 		return nil, err
 	}
+	if job.CheckCancel() {
+		return nil, nil
+	}
 
 	return rawFiles, nil
 }
 
-func (strategy *IncrementalStrategy) tryIncrementalCopy(originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
+func (strategy *IncrementalStrategy) tryIncrementalCopy(job *parallel.RunningJob, originCopy storage.Kind, destinationCopy storage.Kind, file fileutils.FileInfo,
 	storePrefix string, parallelError chan error, blocks []string) error {
 	retries := 0
 	for {
+		if job.CheckCancel() {
+			return nil
+		}
+
 		copyErr := strategy.copyIncremental(originCopy, destinationCopy, file, storePrefix, blocks)
 		if copyErr == nil {
 			break
@@ -284,7 +361,7 @@ func (strategy *IncrementalStrategy) copyIncremental(origin storage.Kind, destin
 		}
 	}
 
-	var blockLinksOfFile = make(map[int64]string)
+	var blockLinksOfFile = make([]*BlockReference, iterations)
 	for index := int64(0); index < iterations; index++ {
 		readSize := strategy.Configuration.BlockSize
 		if index == iterations-1 && lastBlockSize != 0 {
@@ -292,17 +369,22 @@ func (strategy *IncrementalStrategy) copyIncremental(origin storage.Kind, destin
 		}
 
 		data, err := origin.Read(file.RelativePath, uint64(index*strategy.Configuration.BlockSize), uint64(readSize))
+
 		if err != nil {
 			return err
 		}
+		// Without last 2 characters
 		var hash = strategy.Hash(data)
-		blockLinksOfFile[readSize] = hash
+		blockLinksOfFile[index] = &BlockReference{
+			Hash:   hash,
+			Offset: index * strategy.Configuration.BlockSize,
+			Size:   readSize,
+		}
 
 		if utils.Contains(blocks, hash) {
 			continue
 		}
-
-		err = destination.Store(fileutils.FixedPathName(BlocksDirectory+hash), data, uint64(index*strategy.Configuration.BlockSize))
+		err = destination.Store(fileutils.FixedPathName(BlocksDirectory+"/"+hash), data, 0)
 		if err != nil {
 			return err
 		}
@@ -318,22 +400,25 @@ func (strategy *IncrementalStrategy) copyIncremental(origin storage.Kind, destin
 	return nil
 }
 
-func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
-	err := deleteAllFiles(origin, "", 1, callback)
+func (strategy *IncrementalStrategy) Restore(job *parallel.RunningJob, origin storage.Kind, destination storage.Kind, id *uuid.UUID) error {
+	err := deleteAllFiles(job, origin, "", 1)
 	if err != nil {
 		return err
 	}
 
-	rawFiles, err := strategy.handleInitialize("", id.String(), destination, origin, callback)
+	rawFiles, err := strategy.handleInitialize(job, "", id.String(), destination, origin)
 	if err != nil {
 		return err
 	}
-
+	if job.CheckCancel() {
+		return nil
+	}
 	parallelFiles, sizes := fileutils.SplitArrayBySize(rawFiles, strategy.Configuration.Parallel)
 	parallelExecutor := parallel.NewExecutor(
+		job,
 		parallelFiles,
 		func(executorStatus parallel.ExecutorStatus) {
-			callback(StatusUpdate{
+			job.Callback(utils_.StatusUpdate{
 				Percentage: executorStatus.Percentage,
 				Message:    executorStatus.Message,
 				StatusType: statustype.Info,
@@ -342,6 +427,9 @@ func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination st
 	)
 
 	err = parallelExecutor.Run(func(index *int, ctx *parallel.Context[fileutils.FileInfo]) {
+		if job.CheckCancel() {
+			return
+		}
 		files := ctx.Items
 
 		originCopy := reflect.New(reflect.TypeOf(origin).Elem()).Interface().(storage.Kind)
@@ -359,10 +447,17 @@ func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination st
 		}
 
 		for _, file := range files {
+			if job.CheckCancel() {
+				return
+			}
+
 			if file.Directory {
 				continue
 			}
-			strategy.tryRestoreCopy(destinationCopy, originCopy, file, "", id.String(), parallelExecutor.Error)
+			strategy.tryRestoreCopy(job, destinationCopy, originCopy, file, "", id.String(), parallelExecutor.Error)
+			if job.CheckCancel() {
+				return
+			}
 
 			if ctx.Data["proceededBytes"] == nil {
 				ctx.Data["proceededBytes"] = uint64(0)
@@ -370,12 +465,18 @@ func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination st
 
 			processedSize := ctx.Data["proceededBytes"].(uint64)
 			ctx.Data["proceededBytes"] = processedSize + file.Size
+			if job.CheckCancel() {
+				return
+			}
 
 			if sizes[*index] == 0 || ctx.Data["proceededBytes"].(uint64) == 0 {
 				ctx.Status = 0
 			} else {
 				ctx.Status = float64(ctx.Data["proceededBytes"].(uint64)) / float64(sizes[*index])
 			}
+		}
+		if job.CheckCancel() {
+			return
 		}
 
 		// Close the connections
@@ -387,7 +488,7 @@ func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination st
 		return err
 	}
 
-	callback(StatusUpdate{
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,
@@ -398,10 +499,13 @@ func (strategy *IncrementalStrategy) Restore(origin storage.Kind, destination st
 	return nil
 }
 
-func (strategy *IncrementalStrategy) tryRestoreCopy(originCopy storage.Kind, destinationCopy storage.Kind,
+func (strategy *IncrementalStrategy) tryRestoreCopy(job *parallel.RunningJob, originCopy storage.Kind, destinationCopy storage.Kind,
 	file fileutils.FileInfo, storePrefix string, readPrefix string, parallelError chan error) error {
 	retries := 0
 	for {
+		if job.CheckCancel() {
+			return nil
+		}
 		copyErr := strategy.copyRestore(originCopy, destinationCopy, file, storePrefix, readPrefix)
 		if copyErr == nil {
 			break
@@ -422,43 +526,43 @@ func (strategy *IncrementalStrategy) copyRestore(origin storage.Kind, destinatio
 	if file.Directory {
 		return nil
 	}
-	var blockLinksOfFile = make(map[int64]string)
+	var blockLinksOfFile = make([]*BlockReference, 0)
+	sort.Slice(blockLinksOfFile, func(i, j int) bool {
+		return blockLinksOfFile[i].Offset > blockLinksOfFile[j].Offset
+	})
+
 	data, err := origin.Read(readPrefix+"/"+file.RelativePath, 0, 0)
 	if err != nil {
-		return err
+		return errors.New("error while loading block links for file: " + file.RelativePath + " error: " + err.Error())
 	}
 	err = json.Unmarshal(data, &blockLinksOfFile)
 	if err != nil {
-		return err
+		return errors.New("error while loading block links for file: " + file.RelativePath + " error: " + err.Error())
 	}
-	cursorPosition := int64(0)
 
-	fileName := storePrefix + "/" + file.RelativePath
-	for size, hash := range blockLinksOfFile {
-		data, err := origin.Read(fileutils.FixedPathName(BlocksDirectory+hash), uint64(0), uint64(size))
+	fileName := fileutils.FixedPathName(storePrefix + "/" + file.RelativePath)
+	for _, reference := range blockLinksOfFile {
+		data, err := origin.Read(fileutils.FixedPathName(BlocksDirectory+reference.Hash), uint64(0), uint64(reference.Size))
 		if err != nil {
-			return err
+			return errors.New("error while reading block: " + reference.Hash + " for file: " + fileName + " error: " + err.Error())
 		}
-		err = destination.Store(fileName, data, uint64(cursorPosition))
+		err = destination.Store(fileName, data, uint64(reference.Offset))
 		if err != nil {
-			return err
+			return errors.New("error while storing block: " + reference.Hash + " for file: " + fileName + " error: " + err.Error())
 		}
-		cursorPosition += size
 	}
 	return nil
 }
 
-func (strategy *IncrementalStrategy) Delete(destination storage.Kind, id *uuid.UUID, callback func(StatusUpdate)) error {
+func (strategy *IncrementalStrategy) Delete(job *parallel.RunningJob, destination storage.Kind, id *uuid.UUID) error {
 	err := destination.Delete(fileutils.FixedPathName(BackupInfoDirectory + id.String()))
 	if err != nil {
 		return err
 	}
-	deleteAllFiles(destination, id.String(), 1, func(status StatusUpdate) {
-		callback(status)
-	})
+	deleteAllFiles(job, destination, id.String(), 1)
 	destination.DeleteDirectory(id.String())
 
-	callback(StatusUpdate{
+	job.Callback(utils_.StatusUpdate{
 		Percentage: 100,
 		Message:    "FINISHED",
 		StatusType: statustype.Finished,

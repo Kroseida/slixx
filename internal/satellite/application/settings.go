@@ -8,6 +8,11 @@ type Settings struct {
 	Logger    Log       `json:"logger" graphql:"logger"`
 	Satellite Satellite `json:"satellite" graphql:"satellite"`
 	LogSync   LogSync   `json:"logSync" graphql:"logSync"`
+	Backup    Backup    `json:"backup" graphql:"backup"`
+}
+
+type Backup struct {
+	Timeout int64 `json:"timeout" graphql:"timeout"`
 }
 
 type LogSync struct {
@@ -30,6 +35,9 @@ type Network struct {
 var DefaultSettings = Settings{
 	Logger: Log{
 		Mode: "info",
+	},
+	Backup: Backup{
+		Timeout: 3 * 24, // 3 days
 	},
 	LogSync: LogSync{
 		Active: true,

@@ -3,6 +3,7 @@ package main
 import (
 	"kroseida.org/slixx/internal/common"
 	"kroseida.org/slixx/internal/satellite/application"
+	"kroseida.org/slixx/internal/satellite/backup"
 	"kroseida.org/slixx/internal/satellite/syncdata"
 	"kroseida.org/slixx/internal/satellite/syncnetwork"
 	"kroseida.org/slixx/pkg/model"
@@ -54,6 +55,9 @@ func main() {
 	}
 
 	application.Logger.Info("Listening sync network on " + application.CurrentSettings.Satellite.Network.BindAddress)
+
 	go syncnetwork.SyncLoop()
+	go backup.WatchRunningJobs()
+
 	syncnetwork.Listen()
 }

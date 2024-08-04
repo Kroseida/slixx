@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/jlaffaye/ftp"
+	"io"
 	"kroseida.org/slixx/pkg/utils/fileutils"
 	"reflect"
 	"strings"
@@ -175,32 +176,33 @@ func (kind *FtpKind) listFiles(path string, files *[]fileutils.FileInfo, directo
 	return nil
 }
 
-func (kind *FtpKind) Read(file string, offset uint64, size uint64) ([]byte, error) {
+func (kind *FtpKind) Read(file string, offset uint64, rawSize uint64) ([]byte, error) {
+	size := rawSize
 	if size == 0 && offset == 0 {
-		reader, err := kind.Client.Retr(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
+		rsize, err := kind.Client.FileSize(fileutils.FixedPathName(kind.Configuration.File + "/" + file))
 		if err != nil {
 			return nil, err
 		}
-		defer reader.Close()
-		bytes := make([]byte, 0)
-
-		_, err = reader.Read(bytes)
-		if err != nil {
-			return nil, err
-		}
-
-		return bytes, nil
+		size = uint64(rsize)
 	}
-	reader, err := kind.Client.RetrFrom(fileutils.FixedPathName(file), offset)
+	reader, err := kind.Client.RetrFrom(fileutils.FixedPathName(kind.Configuration.File+"/"+file), offset)
 	if err != nil {
 		return nil, err
 	}
 	defer reader.Close()
-	bytes := make([]byte, size)
 
-	_, err = reader.Read(bytes)
-	if err != nil {
-		return nil, err
+	bytes := make([]byte, size)
+	totalRead := uint64(0)
+
+	for totalRead < size {
+		n, err := reader.Read(bytes[totalRead:])
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return nil, err
+		}
+		totalRead += uint64(n)
 	}
 
 	return bytes, nil

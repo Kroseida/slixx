@@ -4,9 +4,9 @@ import (
 	"github.com/google/uuid"
 	"kroseida.org/slixx/internal/satellite/application"
 	"kroseida.org/slixx/internal/satellite/syncnetwork/manager"
-	"kroseida.org/slixx/pkg/strategy"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol"
 	"kroseida.org/slixx/pkg/syncnetwork/protocol/supervisor/packet"
+	utils_ "kroseida.org/slixx/pkg/utils"
 	"time"
 )
 
@@ -34,7 +34,7 @@ func SyncLogsToSupervisor() {
 	}
 }
 
-func SendStatusUpdate(id uuid.UUID, kind string, status strategy.StatusUpdate) {
+func SendStatusUpdate(id uuid.UUID, kind string, status utils_.StatusUpdate) {
 	// iterate over all connection in server
 	for _, connection := range manager.Server.ActiveConnection {
 		if connection.Protocol != protocol.Supervisor {
