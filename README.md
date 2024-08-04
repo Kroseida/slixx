@@ -1,4 +1,4 @@
-<img src=".github/assets/logo.png" width="200">
+<img src=".github/assets/logo.png" href="https://docs.slixx.app/" width="200">
 
 # Slixx
 
@@ -52,7 +52,7 @@ Supervisor: https://hub.docker.com/r/kroseida/slixx.supervisor
 Satellite: https://hub.docker.com/r/kroseida/slixx.satellite
 
 ### Quickstart Docker Compose
-
+(Please read our <a href="https://docs.slixx.app/">documentation</a> before productive use!)
    ```yaml
 version: '3'
 services:
