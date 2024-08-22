@@ -2,8 +2,6 @@ name: Develop Pipeline
 on:
   push:
     branches: [ "develop" ]
-    tags:
-      - '*'
 
 jobs:
   build:
