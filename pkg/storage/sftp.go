@@ -18,12 +18,11 @@ type SFtpKind struct {
 }
 
 type SFtpKindConfiguration struct {
-	Host       string `json:"host" slixx:"HOST" default:"sftp.slixx.app:22"`
-	Username   string `json:"username" slixx:"STRING" default:"root"`
-	Password   string `json:"password" slixx:"PASSWORD" default:""`
-	File       string `json:"file" slixx:"PATH" default:"/"`
-	PrivateKey string `json:"privateKey" slixx:"STRING"` // Optional: Use for key-based authentication
-	Timeout    int64  `json:"timeout" slixx:"LONG" default:"1000"`
+	Host     string `json:"host" slixx:"HOST" default:"sftp.slixx.app:22"`
+	Username string `json:"username" slixx:"STRING" default:"root"`
+	Password string `json:"password" slixx:"PASSWORD" default:""`
+	File     string `json:"file" slixx:"PATH" default:"/"`
+	Timeout  int64  `json:"timeout" slixx:"LONG" default:"1000"`
 }
 
 func (kind *SFtpKind) GetName() string {
@@ -45,16 +44,7 @@ func (kind *SFtpKind) GetConfiguration() any {
 func (kind *SFtpKind) Initialize(rawConfiguration any) error {
 	configuration := rawConfiguration.(*SFtpKindConfiguration)
 
-	var auth []ssh.AuthMethod
-	if configuration.PrivateKey != "" {
-		key, err := ssh.ParsePrivateKey([]byte(configuration.PrivateKey))
-		if err != nil {
-			return err
-		}
-		auth = append(auth, ssh.PublicKeys(key))
-	} else if configuration.Password != "" {
-		auth = append(auth, ssh.Password(configuration.Password))
-	}
+	var auth = []ssh.AuthMethod{ssh.Password(configuration.Password)}
 
 	config := &ssh.ClientConfig{
 		User:            configuration.Username,

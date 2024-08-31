@@ -105,8 +105,7 @@ func (provider StorageProvider) Update(id uuid.UUID, name *string, description *
 				if err != nil {
 					return nil, err
 				}
-				if reflect.ValueOf(oldParsedConfiguration).Elem().Field(i).String() == "********" ||
-					reflect.ValueOf(oldParsedConfiguration).Elem().Field(i).String() == "" {
+				if reflect.ValueOf(parsedConfiguration).Elem().Field(i).String() == "********" {
 					val.Field(i).SetString(reflect.ValueOf(oldParsedConfiguration).Elem().Field(i).String())
 				}
 			}
