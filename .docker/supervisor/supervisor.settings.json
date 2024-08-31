@@ -20,7 +20,7 @@
   },
   "Backup": {
     "timeout": ${BACKUP_TIMEOUT},
-    "timeoutCheckInterval": ${BACKUP_TIMOUT_CHECK_INTERVAL},
+    "timeoutCheckInterval": ${BACKUP_TIMOUT_CHECK_INTERVAL}
   },
   "logSync": {
     "active": ${LOGGER_SYNC_ACTIVE},
